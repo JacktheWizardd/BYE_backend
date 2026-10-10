@@ -98,6 +98,44 @@ public struct Review: Codable, Identifiable, Hashable, Sendable {
     public var postedLabel: String { date.isEmpty ? "Posted date unavailable" : "Posted \(String(date.prefix(10)))" }
 }
 
+public struct ReviewCourseCount: Codable, Hashable, Sendable {
+    public let label: String
+    public let count: Int?
+    public init(label: String, count: Int?) { self.label = label; self.count = count }
+}
+
+/// Coverage belongs to a source filter, never to an instructor name alone.
+public struct ReviewCoverage: Codable, Hashable, Sendable {
+    public var reviewIDs: [String]
+    public var nextCursor: String?
+    public var hasNextPage: Bool
+    public var updatedAt: Date
+    public init(reviewIDs: [String], nextCursor: String?, hasNextPage: Bool, updatedAt: Date = Date()) {
+        self.reviewIDs = reviewIDs; self.nextCursor = nextCursor; self.hasNextPage = hasNextPage; self.updatedAt = updatedAt
+    }
+    public var finished: Bool { !hasNextPage || reviewIDs.count >= 50 }
+}
+
+public enum ReviewFilter: Hashable, Sendable {
+    case thisCourse, allCourses, source(String)
+    public func reviews(in profile: RMPProfile, course: Course) -> [Review] {
+        let reviews: [Review]
+        switch self {
+        case .thisCourse: reviews = profile.reviews.filter { course.matchesReview($0.course) }
+        case .allCourses:
+            if let ids = profile.reviewCoverage?["all"]?.reviewIDs {
+                let included = Set(ids); reviews = profile.reviews.filter { included.contains($0.id) }
+            } else { reviews = profile.reviews }
+        case .source(let label): reviews = profile.reviews.filter { $0.course == label }
+        }
+        return Array(Ordering.reviews(reviews, by: .recent).prefix(50))
+    }
+    public func requestLabel(course: Course) -> String? {
+        switch self { case .thisCourse: return course.key; case .allCourses: return nil; case .source(let label): return label }
+    }
+    public static func coverageKey(_ label: String?) -> String { label.map { "course|" + $0 } ?? "all" }
+}
+
 public struct RMPProfile: Codable, Identifiable, Hashable, Sendable {
     public let id: String
     public let firstName: String
@@ -110,6 +148,15 @@ public struct RMPProfile: Codable, Identifiable, Hashable, Sendable {
     public let ratingCount: Int?
     public let wouldTakeAgain: Double?
     public var reviews: [Review]
+    public var courseCounts: [ReviewCourseCount]?
+    public var reviewCoverage: [String: ReviewCoverage]?
+    public init(id: String, firstName: String, lastName: String, school: String, schoolID: Int?, department: String,
+                rating: Double?, difficulty: Double?, ratingCount: Int?, wouldTakeAgain: Double?, reviews: [Review],
+                courseCounts: [ReviewCourseCount]? = nil, reviewCoverage: [String: ReviewCoverage]? = nil) {
+        self.id = id; self.firstName = firstName; self.lastName = lastName; self.school = school; self.schoolID = schoolID
+        self.department = department; self.rating = rating; self.difficulty = difficulty; self.ratingCount = ratingCount
+        self.wouldTakeAgain = wouldTakeAgain; self.reviews = reviews; self.courseCounts = courseCounts; self.reviewCoverage = reviewCoverage
+    }
     public var name: String { firstName + " " + lastName }
     public var url: URL { URL(string: "https://www.ratemyprofessors.com/professor/\(id)")! }
 }
@@ -128,12 +175,17 @@ public struct ReviewSummary: Codable, Hashable, Sendable {
     public var generatedAt: Date
 }
 
-public enum LookupState: String, Codable, Sendable { case pending, searching, ready, unavailable }
+public enum LookupState: String, Codable, Sendable { case pending, searching, ready, selectionRequired, unavailable }
 
 public struct Professor: Codable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public var sections: [Section]
+    public var subjectCode: String = ""
+    public var subjectDescription: String = ""
+    public var candidates: [RMPProfile] = []
+    public var generation: UUID = UUID()
+    public var pendingProfileID: String?
     public var profile: RMPProfile?
     public var summary: ReviewSummary?
     public var state: LookupState = .pending
@@ -220,7 +272,11 @@ public enum ScheduleParser {
                 return Section(crn: crn, title: first["courseTitle"], start: first["ptrmStartDate"], end: first["ptrmEndDate"],
                                formats: formats, meetings: descriptions, status: first["fwSectOpenInd"])
             }.sorted { $0.crn < $1.crn }
-            return Professor(id: name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current), name: name, sections: sections)
+            var professor = Professor(id: name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current), name: name, sections: sections)
+            professor.subjectCode = course.subject
+            let descriptions = Set(records.map { $0["subjDesc"].trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
+            professor.subjectDescription = descriptions.count == 1 ? descriptions.first! : ""
+            return professor
         }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 }
@@ -238,6 +294,15 @@ public enum IdentityMatcher {
               first.first == initialName, last.contains(familyName) else { return false }
         // Accept a compound family name only when all additional PCC name tokens are represented.
         return source.dropFirst().allSatisfy { (first + last).contains($0) }
+    }
+    public static func normalizedName(_ name: String) -> String { tokens(name).joined(separator: " ") }
+    public static func eligible(name: String, candidates: [RMPProfile]) -> [RMPProfile] {
+        Dictionary(candidates.filter { matches(name: name, profile: $0) }.map { ($0.id, $0) },
+                   uniquingKeysWith: { _, latest in latest }).values.sorted {
+            let a = [$0.name, $0.department, $0.id].joined(separator: "|")
+            let b = [$1.name, $1.department, $1.id].joined(separator: "|")
+            return a.localizedStandardCompare(b) == .orderedAscending
+        }
     }
     public static func unique(name: String, candidates: [RMPProfile]) -> RMPProfile? {
         let matches = Dictionary(grouping: candidates.filter { matches(name: name, profile: $0) }, by: \.id)

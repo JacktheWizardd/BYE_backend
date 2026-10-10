@@ -24,19 +24,36 @@ final class AppModel: ObservableObject {
     @Published var summaryLoadingID: String?
     @Published var detailProgress: String?
     @Published var detailCancelled = false
+    @Published var courseReviewIssues: [String: String] = [:]
     @Published var suggestionLoading = false
     @Published private var suggestionCatalog: [CourseSuggestion] = []
     private let pcc: PCCClient
     private let ollama: OllamaClient
+    @Published var chooserID: String?
+    @Published var chooserIssue: String?
+    private let choices: ProfileChoiceStore
+    private let makeReader: @MainActor () -> any ProfileReader
+    private enum PreviewAction { case lookup, discover, select(String) }
+    private struct PreviewJob {
+        let id: String
+        let generation: UUID
+        let action: PreviewAction
+        let token = UUID()
+    }
+    private var pendingPreviews: [PreviewJob] = []
+    private var activePreviews: [String: PreviewJob] = [:]
+    private var previewTasks: [String: Task<Void, Never>] = [:]
+    private var previewReaders: [String: any ProfileReader] = [:]
+    private var idlePreviewReaders: [any ProfileReader] = []
     private let cache: ReportCache
     private var searchTask: Task<Void, Never>?
     private var detailTask: Task<Void, Never>?
     private var summaryTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
     private var suggestionTermID = ""
-    private var browsers: [RMPBrowser] = []
-    private var detailReader: RMPBrowser?
+    private var detailReader: (any ProfileReader)?
     private var pendingDetailID: String?
+    private var pendingDetailFilter: String?
     private var pendingSummaryID: String?
     private var attemptedSummaries: Set<String> = []
     private var attemptedDetails: Set<String> = []
@@ -47,8 +64,144 @@ final class AppModel: ObservableObject {
     private(set) var quickPassSnapshot: [Professor] = []
     #endif
 
-    init(pcc: PCCClient = PCCClient(), ollama: OllamaClient = OllamaClient(), cache: ReportCache = ReportCache()) {
+    init(pcc: PCCClient = PCCClient(), ollama: OllamaClient = OllamaClient(), cache: ReportCache = ReportCache(),
+         choices: ProfileChoiceStore = ProfileChoiceStore(),
+         makeReader: @escaping @MainActor () -> any ProfileReader = { RMPAPIReader() }) {
         self.pcc = pcc; self.ollama = ollama; self.cache = cache
+        self.choices = choices; self.makeReader = makeReader
+    }
+    var chooserProfessor: Professor? { professors.first { $0.id == chooserID } }
+    func isPreviewing(_ id: String) -> Bool {
+        activePreviews[id] != nil || pendingPreviews.contains { $0.id == id }
+    }
+    func openChooser(id: String) {
+        guard let professor = professors.first(where: { $0.id == id }) else { return }
+        chooserID = id; chooserIssue = nil
+        if let current = professor.profile, let index = professors.firstIndex(where: { $0.id == id }) {
+            professors[index].candidates = IdentityMatcher.eligible(name: professor.name, candidates: professors[index].candidates + [current])
+        }
+        if professor.profile != nil { enqueuePreview(id: id, action: .discover) }
+    }
+    func retryProfessor(id: String) { enqueuePreview(id: id, action: .lookup) }
+    func chooseProfile(id: String, profileID: String) {
+        guard !isPreviewing(id), let index = professors.firstIndex(where: { $0.id == id }),
+              professors[index].candidates.contains(where: { $0.id == profileID }) else { return }
+        if let old = professors[index].profile, let course {
+            cache.invalidate(name: professors[index].name, course: course, subject: professors[index].subjectCode, profileID: old.id)
+        }
+        courseReviewIssues = courseReviewIssues.filter { !$0.key.hasPrefix(id + "|") }
+        professors[index].generation = UUID()
+        professors[index].pendingProfileID = profileID
+        professors[index].profile = nil; professors[index].summary = nil
+        professors[index].checkedAt = nil; professors[index].reviewsComplete = false
+        professors[index].issue = nil; professors[index].reviewIssue = nil; professors[index].summaryIssue = nil
+        attemptedDetails.remove(id); attemptedSummaries.remove(id); retryingIDs.remove(id)
+        if pendingDetailID == id { pendingDetailID = nil }
+        if pendingSummaryID == id { pendingSummaryID = nil }
+        if loadingDetailsID == id { detailTask?.cancel(); detailReader?.stop() }
+        if summaryLoadingID == id { summaryTask?.cancel() }
+        chooserID = nil
+        enqueuePreview(id: id, action: .select(profileID))
+    }
+    private func enqueuePreview(id: String, action: PreviewAction) {
+        guard !isPreviewing(id), let professor = professors.first(where: { $0.id == id }) else { return }
+        pendingPreviews.append(PreviewJob(id: id, generation: professor.generation, action: action))
+        busy = true; pumpPreviews()
+    }
+    private func pumpPreviews() {
+        while activePreviews.count < 2, !pendingPreviews.isEmpty {
+            let job = pendingPreviews.removeFirst()
+            guard let index = professors.firstIndex(where: { $0.id == job.id }), professors[index].generation == job.generation else { continue }
+            let professor = professors[index], reader = idlePreviewReaders.popLast() ?? makeReader(), run = runID
+            activePreviews[job.id] = job; previewReaders[job.id] = reader
+            if case .discover = job.action { } else { professors[index].state = .searching; professors[index].issue = nil }
+            previewTasks[job.id] = Task { [weak self] in
+                guard let self else { return }
+                defer {
+                    reader.stop()
+                    if self.runID == run, self.activePreviews[job.id]?.token == job.token {
+                        self.activePreviews[job.id] = nil; self.previewReaders[job.id] = nil; self.previewTasks[job.id] = nil
+                        self.idlePreviewReaders.append(reader)
+                        self.checkedCount += 1; self.pumpPreviews()
+                    }
+                }
+                do {
+                    let outcome: ProfileLookupOutcome
+                    switch job.action {
+                    case .lookup:
+                        if let course { cache.invalidate(name: professor.name, course: course, subject: professor.subjectCode) }
+                        let preference = professor.pendingProfileID ?? choices.choice(name: professor.name, subject: professor.subjectCode)
+                        outcome = try await reader.lookupOutcome(professor, preferredProfileID: preference)
+                    case .discover:
+                        let found = try await reader.candidates(professor, discoverAll: true)
+                        let combined = found + (professor.profile.map { [$0] } ?? [])
+                        outcome = .selectionRequired(IdentityMatcher.eligible(name: professor.name, candidates: combined))
+                    case .select(let id):
+                        do { outcome = .verified(try await reader.preview(professor, profileID: id)) }
+                        catch is ProfileIdentityMismatch {
+                            outcome = .selectionRequired(professor.candidates.filter { $0.id != id }, invalidatedProfileID: id)
+                        }
+                    }
+                    guard !Task.isCancelled, runID == run, professors[index].generation == job.generation else { return }
+                    if case .discover = job.action {
+                        if case .selectionRequired(let candidates, _) = outcome { professors[index].candidates = candidates }
+                        return
+                    }
+                    switch outcome {
+                    case .verified(let profile):
+                        if professors[index].profile?.id != profile.id || professors[index].profile?.reviews != profile.reviews {
+                            professors[index].summary = nil; professors[index].summaryIssue = nil
+                            attemptedSummaries.remove(job.id); attemptedDetails.remove(job.id)
+                        }
+                        professors[index].profile = profile; professors[index].state = .ready
+                        professors[index].checkedAt = Date(); professors[index].reviewsComplete = false
+                        if professor.pendingProfileID == profile.id {
+                            professors[index].pendingProfileID = nil
+                            if !choices.save(profileID: profile.id, name: professor.name, subject: professor.subjectCode) {
+                                professors[index].issue = "This profile is verified, but your choice could not be saved on this Mac."
+                            }
+                        }
+                        if let course { saveReport(index: index, course: course) }
+                    case .selectionRequired(let candidates, let invalidated):
+                        // A fresh lookup that becomes ambiguous is unresolved,
+                        // even when an earlier report was already visible.
+                        professors[index].profile = nil; professors[index].summary = nil
+                        professors[index].checkedAt = nil; professors[index].reviewsComplete = false
+                        professors[index].reviewIssue = nil; professors[index].summaryIssue = nil
+                        attemptedDetails.remove(job.id); attemptedSummaries.remove(job.id); retryingIDs.remove(job.id)
+                        if loadingDetailsID == job.id { detailTask?.cancel(); detailReader?.stop() }
+                        if summaryLoadingID == job.id { summaryTask?.cancel() }
+                        professors[index].pendingProfileID = nil
+                        professors[index].candidates = candidates; professors[index].state = .selectionRequired
+                        professors[index].issue = candidates.isEmpty ? "No eligible profile is available yet. Try again or check RMP." : (candidates.count > 1 ? "Several PCC profiles share this name. Choose which profile to use." : "Choose a PCC profile to verify before using its information.")
+                        if let invalidated, let course {
+                            cache.invalidate(name: professor.name, course: course, subject: professor.subjectCode, profileID: invalidated)
+                        }
+                        if let invalidated, choices.choice(name: professor.name, subject: professor.subjectCode) == invalidated {
+                            choices.save(profileID: nil, name: professor.name, subject: professor.subjectCode)
+                        }
+                    case .unavailable(let message):
+                        professors[index].state = .unavailable; professors[index].issue = message
+                    }
+                } catch {
+                    guard !Task.isCancelled, runID == run, professors[index].generation == job.generation else { return }
+                    if case .discover = job.action { chooserIssue = error.localizedDescription }
+                    else { professors[index].state = .unavailable; professors[index].issue = error.localizedDescription }
+                }
+            }
+        }
+        busy = searchTask != nil || !pendingPreviews.isEmpty || !activePreviews.isEmpty
+        updateProgress()
+        if !busy {
+            progress = ""
+            #if DEBUG
+            quickPassSnapshot = professors
+            #endif
+            requestSelectedReport()
+        }
+    }
+    private func currentProfile(index: Int, generation: UUID, profileID: String) -> Bool {
+        professors.indices.contains(index) && professors[index].generation == generation && professors[index].profile?.id == profileID
     }
 
     var loadingDetails: Bool { loadingDetailsID != nil || summaryLoadingID != nil }
@@ -109,13 +262,13 @@ final class AppModel: ObservableObject {
         cancel()
         runID = UUID(); let run = runID
         course = parsed; searchedTerm = term; error = nil; busy = true; progress = "Finding classes at PCC…"
-        professors = []; selectedID = nil; showAll = false; showingResults = false; attemptedDetails = []; attemptedSummaries = []
+        professors = []; selectedID = nil; showAll = false; showingResults = false; attemptedDetails = []; attemptedSummaries = []; courseReviewIssues = [:]
         searchTask = Task { [weak self] in
             guard let self else { return }
             defer {
                 if runID == run {
-                    busy = false; progress = ""; browsers = []; searchTask = nil
-                    if !Task.isCancelled { requestSelectedReport() }
+                    searchTask = nil
+                    if !Task.isCancelled { pumpPreviews() } else { busy = false; progress = "" }
                 }
             }
             do {
@@ -127,54 +280,36 @@ final class AppModel: ObservableObject {
                 var missing: [Int] = []
                 // All cached scores appear before any website or local-model work.
                 for index in professors.indices {
-                    if !force, let cached = cache.load(name: professors[index].name, course: parsed) {
+                    if !force, let cached = cache.load(name: professors[index].name, course: parsed, subject: professors[index].subjectCode, preferredProfileID: choices.choice(name: professors[index].name, subject: professors[index].subjectCode)) {
                         professors[index].profile = cached.profile; professors[index].summary = cached.summary
                         professors[index].checkedAt = cached.checkedAt; professors[index].state = .ready
                         professors[index].reviewsComplete = cached.reviewsComplete ?? true
                         checkedCount += 1
                     } else { missing.append(index) }
                 }
-                let readers = [RMPBrowser(), RMPBrowser()]
-                browsers = readers
-                var availableReaders = readers
-                updateProgress()
-                await SearchPipeline.run(indices: missing, lookup: { [self] index in
-                    guard !Task.isCancelled, self.runID == run else { return }
-                    let reader = availableReaders.removeFirst()
-                    defer { availableReaders.append(reader) }
-                    self.professors[index].state = .searching
-                    do {
-                        let profile = try await reader.lookup(self.professors[index], initialReviewsOnly: true)
-                        try Task.checkCancellation(); guard self.runID == run else { return }
-                        self.professors[index].profile = profile; self.professors[index].state = .ready
-                        self.professors[index].checkedAt = Date(); self.professors[index].reviewsComplete = false
-                        self.saveReport(index: index, course: parsed)
-                    } catch {
-                        guard !Task.isCancelled, self.runID == run else { return }
-                        self.professors[index].state = .unavailable
-                        self.professors[index].issue = error.localizedDescription; self.professors[index].checkedAt = Date()
-                    }
-                    self.checkedCount += 1; self.updateProgress()
-                })
-                #if DEBUG
-                if !Task.isCancelled, runID == run { quickPassSnapshot = professors }
-                #endif
+                // Queue all jobs before dispatch, so optional detail work stays gated.
+                pendingPreviews = missing.map { PreviewJob(id: self.professors[$0].id, generation: self.professors[$0].generation, action: .lookup) }
+                pumpPreviews()
             } catch is CancellationError { }
             catch { if runID == run { self.error = error.localizedDescription } }
         }
     }
-    private func updateProgress() { progress = "Checking ratings · \(checkedCount) of \(professors.count)" }
+    private func updateProgress() {
+        let checked = professors.filter { [.ready, .unavailable, .selectionRequired].contains($0.state) }.count
+        progress = "Checking ratings · \(checked) of \(professors.count)"
+    }
     private func saveReport(index: Int, course: Course) {
         guard let profile = professors[index].profile else { return }
         cache.save(CachedReport(profile: profile, summary: professors[index].summary,
                                 checkedAt: professors[index].checkedAt ?? Date(),
                                 reviewsComplete: professors[index].reviewsComplete),
-                   name: professors[index].name, course: course)
+                   name: professors[index].name, course: course, subject: professors[index].subjectCode)
     }
     /// Website and model work have separate single-worker queues. Only opened
     /// reports are requested; the latest selection replaces pending work.
     func requestSelectedReport() {
         pendingDetailID = nil
+        pendingDetailFilter = nil
         if let pending = pendingSummaryID, pending != summaryLoadingID { retryingIDs.remove(pending) }
         pendingSummaryID = nil
         guard !busy, showingResults, let selected, selected.profile != nil else { return }
@@ -185,6 +320,22 @@ final class AppModel: ObservableObject {
         }
         guard !attemptedDetails.contains(selected.id), loadingDetailsID != selected.id else { return }
         pendingDetailID = selected.id
+        startDetailQueue()
+    }
+    /// This is the only UI action that supplies a class to RMP. Picker changes are local.
+    func findMoreReviews(id: String, filter: ReviewFilter) {
+        guard !busy, loadingDetailsID == nil, let course,
+              let professor = professors.first(where: { $0.id == id }), let profile = professor.profile,
+              let label = filter.requestLabel(course: course), !label.isEmpty,
+              profile.reviewCoverage?[ReviewFilter.coverageKey(label)]?.finished != true else { return }
+        if case .source(let source) = filter {
+            guard profile.courseCounts?.contains(where: { $0.label == source }) == true || profile.reviews.contains(where: { $0.course == source }) else { return }
+        }
+        selectedID = id; pendingDetailID = id; pendingDetailFilter = label; detailCancelled = false
+        courseReviewIssues[id + "|" + label] = nil
+        startDetailQueue()
+    }
+    private func startDetailQueue() {
         guard detailTask == nil else { return }
         let run = runID, detailRun = detailRunID
         detailTask = Task { [weak self] in
@@ -192,13 +343,16 @@ final class AppModel: ObservableObject {
             defer {
                 if runID == run, detailRunID == detailRun {
                     loadingDetailsID = nil; detailReader = nil; detailTask = nil; updateDetailProgress()
+                    if !busy { requestSelectedReport() }
                 }
             }
-            while !Task.isCancelled, runID == run, detailRunID == detailRun, let id = pendingDetailID {
-                pendingDetailID = nil; attemptedDetails.insert(id)
+            while !Task.isCancelled, !busy, runID == run, detailRunID == detailRun, let id = pendingDetailID {
+                let filter = pendingDetailFilter
+                pendingDetailID = nil; pendingDetailFilter = nil
+                if filter == nil { attemptedDetails.insert(id) }
                 guard let index = professors.firstIndex(where: { $0.id == id }), let course else { continue }
                 loadingDetailsID = id; updateDetailProgress()
-                await loadDetails(index: index, course: course, run: run, detailRun: detailRun)
+                await loadDetails(index: index, course: course, run: run, detailRun: detailRun, filter: filter)
             }
         }
     }
@@ -209,34 +363,44 @@ final class AppModel: ObservableObject {
             detailProgress = "Preparing summary · \(professor.name)"
         } else { detailProgress = nil }
     }
-    private func loadDetails(index: Int, course: Course, run: UUID, detailRun: UUID) async {
+    private func loadDetails(index: Int, course: Course, run: UUID, detailRun: UUID, filter: String? = nil) async {
         guard let profile = professors[index].profile else { return }
-        let id = professors[index].id
-        if !professors[index].reviewsComplete {
-            let reader = RMPBrowser(); detailReader = reader
+        let id = professors[index].id, generation = professors[index].generation
+        let profileID = profile.id
+        if filter != nil || !professors[index].reviewsComplete {
+            let reader = makeReader(); detailReader = reader
             do {
-                let full = try await reader.expand(professors[index], profile: profile) { [weak self] partial in
-                    guard let self, !Task.isCancelled, self.runID == run, self.detailRunID == detailRun else { return }
-                    if Set(self.professors[index].profile?.reviews.map(\.id) ?? []) != Set(partial.reviews.map(\.id)) {
+                let publish: @MainActor (RMPProfile) -> Void = { [weak self] partial in
+                    guard let self, !Task.isCancelled, self.runID == run, self.detailRunID == detailRun, self.currentProfile(index: index, generation: generation, profileID: profileID), partial.id == profileID else { return }
+                    if self.professors[index].profile?.reviews != partial.reviews {
                         self.professors[index].summary = nil
+                        self.attemptedSummaries.remove(id)
                     }
                     self.professors[index].profile = partial
                     self.saveReport(index: index, course: course)
                 }
-                guard !Task.isCancelled, runID == run, detailRunID == detailRun else { return }
-                if Set(profile.reviews.map(\.id)) != Set(full.reviews.map(\.id)) {
+                let full: RMPProfile
+                if let filter {
+                    guard let courseReader = reader as? any CourseProfileReader else { throw AppError.message("Class-specific retrieval is unavailable.") }
+                    full = try await courseReader.expand(professors[index], profile: profile, courseFilter: filter, onProfile: publish)
+                } else { full = try await reader.expand(professors[index], profile: profile, onProfile: publish) }
+                guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: profileID) else { return }
+                if profile.reviews != full.reviews {
                     professors[index].summary = nil
+                    attemptedSummaries.remove(id)
                 }
-                professors[index].profile = full; professors[index].reviewsComplete = true
-                professors[index].reviewIssue = nil
+                professors[index].profile = full
+                if filter == nil { professors[index].reviewsComplete = true; professors[index].reviewIssue = nil }
+                else { courseReviewIssues[id + "|" + filter!] = nil }
                 saveReport(index: index, course: course)
             } catch {
-                guard !Task.isCancelled, runID == run, detailRunID == detailRun else { return }
-                professors[index].reviewIssue = "More reviews couldn’t be loaded. The verified scores and retrieved reviews are still available."
+                guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: profileID) else { return }
+                if let filter { courseReviewIssues[id + "|" + filter] = "More reviews for this class couldn’t be loaded. Saved reviews remain available; try again." }
+                else { professors[index].reviewIssue = "More reviews couldn’t be loaded. The verified scores and retrieved reviews are still available." }
             }
             detailReader = nil
         }
-        guard !Task.isCancelled, runID == run, detailRunID == detailRun else { return }
+        guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: profileID) else { return }
         // A page already in flight can finish and be cached, while the latest
         // selected report gets the next website job and local-summary slot.
         if selectedID == id { queueSummary(id: id) }
@@ -254,22 +418,30 @@ final class AppModel: ObservableObject {
             defer {
                 if runID == run, detailRunID == detailRun {
                     summaryLoadingID = nil; summaryTask = nil; updateDetailProgress()
+                    if !busy { requestSelectedReport() }
                 }
             }
-            while !Task.isCancelled, runID == run, detailRunID == detailRun, let id = pendingSummaryID {
+            while !Task.isCancelled, !busy, runID == run, detailRunID == detailRun, let id = pendingSummaryID {
                 pendingSummaryID = nil; attemptedSummaries.insert(id); summaryLoadingID = id; updateDetailProgress()
                 guard let index = professors.firstIndex(where: { $0.id == id }), let course,
                       let evidence = professors[index].profile else { retryingIDs.remove(id); continue }
+                let generation = professors[index].generation
                 do {
                     let summary = try await ollama.summarize(reviews: evidence.reviews, course: course)
-                    guard !Task.isCancelled, runID == run, detailRunID == detailRun else { return }
+                    guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: evidence.id) else { return }
+                    guard professors[index].profile?.reviews == evidence.reviews else {
+                        attemptedSummaries.remove(id); retryingIDs.remove(id); continue
+                    }
                     professors[index].summary = summary; professors[index].summaryIssue = nil
                 } catch {
-                    guard !Task.isCancelled, runID == run, detailRunID == detailRun else { return }
+                    guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: evidence.id) else { return }
+                    guard professors[index].profile?.reviews == evidence.reviews else {
+                        attemptedSummaries.remove(id); retryingIDs.remove(id); continue
+                    }
                     professors[index].summaryIssue = error.localizedDescription
                 }
                 retryingIDs.remove(id)
-                if !Task.isCancelled, runID == run, detailRunID == detailRun { saveReport(index: index, course: course) }
+                if !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: evidence.id) { saveReport(index: index, course: course) }
             }
         }
     }
@@ -284,12 +456,15 @@ final class AppModel: ObservableObject {
         if let id = summaryLoadingID { attemptedSummaries.remove(id) }
         detailRunID = UUID(); detailTask?.cancel(); detailTask = nil
         summaryTask?.cancel(); summaryTask = nil; summaryLoadingID = nil; pendingSummaryID = nil
-        detailReader?.stop(); detailReader = nil; pendingDetailID = nil
+        detailReader?.stop(); detailReader = nil; pendingDetailID = nil; pendingDetailFilter = nil
         retryingIDs = []; loadingDetailsID = nil; detailProgress = nil; detailCancelled = true
     }
     func cancel() {
         runID = UUID(); searchTask?.cancel(); searchTask = nil
-        browsers.forEach { $0.stop() }; browsers = []
+        previewTasks.values.forEach { $0.cancel() }; previewReaders.values.forEach { $0.stop() }
+        idlePreviewReaders.forEach { $0.stop() }; idlePreviewReaders = []
+        pendingPreviews = []; activePreviews = [:]; previewTasks = [:]; previewReaders = [:]
+        chooserID = nil; chooserIssue = nil
         cancelDetails()
         for index in professors.indices {
             if professors[index].state == .searching { professors[index].state = .pending }

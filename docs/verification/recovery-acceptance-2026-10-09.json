@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-09",
+  "timezone": "America/Los_Angeles",
+  "automated": {
+    "command": "./scripts/swift.sh test",
+    "tests": 90,
+    "failures": 0,
+    "result": "passed"
+  },
+  "release": {
+    "command": "./scripts/build-app.sh",
+    "result": "passed",
+    "signatureCommand": "codesign --verify --deep --strict --verbose=2 dist/BYE.app",
+    "signature": "passed",
+    "nativeLaunch": "passed",
+    "packagingFix": "Explicit executable permission on packaged binary; script executable bits restored."
+  },
+  "nativeUI": {
+    "course": "POLSC 1000",
+    "semester": "Winter 2027",
+    "checks": [
+      "Ambiguous Daniel Hamman requires explicit selection despite subject/department evidence.",
+      "Chooser shows two separate department/school/source-link rows with no default.",
+      "Closing and reopening leaves the unresolved professor unchanged.",
+      "Explicit Political Science choice 1944042 is verified and reused after app quit/relaunch.",
+      "Stop retains scores and reviews and presents Retry summary.",
+      "Change profile to 1913925 replaces scores and review/source IDs while preserving PCC sections.",
+      "Chooser controls expose distinct accessibility names."
+    ],
+    "temporaryPreferencesRestored": true
+  },
+  "limitations": [
+    "Individual retry and temporary failures were exercised with deterministic automated tests; no forced live network outage.",
+    "Complete VoiceOver user session and another Mac were not verified.",
+    "SwiftPM native build backend emits an existing deprecation warning."
+  ],
+  "deferred": [
+    "Course shorthand",
+    "Loading redesign",
+    "AI provider replacement"
+  ],
+  "committed": false,
+  "uploaded": false
+}

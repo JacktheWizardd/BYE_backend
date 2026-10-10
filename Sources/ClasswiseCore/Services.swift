@@ -157,28 +157,100 @@ public struct CachedReport: Codable {
     }
 }
 
+/// Version 4 separates shared raw profiles, subject identity mappings and course summaries.
 public final class ReportCache {
     private let directory: URL
+    private struct Raw: Codable {
+        let profile: RMPProfile
+        let checkedAt: Date
+        let reviewsComplete: Bool
+    }
+    private struct SummaryEntry: Codable {
+        let summary: ReviewSummary
+        let evidence: [Review]
+        let checkedAt: Date
+    }
     public init(directory: URL? = nil) {
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Classwise/Reports", isDirectory: true)
     }
-    private func url(name: String, course: Course) -> URL {
-        let key = Data(("v2|" + name + "|" + course.key).utf8).base64EncodedString()
+    private func context(name: String, subject: String) -> String {
+        "v4|identity|" + IdentityMatcher.normalizedName(name) + "|" + subject.uppercased()
+    }
+    private func rawKey(_ id: String) -> String { "v4|raw|2649|" + id }
+    private func summaryKey(_ id: String, course: Course, subject: String) -> String {
+        "v4|summary|2649|" + id + "|" + course.key + "|" + subject.uppercased()
+    }
+    private func url(_ key: String) -> URL {
+        let encoded = Data(key.utf8).base64EncodedString()
             .replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "+", with: "-")
-        return directory.appendingPathComponent(key + ".json")
+        return directory.appendingPathComponent(encoded + ".json")
     }
-    public func load(name: String, course: Course, now: Date = Date()) -> CachedReport? {
-        guard let data = try? Data(contentsOf: url(name: name, course: course)),
-              let entry = try? JSONDecoder().decode(CachedReport.self, from: data),
-              now.timeIntervalSince(entry.checkedAt) >= 0, now.timeIntervalSince(entry.checkedAt) < 86400,
-              IdentityMatcher.matches(name: name, profile: entry.profile) else { return nil }
-        return entry
+    private func read<T: Decodable>(_ key: String, as: T.Type) -> T? {
+        (try? Data(contentsOf: url(key))).flatMap { try? JSONDecoder().decode(T.self, from: $0) }
     }
-    public func save(_ entry: CachedReport, name: String, course: Course) {
+    private func fresh(_ date: Date, now: Date) -> Bool { (0..<86400).contains(now.timeIntervalSince(date)) }
+    public func load(name: String, course: Course, subject: String? = nil,
+                     preferredProfileID: String? = nil, now: Date = Date()) -> CachedReport? {
+        let subject = subject ?? course.subject
+        let indexed = read(context(name: name, subject: subject), as: String.self)
+        guard let id = preferredProfileID ?? indexed,
+              let raw = read(rawKey(id), as: Raw.self), raw.profile.id == id,
+              fresh(raw.checkedAt, now: now), IdentityMatcher.matches(name: name, profile: raw.profile) else { return nil }
+        let saved = read(summaryKey(id, course: course, subject: subject), as: SummaryEntry.self)
+        let evidence = SummaryBuilder.selectedReviews(raw.profile.reviews, course: course)
+        let summary = saved.flatMap { fresh($0.checkedAt, now: now) && $0.evidence == evidence ? $0.summary : nil }
+        return CachedReport(profile: raw.profile, summary: summary, checkedAt: raw.checkedAt, reviewsComplete: raw.reviewsComplete)
+    }
+    public func invalidate(name: String, course: Course, subject: String, profileID: String? = nil) {
+        try? FileManager.default.removeItem(at: url(context(name: name, subject: subject)))
+        if let id = profileID {
+            try? FileManager.default.removeItem(at: url(rawKey(id)))
+            try? FileManager.default.removeItem(at: url(summaryKey(id, course: course, subject: subject)))
+        }
+    }
+    public func save(_ entry: CachedReport, name: String, course: Course, subject: String? = nil) {
+        let subject = subject ?? course.subject
+        guard IdentityMatcher.matches(name: name, profile: entry.profile) else {
+            invalidate(name: name, course: course, subject: subject)
+            return
+        }
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try JSONEncoder().encode(entry).write(to: url(name: name, course: course), options: .atomic)
-        } catch { /* Cache is optional; a disk error must not discard live results. */ }
+            let raw = Raw(profile: entry.profile, checkedAt: entry.checkedAt, reviewsComplete: entry.reviewsComplete ?? false)
+            try JSONEncoder().encode(raw).write(to: url(rawKey(entry.profile.id)), options: .atomic)
+            try JSONEncoder().encode(entry.profile.id).write(to: url(context(name: name, subject: subject)), options: .atomic)
+            let key = summaryKey(entry.profile.id, course: course, subject: subject)
+            if let summary = entry.summary {
+                let saved = SummaryEntry(summary: summary, evidence: SummaryBuilder.selectedReviews(entry.profile.reviews, course: course), checkedAt: entry.checkedAt)
+                try JSONEncoder().encode(saved).write(to: url(key), options: .atomic)
+            } else { try? FileManager.default.removeItem(at: url(key)) }
+        } catch { /* Optional cache failures never discard verified live data. */ }
+    }
+}
+
+/// User preferences have no report expiry and are never inferred from ratings.
+public final class ProfileChoiceStore {
+    private let file: URL
+    public init(directory: URL? = nil) {
+        file = (directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Classwise", isDirectory: true)).appendingPathComponent("profile-choices-v1.json")
+    }
+    private func key(name: String, subject: String) -> String {
+        IdentityMatcher.normalizedName(name) + "|" + subject.uppercased()
+    }
+    private func read() -> [String: String] {
+        guard let data = try? Data(contentsOf: file), let entries = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return entries
+    }
+    public func choice(name: String, subject: String) -> String? { read()[key(name: name, subject: subject)] }
+    @discardableResult
+    public func save(profileID: String?, name: String, subject: String) -> Bool {
+        var entries = read(); entries[key(name: name, subject: subject)] = profileID
+        do {
+            try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try JSONEncoder().encode(entries).write(to: file, options: .atomic)
+            return true
+        } catch { return false }
     }
 }

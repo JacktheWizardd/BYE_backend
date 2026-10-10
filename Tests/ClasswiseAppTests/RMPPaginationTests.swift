@@ -60,6 +60,15 @@ final class RMPPaginationTests: XCTestCase {
     }
 
     @MainActor
+    func testHydratedPageCannotPublishMoreThanFiftyReviews() async throws {
+        let fixture = try await fixture(total: 55, setup: "window.setReviewCount(55);")
+        defer { fixture.reader.stop() }
+        var counts: [Int] = []
+        let full = try await fixture.reader.collectReviews(fixture.initial) { counts.append($0.reviews.count) }
+        XCTAssertEqual(full.reviews.count, 50)
+        XCTAssertTrue(counts.allSatisfy { $0 <= 50 })
+    }
+    @MainActor
     func testDelayedHydrationPublishesFiveThenPaginatesToSevenReviews() async throws {
         let fixture = try await fixture(total: 7, setup: """
         setTimeout(() => {

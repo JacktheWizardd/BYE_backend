@@ -1,89 +1,33 @@
+# Current milestone — Native RMP API, privacy, shared cache, course reviews
+
+Updated October 10, 2026 (America/Los_Angeles). This section supersedes the next-work ordering and deferred API research below. Preserve the older roadmap as historical context.
+
+Reusable implementation goal: [NATIVE_API_IMPLEMENTATION_GOAL.md](NATIVE_API_IMPLEMENTATION_GOAL.md). Native API, privacy, shared cache and review-course selection are implemented. See [PROJECT_STATUS.md](PROJECT_STATUS.md) and [IMPLEMENTATION_HISTORY.md](IMPLEMENTATION_HISTORY.md) for the 125-test verification, live observations, build/signature results and external limitations. The older next-session instructions below are historical and do not authorize the deferred milestones.
+
+- Build Sources/BYEAPI as a native Swift URLSession module. Use direct structured requests, no AI retrieval and no automatic WebKit fallback. Keep PCC retrieval unchanged.
+- Preserve matching, explicit ambiguity selection, profile identity verification, subject-isolated preferences, retry, bounded queues, cancellation and stale-result guards.
+- Isolate RMP cookies/logins and minimize request fields. Keep comparisons, schedules, choices and AI prompts local. RMP still sees IP and requested profiles. No Tor/OHTTP or hosted infrastructure.
+- Share verified raw profile data across courses using a new 24-hour versioned cache; keep course summaries and identity mappings separate. Preserve old cache files as misses.
+- Add This course / All courses / source course labels. Filter locally first. Fetch a specific class only on explicit Find more action. Preserve original labels, source totals and loaded coverage, three-review previews, 50 reviews per filter.
+- Keep Ollama summaries functioning independently. Defer embedded AI replacement, top-three ranking, shorthand, loading redesign and Windows.
+- Preserve app/source snapshots and record changes/tests/limitations in IMPLEMENTATION_HISTORY.md. No commit or upload.
+- Verify request privacy, identity, retries/pagination/concurrency, partial failures, cross-course persistence, filtering, stale work, full tests, release/signature, and live ambiguous professors/timings.
+
+---
+
 # BYE — Next implementation plan
 
-Planning date: October 9, 2026 (America/Los_Angeles).
+Updated October 9, 2026 (America/Los_Angeles).
 
-Status: agreed planning handoff only. None of the changes below have been implemented or verified. Implement and run the full verification on the Mac in a later session.
+## Current milestone
 
-## Purpose and agreed decisions
+Stage 1, professor matching and recovery, is implemented and verified. See `docs/PROJECT_STATUS.md` for results. The owner narrowed this implementation to stage 1 only; stages 2–3 below remain planned, not implemented.
 
-Continue BYE as a personal macOS app. Do not expand platforms in this phase.
+The final identity rule supersedes the original department-based proposal: **multiple eligible same-name PCC profiles always require explicit selection**. Departments are displayed to help the student choose, never used as an automatic tiebreaker. Verified manual choices are remembered per instructor and subject, reverified during fresh retrieval, and consulted before applicable version 3 report caches.
 
-The next work is, in order:
+BYE remains a personal macOS app. Preserve progressive independent ratings, three-review previews, the 50-review deeper-retrieval cap, current source extraction, and Ollama summaries. Course suggestions and searches already share a short-lived semester schedule cache. Current course comparisons preserve leading zeros.
 
-1. Fix professor matching, starting with the Daniel Hamman bug, and add recovery controls.
-2. Recognize course shorthand such as `MATH 5A` for `MATH 005A`.
-3. Replace routine technical loading messages with progressive animated placeholders.
-4. Evaluate a lightweight AI integration separately after the owner supplies a repository/provider.
-
-Decisions confirmed with the owner:
-
-- Reveal results progressively rather than waiting for a full-screen animation to finish.
-- Recognize omitted leading zeros in both searches and RMP review labels.
-- Remember manually chosen RMP profiles on this Mac, scoped to instructor and PCC subject.
-- Leave the future AI architecture undecided until the owner's research is available.
-
-Read `README.md` and `docs/PROJECT_STATUS.md` alongside this document. This document extends the existing handoff with the newly agreed behavior. Historical tests and live observations in those files are not verification of these planned changes.
-
-## Current implementation context
-
-- Native macOS 14+ SwiftUI app. The product is BYE; internal modules and cache paths retain `Classwise`.
-- `ClasswiseCore` contains schedule parsing, course suggestions, identity matching, report caching, and summary validation.
-- The app uses WebKit to read public rendered RMP pages. The initial pass uses two readers and retrieves ratings, difficulty, and up to three reviews per professor.
-- Additional reviews are retrieved only for opened reports after the initial ratings pass. Review retrieval and summaries have separate single-worker queues.
-- Ollama with `qwen3:4b` currently summarizes reviews. Numeric ratings and original review text come from RMP, not the model.
-- Course comparison currently normalizes spacing and case but preserves leading zeros, so `MATH5A` does not match `MATH005A`.
-- RMP lookup currently paginates before resolving retrieved candidates. Search pagination lacks the readiness check used for review buttons; a pagination error currently fails the whole lookup.
-- This handoff was prepared on Windows. The existing SwiftUI/WebKit app and full tests require the Mac toolchain.
-
-## 1. Fix professor matching and recovery
-
-### Resolve existing candidates first
-
-- Read the initial search results, deduplicate by RMP profile ID, and attempt identity resolution immediately.
-- Continue requiring a matching professor name and PCC identity. Preserve compound-surname support.
-- Paginate only when current candidates cannot resolve the lookup, with the existing limit of three additional search pages.
-- Before clicking pagination, wait for a visible, enabled button with an attached click handler. Use bounded readiness polling and cancellation, not unconditional fixed sleeps.
-- Merge each additional page with the retained candidates by profile ID.
-- If pagination times out or fails, retain all collected candidates and resolve or offer those candidates. Do not discard usable results because a later page failed.
-
-### Distinguish duplicate names using PCC subject information
-
-- Carry the official subject code and `subjDesc` from the PCC schedule into lookup context.
-- With one verified name-and-PCC candidate, preserve the current automatic match behavior.
-- With multiple eligible candidates, auto-select only when exactly one department matches the official subject and the other candidates have known, different departments.
-- Normalize department case, spacing, and punctuation. Use an explicit, tested alias map for supported equivalents such as `Math` and `Mathematics`.
-- Do not use fuzzy matching, ratings, review counts, or AI to determine identity.
-- Missing or conflicting department evidence, or multiple matching departments, requires student selection.
-- Reverify the chosen profile ID, name, and PCC identity on its profile page before publishing its data.
-
-### Profile chooser and remembered choices
-
-- Add a distinct selection-required state rather than representing ambiguity as retrieval failure.
-- Show a sheet containing eligible candidates' names, departments, schools, and source links. Display missing departments as unavailable.
-- Require explicit selection; do not preselect based on ratings or review counts. Closing the sheet leaves the professor unresolved and allows reopening it.
-- Save a manual choice only after verification succeeds.
-- Store choices locally by normalized PCC instructor name and subject code, reusable across courses and semesters within that subject.
-- Add `Change profile` to reports so the owner can reopen the chooser and replace a remembered selection.
-- Reverify remembered profiles when retrieving fresh data. An identity mismatch returns to selection; a temporary network failure offers retry and preserves the preference.
-
-### Individual retry and safe profile changes
-
-- Add `Try again` to an unavailable professor. Retry only that professor, bypassing its report cache.
-- Route retries and chosen-profile verification through the bounded two-reader preview pool. Repeated clicks must not enqueue duplicate jobs.
-- Keep deeper report work gated while preview work is active, retaining the existing separate review and summary queues.
-- When changing profiles, immediately clear old scores, reviews, summary, completion flags, and related errors. Keep PCC sections.
-- Cancel or invalidate work belonging to the old profile. Before publishing or caching any asynchronous result, check search generation, professor generation, and selected profile ID.
-- Preserve completed results for other professors.
-- Keep the three-review preview behavior and the existing cap of 50 accessible reviews for deeper retrieval.
-
-### Internal interfaces and cache compatibility
-
-- Replace lookup's success/error-only contract with typed outcomes: verified profile, profile selection required, and unavailable.
-- Extend professor state with subject metadata, eligible candidates, and selection-required status.
-- Add a local profile-choice store separate from report caches. Inject its location for isolated tests.
-- Introduce a new report-cache version scoped by instructor, canonical course, subject, and selected profile ID. Remembered choices must be consulted before selecting the applicable cached report.
-- Existing report caches become misses after the update; leave old files untouched. Preserve the 24-hour report lifetime.
-- Do not reuse old summaries under the new course-alias semantics. Fresh reports regenerate summaries from the newly selected evidence.
+Agreed remaining decisions: recognize omitted leading zeros in search and review labels; reveal content progressively without an artificial minimum loading duration; leave future AI architecture undecided until the owner's research arrives.
 
 ## 2. Accept course shorthand consistently
 
@@ -170,8 +114,8 @@ Benchmark against saved source pages and existing fictional fixtures before inte
 - Initial candidates resolve without unnecessary pagination.
 - Delayed click handlers and disabled buttons are handled with bounded waits.
 - Pagination timeouts retain candidates and offer selection when necessary.
-- Duplicate names with different departments resolve only under the agreed evidence rules.
-- Missing, conflicting, and multiple matching departments require selection.
+- Multiple eligible same-name PCC profiles always require selection, even when one department matches.
+- Department labels are informational only and never break identity ties.
 - Wrong-school candidates are excluded; compound surnames still work.
 - Saved choices survive store recreation and remain isolated by subject.
 - Invalid saved identities require selection; transient failures preserve the preference.
@@ -202,7 +146,7 @@ Benchmark against saved source pages and existing fictional fixtures before inte
 ### Live and visual acceptance
 
 1. Run `./scripts/swift.sh test` and `./scripts/build-app.sh`, then verify the release app's signature.
-2. With Ollama closed, repeat the Winter 2027 Daniel Hamman search. Resolve using verified department evidence or offer the chooser; never silently discard candidates after pagination failure.
+2. With Ollama closed, repeat the Winter 2027 Daniel Hamman search. Offer the chooser whenever multiple eligible profiles exist, regardless of department; never silently discard candidates after pagination failure.
 3. Compare `MATH 5A` and `MATH 005A` in the same published semester and inspect the canonical displayed code and course-review counts.
 4. Choose a profile, restart BYE, confirm reuse within that subject, then use Change profile and verify that old reviews and summaries do not reappear.
 5. Inspect fast, slow, cached, partial-failure, empty-result, and cancelled searches. Confirm selection, scrolling, and Change search remain usable.
@@ -211,6 +155,6 @@ Benchmark against saved source pages and existing fictional fixtures before inte
 
 ## Instructions for the next implementation session
 
-Use this document as the agreed specification. Inspect repository instructions and the current code before editing. Implement items 1–3 in the order above, with focused regression checks after each stage and full Mac verification at the end. Keep item 4 deferred until the owner supplies the research/repository.
+Matching/recovery stage 1 is implemented and verified; do not reintroduce automatic department-based selection. Read `docs/PROJECT_STATUS.md` and the acceptance records first.
 
-No implementation, new tests, build, live lookup, commit, or upload was performed while preparing this planning document.
+Implement stages 2 and 3 in order, with focused regression checks after each and full Mac verification afterward. Stage 2 must introduce another cache version so current summaries are not reused under changed course-alias semantics. Keep stage 4 deferred until the owner supplies research. No commit or upload is implied by this handoff.

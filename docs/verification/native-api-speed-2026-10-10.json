@@ -1,0 +1,226 @@
+{
+  "course": "MATH 005A",
+  "finishedAt": "2026-10-10 07:26:50 +0000",
+  "firstResultSeconds": 2.053523063659668,
+  "passed": true,
+  "previewLimitPassed": true,
+  "previews": [
+    {
+      "difficulty": 3.2,
+      "issue": "",
+      "name": "Anahit Asadyan",
+      "rating": 4.1,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": null,
+      "issue": "No matching PCC profile could be confirmed. Try again or check RMP.",
+      "name": "Angela Estrada-Ceballos",
+      "rating": null,
+      "reviews": 0,
+      "state": "unavailable"
+    },
+    {
+      "difficulty": null,
+      "issue": "Several PCC profiles share this name. Choose which profile to use.",
+      "name": "Dan Guo",
+      "rating": null,
+      "reviews": 0,
+      "state": "selectionRequired"
+    },
+    {
+      "difficulty": 4,
+      "issue": "",
+      "name": "Edward Ham",
+      "rating": 4.1,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 2.7,
+      "issue": "",
+      "name": "Erlend Weydahl",
+      "rating": 3.6,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3,
+      "issue": "",
+      "name": "Fendi He",
+      "rating": 4,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.4,
+      "issue": "",
+      "name": "Frank Bermudez",
+      "rating": 4.1,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 2.9,
+      "issue": "",
+      "name": "Gonzaga Mendez",
+      "rating": 3.2,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 2.1,
+      "issue": "",
+      "name": "Hoa Ly",
+      "rating": 4.7,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 2.7,
+      "issue": "",
+      "name": "Jay Cho",
+      "rating": 3.5,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.4,
+      "issue": "",
+      "name": "John Mathewson",
+      "rating": 3.5,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 4.4,
+      "issue": "",
+      "name": "Jose Castanon",
+      "rating": 2.2,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.8,
+      "issue": "",
+      "name": "Karen Wang",
+      "rating": 3,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.7,
+      "issue": "",
+      "name": "Lulu Yamashita",
+      "rating": 3,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.8,
+      "issue": "",
+      "name": "Lyman Chaffee",
+      "rating": 3.4,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 4,
+      "issue": "",
+      "name": "Mark Pavitch",
+      "rating": 3.8,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 2.5,
+      "issue": "",
+      "name": "Nerses Abramyan",
+      "rating": 4.6,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.5,
+      "issue": "",
+      "name": "Peter Banda",
+      "rating": 3.7,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": null,
+      "issue": "No matching PCC profile could be confirmed. Try again or check RMP.",
+      "name": "Raelynn Garcia",
+      "rating": null,
+      "reviews": 0,
+      "state": "unavailable"
+    },
+    {
+      "difficulty": 4.2,
+      "issue": "",
+      "name": "Renee Johansson",
+      "rating": 3.1,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": null,
+      "issue": "Several PCC profiles share this name. Choose which profile to use.",
+      "name": "Richard Abdelkerim",
+      "rating": null,
+      "reviews": 0,
+      "state": "selectionRequired"
+    },
+    {
+      "difficulty": 3.2,
+      "issue": "",
+      "name": "Roger Yang",
+      "rating": 4,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 3.1,
+      "issue": "",
+      "name": "Saliha Sha",
+      "rating": 3.6,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": null,
+      "issue": "Several PCC profiles share this name. Choose which profile to use.",
+      "name": "Sandra Vazquez-Celaya",
+      "rating": null,
+      "reviews": 0,
+      "state": "selectionRequired"
+    },
+    {
+      "difficulty": 3.2,
+      "issue": "",
+      "name": "Thomas Kowalski",
+      "rating": 3.7,
+      "reviews": 3,
+      "state": "ready"
+    },
+    {
+      "difficulty": 2.8,
+      "issue": "",
+      "name": "Zorayr Nalbandyan",
+      "rating": 3.7,
+      "reviews": 3,
+      "state": "ready"
+    }
+  ],
+  "professors": 26,
+  "ratingsPassSeconds": 6.4420740604400635,
+  "retrieval": "URLSession API",
+  "sections": 35,
+  "semester": "Fall 2026",
+  "startedAt": "2026-10-10 07:26:44 +0000",
+  "storage": "Temporary cache/preferences, removed afterward",
+  "unopenedReportsUntouched": true,
+  "verifiedProfiles": 21
+}

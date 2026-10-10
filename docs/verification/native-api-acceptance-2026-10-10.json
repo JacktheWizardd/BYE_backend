@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-10",
+  "timezone": "America/Los_Angeles",
+  "automated": {
+    "command": "./scripts/swift.sh test",
+    "tests": 125,
+    "failures": 0,
+    "result": "passed",
+    "includesLegacyWebKit": true
+  },
+  "release": {
+    "command": "./scripts/build-app.sh",
+    "version": "0.2.0",
+    "build": "2",
+    "result": "passed",
+    "signatureCommand": "codesign --verify --deep --strict --verbose=2 dist/BYE.app",
+    "signature": "passed",
+    "executableSHA256": "f697617c41e8d0b5661d5f93d90273237b5b568b562dce2006325bf3c573b129",
+    "bundledNoticeMatches": true
+  },
+  "privacy": {
+    "evidence": [
+      "Tests/BYEAPITests/RMPClientTests.swift",
+      "Sources/BYEAPI/Transport/RMPTransport.swift",
+      "Sources/BYEAPI/Queries/RMPQueries.swift"
+    ],
+    "verified": [
+      "No cookie/credential store or URL cache",
+      "Set-Cookie does not persist into following request",
+      "No Cookie, Authorization, Referer or X-Forwarded-For request header",
+      "Fixed HTTPS GraphQL destination; redirect rejection",
+      "Default variables contain ID/count only; explicit class filter and cursor only when supplied",
+      "Search variables contain name, school and pagination only; search omits unused score fields",
+      "Local filter changes dispatch no retrieval",
+      "Two concurrent requests, bounded retries/cancellation and shared cooldown"
+    ],
+    "method": "URLProtocol inspection plus source/configuration audit; no packet capture",
+    "residualExposure": "RMP sees public IP, timing, names/profile IDs and explicitly requested class labels"
+  },
+  "nativeUI": {
+    "bundle": "Temporary BYE API Check, same views, DEBUG-only isolated storage/unavailable summary endpoint",
+    "course": "POLSC 1000",
+    "semester": "Winter 2027",
+    "checks": [
+      "Daniel requires explicit choice with History and Political Science candidates",
+      "Dismissal/reopening preserves unresolved state",
+      "Political Science 1944042 verifies; ratings 4.3 / difficulty 2.3 / count 184",
+      "All courses displays 50 downloaded reviews; source labels show counts",
+      "POLS001 initially 24 downloaded against 86 on RMP; explicit Find more reaches 50; overall scores unchanged",
+      "Actual quit/relaunch preserves selected profile and cache",
+      "Change profile to History 1913925 changes scores to 4.6 / 1.4 / count14 and all reviews to14 with replacement source links",
+      "PCC CRNs 10268,11166,12396 remain after replacement",
+      "Failed summary and repeated retry retain source data"
+    ],
+    "temporaryPreferencesRemoved": true,
+    "launchApproval": "Owner approved temporary test app after automatic approval review rejection"
+  },
+  "liveMatchingRecord": "native-api-matching-2026-10-10.json",
+  "performanceRecord": "native-api-speed-2026-10-10.json",
+  "history": {
+    "baseline": "app-history/2026-10-10-before-native-api",
+    "baselineSourceFiles": 37,
+    "baselineHashesMatch": true,
+    "PCCClientSourceUnchanged": true,
+    "automaticBeforeAfterBuildSnapshots": true,
+    "privateUserDataExcluded": true,
+    "releaseSnapshot": "app-history/20261010T074324-after-build-_1n89jk9",
+    "archiveSourceHashesMatch": true,
+    "archiveExecutableMatchesRelease": true,
+    "currentCompiledSourcesMatchSnapshot": true
+  },
+  "license": {
+    "MITSourceRetained": true,
+    "source": "THIRD_PARTY_NOTICES.md",
+    "bundled": "Contents/Resources/THIRD_PARTY_NOTICES.txt"
+  },
+  "limitations": [
+    "Undocumented RMP schema and availability may change",
+    "Forced live RMP outage/rate limit not performed; deterministic transient-failure tests and live identity-mismatch recovery passed",
+    "No packet capture",
+    "Full VoiceOver session, second Mac, notarization and Windows not verified",
+    "Historical WebKit vs native timings are separate observations, not controlled benchmarks",
+    "Ollama remains separately required for summaries; embedded AI deferred"
+  ],
+  "commitOrUpload": false
+}

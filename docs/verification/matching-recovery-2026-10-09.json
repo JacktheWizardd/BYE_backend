@@ -1,0 +1,59 @@
+{
+  "finishedAt" : "2026-10-10 05:36:51 +0000",
+  "observations" : [
+    {
+      "candidates" : [
+        {
+          "department" : "History",
+          "id" : "1913925",
+          "name" : "Daniel Hamman",
+          "school" : "Pasadena City College"
+        },
+        {
+          "department" : "Political Science",
+          "id" : "1944042",
+          "name" : "Daniel Hamman",
+          "school" : "Pasadena City College"
+        }
+      ],
+      "course" : "POLSC 1000",
+      "individuallyVerifiedIDs" : [
+        "1913925",
+        "1944042"
+      ],
+      "name" : "Daniel Hamman",
+      "outcome" : "selectionRequired",
+      "subject" : "POLSC",
+      "subjectDescription" : "POLITICAL SCIENCE"
+    },
+    {
+      "candidates" : [
+        {
+          "department" : "Social Science",
+          "id" : "958265",
+          "name" : "Jose Lopez",
+          "school" : "Pasadena City College"
+        },
+        {
+          "department" : "Sociology",
+          "id" : "1921751",
+          "name" : "Jose Lopez",
+          "school" : "Pasadena City College"
+        }
+      ],
+      "course" : "ETH 014",
+      "individuallyVerifiedIDs" : [
+        "958265",
+        "1921751"
+      ],
+      "name" : "Jose Lopez",
+      "outcome" : "selectionRequired",
+      "subject" : "ETH",
+      "subjectDescription" : "ETHNIC STUDIES"
+    }
+  ],
+  "passed" : true,
+  "requestedSemester" : "Winter 2027",
+  "startedAt" : "2026-10-10 05:36:47 +0000",
+  "usesOllama" : false
+}

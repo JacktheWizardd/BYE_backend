@@ -1,0 +1,114 @@
+{
+  "finishedAt": "2026-10-10 07:40:56 +0000",
+  "observations": [
+    {
+      "candidates": [
+        {
+          "department": "History",
+          "id": "1913925",
+          "name": "Daniel Hamman",
+          "school": "Pasadena City College"
+        },
+        {
+          "department": "Political Science",
+          "id": "1944042",
+          "name": "Daniel Hamman",
+          "school": "Pasadena City College"
+        }
+      ],
+      "course": "POLSC 1000",
+      "individuallyVerifiedIDs": [
+        "1913925",
+        "1944042"
+      ],
+      "name": "Daniel Hamman",
+      "outcome": "selectionRequired",
+      "selectionRecovery": {
+        "allReviewExpansionSeconds": 0.12867999076843262,
+        "allReviews": 14,
+        "ambiguous": true,
+        "changeProfilePreservesUntilConfirmed": true,
+        "confirmationClearsImmediately": true,
+        "crossCourseCacheReused": true,
+        "dismissalUnresolved": true,
+        "filterCoverage": {
+          "all": 14,
+          "course|HISTORY7B": 7
+        },
+        "freshVerificationAfterStoreRecreation": true,
+        "liveIdentityMismatchRecoveredToSelection": true,
+        "passed": true,
+        "preferencePersisted": true,
+        "previewReviews": 3,
+        "previewSeconds": 0.13888096809387207,
+        "replacementVerified": true,
+        "scope": "Real API and model actions; window dismissal/relaunch visual checks are separate.",
+        "storage": "Temporary test directory, removed afterward",
+        "summaryFailureMethod": "Unavailable loopback port 1; owner's Ollama service untouched",
+        "unavailableSummaryPreservesAPIData": true,
+        "usesOllama": false,
+        "warmCacheSeconds": 0.0013390779495239258
+      },
+      "subject": "POLSC",
+      "subjectDescription": "POLITICAL SCIENCE",
+      "totalSeconds": 2.7281230688095093
+    },
+    {
+      "candidates": [
+        {
+          "department": "Social Science",
+          "id": "958265",
+          "name": "Jose Lopez",
+          "school": "Pasadena City College"
+        },
+        {
+          "department": "Sociology",
+          "id": "1921751",
+          "name": "Jose Lopez",
+          "school": "Pasadena City College"
+        }
+      ],
+      "course": "ETH 014",
+      "individuallyVerifiedIDs": [
+        "958265",
+        "1921751"
+      ],
+      "name": "Jose Lopez",
+      "outcome": "selectionRequired",
+      "selectionRecovery": {
+        "allReviewExpansionSeconds": 0.271744966506958,
+        "allReviews": 43,
+        "ambiguous": true,
+        "changeProfilePreservesUntilConfirmed": true,
+        "confirmationClearsImmediately": true,
+        "crossCourseCacheReused": true,
+        "dismissalUnresolved": true,
+        "filterCoverage": {
+          "all": 43,
+          "course|ETH014": 4
+        },
+        "freshVerificationAfterStoreRecreation": true,
+        "liveIdentityMismatchRecoveredToSelection": true,
+        "passed": true,
+        "preferencePersisted": true,
+        "previewReviews": 3,
+        "previewSeconds": 0.14027202129364014,
+        "replacementVerified": true,
+        "scope": "Real API and model actions; window dismissal/relaunch visual checks are separate.",
+        "storage": "Temporary test directory, removed afterward",
+        "summaryFailureMethod": "Unavailable loopback port 1; owner's Ollama service untouched",
+        "unavailableSummaryPreservesAPIData": true,
+        "usesOllama": false,
+        "warmCacheSeconds": 0.002017974853515625
+      },
+      "subject": "ETH",
+      "subjectDescription": "ETHNIC STUDIES",
+      "totalSeconds": 2.479554057121277
+    }
+  ],
+  "passed": true,
+  "requestedSemester": "Winter 2027",
+  "retrieval": "URLSession API",
+  "startedAt": "2026-10-10 07:40:51 +0000",
+  "usesOllama": false
+}

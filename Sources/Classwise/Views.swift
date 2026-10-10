@@ -44,6 +44,9 @@ struct ContentView: View {
         .foregroundStyle(.black)
         .tint(Palette.accent)
         .task { await model.loadTerms() }
+        .sheet(isPresented: Binding(get: { model.chooserID != nil }, set: { if !$0 { model.chooserID = nil } })) {
+            ProfileChooser(model: model)
+        }
         .onChange(of: model.displayed.map(\.id)) { _, _ in model.reconcileSelection() }
         .onChange(of: model.selectedID) { _, _ in model.requestSelectedReport() }
     }
@@ -63,7 +66,7 @@ struct ContentView: View {
                 professorList.frame(width: 300)
                 Rectangle().fill(Palette.line).frame(width: 1)
                 if let professor = model.selected, let course = model.course {
-                    ProfessorReport(professor: professor, course: course, scheduleURL: model.scheduleURL,
+                    ProfessorReport(model: model, professor: professor, course: course, scheduleURL: model.scheduleURL,
                                     checkingRatings: model.busy,
                                     loadingDetails: model.loadingDetailsID == professor.id || model.retryingIDs.contains(professor.id),
                                     detailCancelled: model.detailCancelled,
@@ -99,7 +102,7 @@ struct ContentView: View {
                 Toggle("Fully online only", isOn: $model.onlineOnly).toggleStyle(.checkbox).font(.system(size: 12))
                 VStack(spacing: 9) {
                     ForEach(model.displayed) { professor in
-                        ProfessorListCard(professor: professor, selected: model.selectedID == professor.id) { model.selectedID = professor.id }
+                        ProfessorListCard(model: model, professor: professor, selected: model.selectedID == professor.id) { model.selectedID = professor.id }
                     }
                 }
                 if !model.showAll && model.filtered.count > 5 {
@@ -235,6 +238,7 @@ private struct SearchView: View {
 }
 
 private struct ProfessorListCard: View {
+    @ObservedObject var model: AppModel
     let professor: Professor
     let selected: Bool
     let select: () -> Void
@@ -255,11 +259,18 @@ private struct ProfessorListCard: View {
                         Text(profile.ratingCount.map { "\($0) ratings · \(professor.sections.count) \(professor.sections.count == 1 ? "section" : "sections")" } ?? "Rating count unavailable")
                             .font(.system(size: 10)).foregroundStyle(Palette.secondary)
                     } else {
-                        Text(professor.state == .unavailable ? "Cannot retrieve RMP info" : professor.state == .searching ? "Checking RMP…" : "Not checked yet")
+                        Text(professor.state == .selectionRequired ? "Choose profile" : professor.state == .unavailable ? "Cannot retrieve RMP info" : professor.state == .searching ? "Checking RMP…" : "Not checked yet")
                             .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityLabel("\(professor.name). Rating \(score(professor.profile?.rating)) out of five. Difficulty \(score(professor.profile?.difficulty)) out of five. \(professor.profile?.ratingCount.map { "\($0) ratings." } ?? "Ratings not available.") \(selected ? "Selected." : "View report.")")
+            if professor.state == .selectionRequired {
+                Button("Choose profile") { model.openChooser(id: professor.id) }.buttonStyle(.link)
+            }
+            if professor.state == .unavailable || professor.state == .pending {
+                Button("Try again") { model.retryProfessor(id: professor.id) }
+                    .buttonStyle(.link).disabled(model.isPreviewing(professor.id))
+            }
             if professor.state == .unavailable { Link("Check on RMP ↗", destination: professor.searchURL).font(.system(size: 11)).foregroundStyle(Palette.secondary) }
         }
         .padding(15)
@@ -270,6 +281,7 @@ private struct ProfessorListCard: View {
 }
 
 private struct ProfessorReport: View {
+    @ObservedObject var model: AppModel
     let professor: Professor
     let course: Course
     let scheduleURL: URL?
@@ -279,14 +291,26 @@ private struct ProfessorReport: View {
     let retrying: Bool
     let canRetry: Bool
     let retry: () -> Void
-    @State private var onlyCourse = true
+    @State private var reviewFilter: ReviewFilter = .thisCourse
     @State private var reviewSort: ReviewSort = .recent
     @State private var reviewLimit = 3
     private var reviews: [Review] {
-        let all = professor.profile?.reviews ?? []
-        return Ordering.reviews(onlyCourse ? all.filter { course.matchesReview($0.course) } : all, by: reviewSort)
+        guard let profile = professor.profile else { return [] }
+        return Ordering.reviews(reviewFilter.reviews(in: profile, course: course), by: reviewSort)
     }
     private var exactCount: Int { professor.profile?.reviews.filter { course.matchesReview($0.course) }.count ?? 0 }
+    private var courseChoices: [ReviewCourseCount] {
+        guard let profile = professor.profile else { return [] }
+        var labels = Dictionary((profile.courseCounts ?? []).filter { !$0.label.isEmpty }.map { ($0.label, $0) }, uniquingKeysWith: { first, _ in first })
+        for review in profile.reviews where !review.course.isEmpty && labels[review.course] == nil {
+            labels[review.course] = ReviewCourseCount(label: review.course, count: nil)
+        }
+        return labels.values.sorted { $0.label.localizedStandardCompare($1.label) == .orderedAscending }
+    }
+    private var selectedLabel: String? { reviewFilter.requestLabel(course: course) }
+    private var filterFinished: Bool {
+        professor.profile?.reviewCoverage?[ReviewFilter.coverageKey(selectedLabel)]?.finished == true
+    }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -305,11 +329,18 @@ private struct ProfessorReport: View {
                     studentReviews
                 } else {
                     VStack(alignment: .leading, spacing: 14) {
-                        Text(professor.state == .unavailable ? "Cannot retrieve RMP info" : professor.state == .searching ? "Finding student feedback…" : "Student feedback hasn’t been checked yet.")
+                        Text(professor.state == .selectionRequired ? "Choose profile" : professor.state == .unavailable ? "Cannot retrieve RMP info" : professor.state == .searching ? "Finding student feedback…" : "Student feedback hasn’t been checked yet.")
                             .font(.system(size: 21, weight: .medium))
                         Text(professor.issue ?? "PCC sections are available below. Ratings and reviews will appear here when retrieved.")
                             .foregroundStyle(Palette.secondary).font(.system(size: 14)).lineSpacing(4)
-                        Link("Check on RMP ↗", destination: professor.searchURL).buttonStyle(PillStyle(primary: true))
+                        if professor.state == .selectionRequired {
+                            Button("Choose profile") { model.openChooser(id: professor.id) }.buttonStyle(PillStyle(primary: true))
+                        }
+                        if professor.state == .unavailable || professor.state == .pending || (professor.state == .selectionRequired && professor.candidates.isEmpty) {
+                            Button("Try again") { model.retryProfessor(id: professor.id) }
+                                .buttonStyle(PillStyle()).disabled(model.isPreviewing(professor.id))
+                        }
+                        Link("Check on RMP ↗", destination: professor.searchURL).buttonStyle(PillStyle())
                     }.padding(24).frame(maxWidth: .infinity, alignment: .leading).background(Palette.surface, in: RoundedRectangle(cornerRadius: 18))
                 }
                 sections
@@ -324,11 +355,8 @@ private struct ProfessorReport: View {
             }.padding(.horizontal, 38).padding(.vertical, 34).frame(maxWidth: 850, alignment: .leading).frame(maxWidth: .infinity)
         }
         .accessibilityLabel("Professor report")
-        .onAppear { onlyCourse = exactCount > 0 }
-        .onChange(of: exactCount) { previous, count in
-            if previous == 0 && count > 0 { onlyCourse = true }
-        }
-        .onChange(of: onlyCourse) { _, _ in reviewLimit = 3 }
+        .onChange(of: professor.profile?.id) { _, _ in reviewLimit = 3; reviewFilter = .thisCourse }
+        .onChange(of: reviewFilter) { _, _ in reviewLimit = 3 }
         .onChange(of: reviewSort) { _, _ in reviewLimit = 3 }
     }
     private var header: some View {
@@ -338,6 +366,9 @@ private struct ProfessorReport: View {
             if let profile = professor.profile {
                 Text([profile.department, profile.school].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.system(size: 14)).foregroundStyle(Palette.secondary)
+                Button("Change profile") { model.openChooser(id: professor.id) }
+                    .buttonStyle(.link).disabled(model.isPreviewing(professor.id))
+                if let issue = professor.issue { Text(issue).font(.system(size: 12)).foregroundStyle(Palette.secondary) }
                 if profile.name != professor.name { Text("Listed at PCC as \(professor.name)").font(.system(size: 11)).foregroundStyle(Palette.secondary) }
             } else {
                 Text("Teaching \(course.display) at Pasadena City College").font(.system(size: 14)).foregroundStyle(Palette.secondary)
@@ -396,15 +427,38 @@ private struct ProfessorReport: View {
                 }
             }
             HStack {
-                Picker("Review course", selection: $onlyCourse) {
-                    Text("This course").tag(true); Text("All courses").tag(false)
-                }.pickerStyle(.segmented).frame(width: 230).accessibilityLabel("Review course filter")
+                Picker("Review course", selection: $reviewFilter) {
+                    Text("This course · \(course.display)").tag(ReviewFilter.thisCourse)
+                    Text("All courses").tag(ReviewFilter.allCourses)
+                    ForEach(courseChoices, id: \.label) { item in
+                        Text(item.count.map { "\(item.label) (\($0) on RMP)" } ?? "\(item.label) (source count unavailable)")
+                            .tag(ReviewFilter.source(item.label))
+                    }
+                }.pickerStyle(.menu).frame(maxWidth: 330).accessibilityLabel("Review course filter")
                 Spacer()
                 Picker("Sort reviews", selection: $reviewSort) { ForEach(ReviewSort.allCases) { Text($0.rawValue).tag($0) } }
                     .labelsHidden().pickerStyle(.menu).accessibilityLabel("Sort reviews").frame(maxWidth: 170)
             }
-            Text(exactCount == 0 ? "No retrieved reviews exactly match \(course.display). Available feedback may concern other courses." : "Showing \(reviews.count) retrieved reviews\(onlyCourse ? " for " + course.display : " across courses").")
+            Text("Showing \(reviews.count) downloaded reviews for this filter (up to 50). Changing the filter uses saved reviews.")
                 .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+            if reviewFilter == .thisCourse && exactCount == 0 {
+                Text("No downloaded reviews exactly match \(course.display). More may be available on RMP under this or another course label.")
+                    .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+            }
+            if let label = selectedLabel {
+                if let issue = model.courseReviewIssues[professor.id + "|" + label] {
+                    Text(issue).font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                }
+                if !filterFinished {
+                    Button("Find more for this class") { model.findMoreReviews(id: professor.id, filter: reviewFilter) }
+                        .buttonStyle(PillStyle()).disabled(model.busy || model.loadingDetailsID != nil)
+                    Text("Requests this class label from RMP. Reviews for other classes and overall scores stay separate.")
+                        .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                } else {
+                    Text("Finished this filter’s retrieval, or reached the 50-rating limit. Source totals may include reviews without text.")
+                        .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                }
+            }
             if reviews.isEmpty { Text("No review text available for this filter.").font(.system(size: 14)).foregroundStyle(Palette.secondary).padding(.vertical, 10) }
             ForEach(Array(reviews.prefix(reviewLimit))) { review in
                 ReviewCard(review: review, sourceURL: professor.sourceURL)
@@ -472,5 +526,53 @@ private struct ReviewCard: View {
         }.padding(21).frame(maxWidth: .infinity, alignment: .leading)
             .background(.white, in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.line))
+    }
+}
+
+
+private struct ProfileChooser: View {
+    @ObservedObject var model: AppModel
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Choose RMP profile").font(.title2.weight(.semibold))
+            if let professor = model.chooserProfessor {
+                Text(professor.name).font(.headline)
+                Text([professor.subjectCode, professor.subjectDescription].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .foregroundStyle(Palette.secondary)
+                Text("Profiles stay separate. Choose the profile you want to use for this PCC instructor and subject.")
+                    .font(.callout).foregroundStyle(Palette.secondary)
+                if model.isPreviewing(professor.id) {
+                    ProgressView("Finding profiles…").accessibilityLabel("Loading profile choices")
+                }
+                if let issue = model.chooserIssue {
+                    Text(issue).foregroundStyle(Palette.secondary)
+                    Button("Try again") { model.openChooser(id: professor.id) }.disabled(model.isPreviewing(professor.id))
+                }
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(professor.candidates) { candidate in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(candidate.name).font(.headline)
+                                Text("Department: \(candidate.department.isEmpty ? "Unavailable" : candidate.department)")
+                                Text(candidate.school).foregroundStyle(Palette.secondary)
+                                HStack {
+                                    Link("View on RMP ↗", destination: candidate.url)
+                                    Spacer()
+                                    Button("Use this profile") { model.chooseProfile(id: professor.id, profileID: candidate.id) }
+                                        .disabled(model.isPreviewing(professor.id))
+                                        .accessibilityLabel("Use \(candidate.name), \(candidate.department.isEmpty ? "department unavailable" : candidate.department), profile \(candidate.id)")
+                                }
+                            }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Palette.surface, in: RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+                }
+                if professor.candidates.isEmpty && !model.isPreviewing(professor.id) {
+                    Text("No eligible profile is available. Retry this professor or check the source.")
+                    Link("Check on RMP ↗", destination: professor.searchURL)
+                }
+            }
+            HStack { Spacer(); Button("Close") { model.chooserID = nil }.keyboardShortcut(.cancelAction) }
+        }.padding(26).frame(width: 560, height: 560).background(Palette.background)
     }
 }

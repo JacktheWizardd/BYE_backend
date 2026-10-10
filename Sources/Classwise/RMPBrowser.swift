@@ -4,7 +4,7 @@ import ClasswiseCore
 
 /// Reads public, rendered RMP pages. No private GraphQL endpoint, account, or anti-bot bypass.
 @MainActor
-final class RMPBrowser: NSObject, WKNavigationDelegate {
+final class RMPBrowser: NSObject, WKNavigationDelegate, ProfileReader {
     private let webView: WKWebView
     private var navigation: CheckedContinuation<Void, Error>?
     private var activeNavigation: WKNavigation?
@@ -93,7 +93,7 @@ final class RMPBrowser: NSObject, WKNavigationDelegate {
     }
     private func clickMore(search: Bool = false, before: Int, profileID: String? = nil) async throws -> [RMPProfile]? {
         let expression = search ? "^(show|load) more$" : "^load more ratings$"
-        let handlerGuard = search ? "" : """
+        let handlerGuard = """
           const hydrated = typeof button.onclick === 'function' || Object.keys(button).some(key =>
             key.startsWith('__react') && typeof button[key]?.onClick === 'function');
           if (!hydrated) return false;
@@ -109,8 +109,22 @@ final class RMPBrowser: NSObject, WKNavigationDelegate {
         """
         var clicked = false
         if search {
-            clicked = try await webView.evaluateJavaScript(code) as? Bool ?? false
-            guard clicked else { return nil }
+            var absentSamples = 0
+            for _ in 0..<125 {
+                try Task.checkCancellation()
+                clicked = try await webView.evaluateJavaScript(code) as? Bool ?? false
+                if clicked { break }
+                let state = try await webView.evaluateJavaScript("""
+                (() => ({present: [...document.querySelectorAll('button')].some(b => /^(show|load) more$/i.test(b.textContent.trim())),
+                         ready: document.readyState === 'complete'}))()
+                """) as? [String: Any] ?? [:]
+                if state["present"] as? Bool == false, state["ready"] as? Bool == true {
+                    absentSamples += 1
+                    if absentSamples >= 6 { return nil }
+                } else { absentSamples = 0 }
+                try await Task.sleep(for: .milliseconds(120))
+            }
+            guard clicked else { throw AppError.message("RMP’s additional results are not ready. Try again.") }
         } else {
             // Embedded scores can arrive before React renders the review list/control.
             // Only the deeper report waits for hydration; ratings previews stay fast.
@@ -153,37 +167,65 @@ final class RMPBrowser: NSObject, WKNavigationDelegate {
         for _ in 0..<(search ? 30 : 80) {
             try await Task.sleep(for: .milliseconds(120))
             let profiles = try await read()
-            let count = search ? profiles.count : (profiles.first(where: { $0.id == profileID })?.reviews.count ?? 0)
+            let count = search ? Set(profiles.map(\.id)).count : (profiles.first(where: { $0.id == profileID })?.reviews.count ?? 0)
             if count > before { return profiles }
         }
         throw AppError.message("Additional RMP results took too long to arrive. The information already retrieved is still available.")
     }
-    func lookup(_ professor: Professor, initialReviewsOnly: Bool = false,
-                onProfile: @MainActor (RMPProfile) -> Void = { _ in }) async throws -> RMPProfile {
+    func candidates(_ professor: Professor, discoverAll: Bool = false) async throws -> [RMPProfile] {
         guard professor.canSearch else { throw AppError.message("PCC has not named this instructor yet.") }
         try await load(professor.searchURL)
-        var candidates = try await readWhenReady()
-        // Expose more public search results when available, bounded to keep searches responsive.
+        return try await searchCandidates(name: professor.name, discoverAll: discoverAll)
+    }
+    /// Also used with local HTML to test the real search pagination loop.
+    func searchCandidates(name: String, discoverAll: Bool = false) async throws -> [RMPProfile] {
+        var retained = try await readWhenReady()
         for _ in 0..<3 {
-            let before = candidates.count
-            guard let next = try await clickMore(search: true, before: before) else { break }
-            candidates = Array(Dictionary((candidates + next).map { ($0.id, $0) }, uniquingKeysWith: { _, new in new }).values)
-            if candidates.count <= before { break }
+            let eligible = IdentityMatcher.eligible(name: name, candidates: retained)
+            if !discoverAll, !eligible.isEmpty { return eligible }
+            let before = Set(retained.map(\.id)).count
+            do {
+                guard let next = try await clickMore(search: true, before: before) else { break }
+                retained = merge(retained, next)
+                if Set(retained.map(\.id)).count <= before { break }
+            } catch is CancellationError { throw CancellationError() }
+            catch {
+                // A page may have partially arrived before its timeout.
+                if let latest = try? await read() { retained = merge(retained, latest) }
+                try Task.checkCancellation()
+                let eligible = IdentityMatcher.eligible(name: name, candidates: retained)
+                if !eligible.isEmpty { return eligible }
+                throw error
+            }
         }
-        guard let match = IdentityMatcher.unique(name: professor.name, candidates: candidates) else {
-            throw AppError.message("No unique matching PCC profile could be confirmed. Please check RMP yourself.")
-        }
-        try await load(match.url)
+        return IdentityMatcher.eligible(name: name, candidates: retained)
+    }
+    private func merge(_ old: [RMPProfile], _ new: [RMPProfile]) -> [RMPProfile] {
+        Array(Dictionary((old + new).map { ($0.id, $0) }, uniquingKeysWith: { _, latest in latest }).values)
+    }
+    func preview(_ professor: Professor, profileID: String) async throws -> RMPProfile {
+        guard profileID.range(of: "^[0-9]+$", options: .regularExpression) != nil else { throw ProfileIdentityMismatch() }
+        try await load(URL(string: "https://www.ratemyprofessors.com/professor/\(profileID)")!)
         let profiles = try await readWhenReady()
-        guard var profile = profiles.first(where: { $0.id == match.id }), IdentityMatcher.matches(name: professor.name, profile: profile) else {
-            throw AppError.message("The professor’s RMP page could not be verified.")
+        guard var profile = profiles.first(where: { $0.id == profileID }) else {
+            if !profiles.isEmpty { throw ProfileIdentityMismatch() }
+            throw AppError.message("The RMP profile could not be read. Try again.")
         }
-        if initialReviewsOnly {
-            profile.reviews = Array(Ordering.reviews(profile.reviews, by: .recent).prefix(3))
-            webView.stopLoading()
-            return profile
+        guard IdentityMatcher.matches(name: professor.name, profile: profile) else { throw ProfileIdentityMismatch() }
+        profile.reviews = Array(Ordering.reviews(profile.reviews, by: .recent).prefix(3))
+        webView.stopLoading()
+        return profile
+    }
+    /// Compatibility entry point for development checks; the app uses typed outcomes.
+    func lookup(_ professor: Professor, initialReviewsOnly: Bool = false,
+                onProfile: @MainActor (RMPProfile) -> Void = { _ in }) async throws -> RMPProfile {
+        switch try await lookupOutcome(professor) {
+        case .verified(let profile):
+            if initialReviewsOnly { return profile }
+            return try await expand(professor, profile: profile, onProfile: onProfile)
+        case .selectionRequired: throw AppError.message("Multiple PCC profiles require an explicit choice.")
+        case .unavailable(let message): throw AppError.message(message)
         }
-        return try await collectReviews(profile, onProfile: onProfile)
     }
     func expand(_ professor: Professor, profile: RMPProfile,
                 onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
@@ -198,6 +240,7 @@ final class RMPBrowser: NSObject, WKNavigationDelegate {
     func collectReviews(_ initial: RMPProfile,
                                 onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
         var profile = initial
+        profile.reviews = Array(profile.reviews.prefix(50))
         onProfile(profile)
         for _ in 0..<10 {
             if profile.reviews.count >= 50 { break }
@@ -207,6 +250,7 @@ final class RMPBrowser: NSObject, WKNavigationDelegate {
                 throw AppError.message("The professor’s review page could not be verified.")
             }
             profile = next
+            profile.reviews = Array(profile.reviews.prefix(50))
             onProfile(profile)
             if profile.reviews.count <= before { break }
         }

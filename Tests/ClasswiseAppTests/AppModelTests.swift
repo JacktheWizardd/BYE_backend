@@ -7,7 +7,7 @@ import XCTest
 /// are complete fictional fixtures, so no RMP page or actual model is contacted.
 final class AppModelTests: XCTestCase {
     @MainActor
-    private func fixture() throws -> AppFixture {
+    private func fixture(makeReader: @escaping @MainActor () -> any ProfileReader = { RMPBrowser() }) throws -> AppFixture {
         let server = AppTestServer()
         AppTestProtocol.server = server
         let configuration = URLSessionConfiguration.ephemeral
@@ -16,7 +16,7 @@ final class AppModelTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("BYE-AppTests-\(UUID())")
         let model = AppModel(pcc: PCCClient(session: session),
                              ollama: OllamaClient(model: "fictional-test-model", session: session),
-                             cache: ReportCache(directory: directory))
+                             cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory), makeReader: makeReader)
         model.course = try Course("MATH 005A")
         model.professors = ["a", "b", "c"].map { id in
             let reviews = (1...2).map { number in
@@ -184,6 +184,22 @@ final class AppModelTests: XCTestCase {
     }
 
     @MainActor
+    func testChangedReviewTextRejectsInFlightSummaryAndCacheEvenWithSameIDs() async throws {
+        let fixture = try fixture(); defer { fixture.close() }
+        let model = fixture.model
+        model.requestSelectedReport()
+        try await waitUntil("original evidence starts") { fixture.server.tags == ["a"] }
+        let old = model.professors[0].profile!.reviews[0]
+        model.professors[0].profile!.reviews[0] = Review(id: old.id, course: old.course, text: "CHANGED FICTIONAL evidence", date: old.date, rating: old.rating, difficulty: old.difficulty, online: old.online)
+        fixture.server.complete(0)
+        try await waitUntil("fresh evidence is retried") { fixture.server.tags == ["a", "a"] }
+        XCTAssertNil(model.professors[0].summary)
+        XCTAssertNil(ReportCache(directory: fixture.directory).load(name: model.professors[0].name, course: model.course!)?.summary)
+        fixture.server.complete(1)
+        try await waitUntil("fresh summary finishes") { !model.loadingDetails && model.professors[0].summary != nil }
+    }
+
+    @MainActor
     func testSummaryFailureKeepsRatingsAndCanBeRetried() async throws {
         let fixture = try fixture(); defer { fixture.close() }
         let model = fixture.model
@@ -202,6 +218,48 @@ final class AppModelTests: XCTestCase {
         XCTAssertNil(model.professors[0].summaryIssue)
         XCTAssertEqual(model.professors[0].profile, before)
     }
+    @MainActor
+    func testProfileChangeDuringSummaryCannotRestoreOrCacheOldSummary() async throws {
+        let hub = RecoveryHub()
+        let fixture = try fixture(makeReader: { hub.reader() }); defer { fixture.close() }
+        let model = fixture.model
+        let replacement = RMPProfile(id: "42", firstName: "Fictional", lastName: "A", school: "Pasadena City College", schoolID: 2649,
+                                     department: "Math", rating: 3, difficulty: 4, ratingCount: 0, wouldTakeAgain: nil, reviews: [])
+        hub.options = [replacement]
+        model.professors[0].candidates = [replacement]
+        model.requestSelectedReport()
+        try await waitUntil("old summary begins") { fixture.server.tags == ["a"] }
+        model.chooseProfile(id: "a", profileID: "42")
+        XCTAssertNil(model.professors[0].profile); XCTAssertNil(model.professors[0].summary)
+        model.selectedID = nil
+        fixture.server.complete(0)
+        try await waitUntil("replacement and old summary finish") { !model.busy && !model.loadingDetails }
+        XCTAssertEqual(model.professors[0].profile?.id, "42")
+        XCTAssertNil(model.professors[0].summary)
+        XCTAssertEqual(model.professors[1].profile?.id, "b")
+        XCTAssertEqual(ReportCache(directory: fixture.directory).load(name: "Fictional A", course: try Course("MATH005A"), subject: "")?.profile.id, "42")
+    }
+
+    @MainActor
+    func testPreviewRetryPausesDispatchOfQueuedSummaries() async throws {
+        let hub = RecoveryHub(); hub.holdCandidates = true
+        let fixture = try fixture(makeReader: { hub.reader() }); defer { fixture.close() }
+        let model = fixture.model
+        model.requestSelectedReport()
+        try await waitUntil("A begins") { fixture.server.tags == ["a"] }
+        model.selectedID = "b"; model.requestSelectedReport()
+        model.professors[2].profile = nil; model.professors[2].state = .unavailable
+        model.retryProfessor(id: "c")
+        try await waitUntil("preview begins") { hub.waiting["c"] != nil }
+        fixture.server.complete(0)
+        try await waitUntil("A finishes during preview") { model.summaryLoadingID == nil }
+        XCTAssertEqual(fixture.server.tags, ["a"])
+        hub.waiting.removeValue(forKey: "c")!.resume(returning: [])
+        try await waitUntil("B resumes after preview") { fixture.server.tags == ["a", "b"] }
+        fixture.server.complete(1)
+        try await waitUntil("B finishes") { !model.loadingDetails }
+    }
+
 }
 
 @MainActor

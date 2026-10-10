@@ -8,9 +8,17 @@
 		<data>
 		AHRMEj2vfVxPSA76ukxvviNTEaQ=
 		</data>
+		<key>Resources/Classwise_Classwise.bundle/THIRD_PARTY_NOTICES.txt</key>
+		<data>
+		DQbvFaiG4awPApQ4xldLwFk+hEc=
+		</data>
 		<key>Resources/RMPReader.js</key>
 		<data>
 		AHRMEj2vfVxPSA76ukxvviNTEaQ=
+		</data>
+		<key>Resources/THIRD_PARTY_NOTICES.txt</key>
+		<data>
+		DQbvFaiG4awPApQ4xldLwFk+hEc=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -22,11 +30,25 @@
 			JVbSd8ezn3knieDuxgrzTpxiDKCcqDzKVHgYzT4JBgM=
 			</data>
 		</dict>
+		<key>Resources/Classwise_Classwise.bundle/THIRD_PARTY_NOTICES.txt</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			5Ujh7IWycYEGJzupYxiAMqQHAUeAexpsZAlRtb0Q+NI=
+			</data>
+		</dict>
 		<key>Resources/RMPReader.js</key>
 		<dict>
 			<key>hash2</key>
 			<data>
 			JVbSd8ezn3knieDuxgrzTpxiDKCcqDzKVHgYzT4JBgM=
+			</data>
+		</dict>
+		<key>Resources/THIRD_PARTY_NOTICES.txt</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			5Ujh7IWycYEGJzupYxiAMqQHAUeAexpsZAlRtb0Q+NI=
 			</data>
 		</dict>
 	</dict>
