@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-09",
+  "fictional_evaluation_only": true,
+  "default_decision": "Retain qwen3:4b; ratings retrieval never invokes AI.",
+  "trials": [
+    {
+      "model": "gemma3:1b-it-q4_K_M",
+      "options": {
+        "temperature": 0,
+        "num_ctx": 16384,
+        "num_predict": 700
+      },
+      "summary": {
+        "requests": 10,
+        "elapsed_total_seconds": 12.78,
+        "median_seconds": 0.9425,
+        "minimum_seconds": 0.769,
+        "maximum_seconds": 3.02,
+        "strict_shape_passes": 5,
+        "all_theme_ID_support_passes": 0,
+        "overall_quality_passes": 0,
+        "recommendation": "Do not promote Gemma3 1B with the current prompt. Retrieval speed changes remain independent."
+      }
+    },
+    {
+      "model": "smollm2:1.7b-instruct-q4_K_M",
+      "options": {
+        "temperature": 0,
+        "num_ctx": 16384,
+        "num_predict": 700
+      },
+      "timings": {
+        "total_seconds": 16.0,
+        "median_seconds": 1.168,
+        "minimum_seconds": 0.643,
+        "maximum_seconds": 5.949
+      },
+      "summary": {
+        "strict_shape_passes": 8,
+        "all_raw_theme_ID_support_passes": 1,
+        "fully_grounded_useful_cases": 0,
+        "safe_conservative_cases": 0,
+        "semantic_failures_after_app_filter": 2,
+        "decision": "Do not promote Smol; retain existing Qwen pending stronger sentiment validation."
+      }
+    },
+    {
+      "model": "qwen3:4b",
+      "options": {
+        "temperature": 0,
+        "num_ctx": 16384,
+        "num_predict": 700
+      },
+      "timings": {
+        "total_seconds": 16.314,
+        "median_seconds": 1.764,
+        "minimum_seconds": 0.778,
+        "maximum_seconds": 2.366
+      },
+      "summary": {
+        "strict_shape_passes": 10,
+        "all_raw_themes_ID_supported": 10,
+        "safe_without_fabricated_policies_or_instructions": 10,
+        "useful_nonempty_results": 7,
+        "conservative_empty_results": 3,
+        "minor_over_specific_qualifiers": 2,
+        "sentiment_case2_corrected": true,
+        "limitations": "All nonempty themes have recurring grounded cores. Two paraphrases add qualifiers explicit in only one supporting review (readings; confusion), so do not claim perfect per-observation recurrence. Three cases conservatively omit usable feedback."
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "analyzedReviews" : 47,
+  "course" : "MATH 005A",
+  "difficulty" : 3.2000000000000002,
+  "finishedAt" : "2026-10-09 23:10:48 +0000",
+  "passed" : true,
+  "previewReviews" : 3,
+  "previewSeconds" : 1.9871259927749634,
+  "rating" : 4.0999999999999996,
+  "retrievedReviews" : 47,
+  "reviewProgress" : [
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    47
+  ],
+  "reviewSeconds" : 4.6723229885101318,
+  "semester" : "Fall 2026",
+  "sourceRatingCount" : 46,
+  "startedAt" : "2026-10-09 23:10:36 +0000",
+  "summary" : "Not enough feedback to identify recurring themes.",
+  "summaryPassed" : true
+}

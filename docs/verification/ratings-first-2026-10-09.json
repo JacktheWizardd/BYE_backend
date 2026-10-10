@@ -1,0 +1,224 @@
+{
+  "course" : "MATH 005A",
+  "finishedAt" : "2026-10-09 22:38:00 +0000",
+  "firstResultSeconds" : 2.8331449031829834,
+  "passed" : true,
+  "previewLimitPassed" : true,
+  "previews" : [
+    {
+      "difficulty" : 3.2000000000000002,
+      "issue" : "",
+      "name" : "Anahit Asadyan",
+      "rating" : 4.0999999999999996,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : null,
+      "issue" : "Additional RMP results took too long to arrive. The information already retrieved is still available.",
+      "name" : "Angela Estrada-Ceballos",
+      "rating" : null,
+      "reviews" : 0,
+      "state" : "unavailable"
+    },
+    {
+      "difficulty" : null,
+      "issue" : "Additional RMP results took too long to arrive. The information already retrieved is still available.",
+      "name" : "Dan Guo",
+      "rating" : null,
+      "reviews" : 0,
+      "state" : "unavailable"
+    },
+    {
+      "difficulty" : 4,
+      "issue" : "",
+      "name" : "Edward Ham",
+      "rating" : 4.0999999999999996,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 2.7000000000000002,
+      "issue" : "",
+      "name" : "Erlend Weydahl",
+      "rating" : 3.6000000000000001,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3,
+      "issue" : "",
+      "name" : "Fendi He",
+      "rating" : 4,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.3999999999999999,
+      "issue" : "",
+      "name" : "Frank Bermudez",
+      "rating" : 4.0999999999999996,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 2.8999999999999999,
+      "issue" : "",
+      "name" : "Gonzaga Mendez",
+      "rating" : 3.2000000000000002,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 2.1000000000000001,
+      "issue" : "",
+      "name" : "Hoa Ly",
+      "rating" : 4.7000000000000002,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 2.7000000000000002,
+      "issue" : "",
+      "name" : "Jay Cho",
+      "rating" : 3.5,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.3999999999999999,
+      "issue" : "",
+      "name" : "John Mathewson",
+      "rating" : 3.5,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 4.4000000000000004,
+      "issue" : "",
+      "name" : "Jose Castanon",
+      "rating" : 2.2000000000000002,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.7999999999999998,
+      "issue" : "",
+      "name" : "Karen Wang",
+      "rating" : 3,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.7000000000000002,
+      "issue" : "",
+      "name" : "Lulu Yamashita",
+      "rating" : 3,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.7999999999999998,
+      "issue" : "",
+      "name" : "Lyman Chaffee",
+      "rating" : 3.3999999999999999,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 4,
+      "issue" : "",
+      "name" : "Mark Pavitch",
+      "rating" : 3.7999999999999998,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 2.5,
+      "issue" : "",
+      "name" : "Nerses Abramyan",
+      "rating" : 4.5999999999999996,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.5,
+      "issue" : "",
+      "name" : "Peter Banda",
+      "rating" : 3.7000000000000002,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : null,
+      "issue" : "No unique matching PCC profile could be confirmed. Please check RMP yourself.",
+      "name" : "Raelynn Garcia",
+      "rating" : null,
+      "reviews" : 0,
+      "state" : "unavailable"
+    },
+    {
+      "difficulty" : 4.2000000000000002,
+      "issue" : "",
+      "name" : "Renee Johansson",
+      "rating" : 3.1000000000000001,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : null,
+      "issue" : "No unique matching PCC profile could be confirmed. Please check RMP yourself.",
+      "name" : "Richard Abdelkerim",
+      "rating" : null,
+      "reviews" : 0,
+      "state" : "unavailable"
+    },
+    {
+      "difficulty" : 3.2000000000000002,
+      "issue" : "",
+      "name" : "Roger Yang",
+      "rating" : 4,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 3.1000000000000001,
+      "issue" : "",
+      "name" : "Saliha Sha",
+      "rating" : 3.6000000000000001,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : null,
+      "issue" : "No unique matching PCC profile could be confirmed. Please check RMP yourself.",
+      "name" : "Sandra Vazquez-Celaya",
+      "rating" : null,
+      "reviews" : 0,
+      "state" : "unavailable"
+    },
+    {
+      "difficulty" : 3.2000000000000002,
+      "issue" : "",
+      "name" : "Thomas Kowalski",
+      "rating" : 3.7000000000000002,
+      "reviews" : 3,
+      "state" : "ready"
+    },
+    {
+      "difficulty" : 2.7999999999999998,
+      "issue" : "",
+      "name" : "Zorayr Nalbandyan",
+      "rating" : 3.7000000000000002,
+      "reviews" : 3,
+      "state" : "ready"
+    }
+  ],
+  "professors" : 26,
+  "ratingsPassSeconds" : 16.807925939559937,
+  "sections" : 35,
+  "semester" : "Fall 2026",
+  "startedAt" : "2026-10-09 22:37:43 +0000",
+  "unopenedReportsUntouched" : true,
+  "verifiedProfiles" : 21
+}
