@@ -6,3 +6,9 @@ app-history/
 dist/
 __pycache__/
 *.pyc
+apps/cross-platform/node_modules/
+apps/cross-platform/out/
+apps/cross-platform/models/*.gguf
+apps/cross-platform/models/*.part
+apps/cross-platform/test-results/
+apps/cross-platform/.cache/

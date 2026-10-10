@@ -2,6 +2,10 @@
 
 A native SwiftUI app for finding PCC sections and comparing the professors teaching them. Enter a course and semester, then compare source-reported RMP ratings, difficulty, review excerpts, and local AI summaries.
 
+## Separate cross-platform application
+
+The Windows-first Electron/React/TypeScript application is developed independently under [apps/cross-platform](apps/cross-platform/README.md). It preserves the course/RMP workflow and bundles a local Qwen model. Its Windows ZIP is separate from the Mac-focused Swift/Apple Intelligence build described below. See its verification record for actual tested capabilities and remaining release checks.
+
 ## Run
 
 Current development build: **BYE Apple AI Beta 0.3.0-beta.3**, separate from the preserved 0.2.0 app.

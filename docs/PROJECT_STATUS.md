@@ -72,3 +72,7 @@ RMP's endpoint is undocumented and can change or reject requests; client tests c
 Leading-zero shorthand is implemented for searches and downloaded review matching; broader aliases and cross-listed course inference remain deferred. Top-three recommendations, loading redesign, Windows, an embedded fallback for unsupported hardware and additional privacy infrastructure remain later milestones. Apple on-device summaries are now experimental in the separate beta; Ollama remains only for explicit legacy regression checks.
 
 No commit or upload was performed.
+
+## Separate Windows cross-platform beta — October 10, 2026
+
+`apps/cross-platform` now contains an independent Electron/React/TypeScript 0.1.0-beta.1 application with direct PCC/RMP requests, explicit profile selection, separate job queues, persistent evidence-aware caches and bundled CPU Qwen3-4B inference. Swift application files remain unchanged. Windows ZIP packaging includes the model and licenses; see `apps/cross-platform/VERIFICATION.md` for measured results and limitations. The initial packaged startup failure was corrected by preserving required inference metadata and deferring native AI imports. The Windows beta remains unsigned and requires clean-machine acceptance before being described as release-ready. No Mac package of this separate application is claimed.

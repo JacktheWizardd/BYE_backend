@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-10T20:11:42.425Z",
+  "version": "0.1.0-beta.1",
+  "platform": "Windows x64 development host",
+  "regressions": {
+    "passed": 29,
+    "failed": 0
+  },
+  "productionAuditVulnerabilities": 0,
+  "ai": {
+    "fictionalCases": 17,
+    "networkDisabled": true,
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700KF",
+    "totalMemoryGiB": 15.838104248046875,
+    "firstSeconds": 10.0846407,
+    "warmSecondsRange": [
+      3.9573332999999984,
+      5.256904699999999
+    ],
+    "sampledPeakRSSGiB": 4.781642913818359,
+    "limitations": "Conservative omissions; not a guarantee of general semantic correctness."
+  },
+  "live": {
+    "term": "Winter 2027",
+    "course": "MATH 005A",
+    "sections": 8,
+    "professors": 7,
+    "sequentialSampleSeconds": 2.2714596
+  },
+  "ui": [
+    "Live shorthand search: Winter 2027 MATH 005A, 8 sections, 7 professors; verified ratings rendered",
+    "Renderer has no require; bridge exposes only command and subscribe",
+    "Review course/sort controls retain selected report",
+    "Profile chooser opens, Escape dismisses, report remains",
+    "125% zoom and reduced motion rendered; screenshots saved",
+    "Keyboard focus reaches controls",
+    "Window minimize/restore succeeds"
+  ],
+  "packaged": [
+    "Packaged BYE.exe launched and generated an embedded CPU summary: Analyzed 10 complete reviews of 47 downloaded · 10 for MATH 005A.  Reported experiences may differ from the current class.",
+    "Packaged review filters and progressive reveal work",
+    "Profile and summary caches written outside the application folder",
+    "Quit/relaunch restores cached profile evidence and summary after repeating search",
+    "Missing model produces a recoverable summary error while original reviews remain usable",
+    "Corrupt model produces a recoverable summary error while original reviews remain usable"
+  ],
+  "startupFix": {
+    "cause": "Required node-llama-cpp runtime metadata excluded from ASAR",
+    "changes": [
+      "Retain required llama metadata and check it during packaging",
+      "Defer native AI import until a summary request; import failures are recoverable"
+    ]
+  },
+  "limitations": [
+    "Clean Windows 11 system without development tools not tested",
+    "Full Narrator and scaling matrix not tested",
+    "Unsigned local beta; no upload or publication",
+    "No Mac release of this separate application"
+  ],
+  "distribution": {
+    "filename": "BYE-CrossPlatform-0.1.0-beta.1-windows-x64.zip",
+    "bytes": 2598145082,
+    "sha256": "609237b33eb5d7ee02e9c3070e8b167366786cf55f3dfb460f43a17002dcc659",
+    "unsigned": true,
+    "privacy": "app directory and unpacked ASAR passed",
+    "uncompressedBytes": 2928021584,
+    "modelSha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+    "zipChecksumVerified": true,
+    "extractedModelChecksumVerified": true,
+    "extractedExecutableTestPassed": true,
+    "pathContainsSpacesAndUnicode": true
+  },
+  "packagedMainProcessMemoryKB": {
+    "residentSet": 4375024,
+    "private": 1908736,
+    "shared": 536
+  }
+}
