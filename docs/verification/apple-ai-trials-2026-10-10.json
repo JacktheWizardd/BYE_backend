@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-10",
+  "hardware": "Apple M5, 16 GiB",
+  "macOS": "26.6.2",
+  "unconstrainedTrial": {
+    "firstUseSeconds": 9.272722005844116,
+    "prewarmedSeconds": 8.892765998840332,
+    "analyzedReviews": 31,
+    "humanReview": "Failed: long copied passages, unsupported compound claims, and mismatched citations."
+  },
+  "compactTrial": {
+    "firstUseSeconds": 2.5355849266052246,
+    "prewarmedSeconds": 2.280658006668091,
+    "analyzedReviews": 19,
+    "humanReview": "Failed: positive added caring unsupported by both cited sources; concern confused exam weighting with exam content."
+  },
+  "schemaProbe": {
+    "nestedArrayZeroToOne": "Failed with ModelManagerServices error 1032 on this Mac",
+    "nestedArrayZeroToTwo": "Succeeded",
+    "reorderedReferencesFirst": "Succeeded",
+    "fixedPairCount": "Succeeded",
+    "resolution": "Optional pair fields avoid the failing zero-to-one nested-array shape. Do not infer that the same failure occurs on every OS release."
+  },
+  "limitations": [
+    "One PCC request timed out before AI; a later retrieval succeeded.",
+    "Same verified temporary snapshot reused for generation trials; these are not new network benchmarks.",
+    "First-use is local to a process, not guaranteed cold OS model assets.",
+    "Conservative checks trade recall for grounding; they are not a semantic proof."
+  ]
+}

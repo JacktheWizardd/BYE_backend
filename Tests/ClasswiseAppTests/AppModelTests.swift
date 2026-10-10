@@ -7,7 +7,22 @@ import XCTest
 /// are complete fictional fixtures, so no RMP page or actual model is contacted.
 final class AppModelTests: XCTestCase {
     @MainActor
-    private func fixture(makeReader: @escaping @MainActor () -> any ProfileReader = { RMPBrowser() }) throws -> AppFixture {
+    func testRetryOfConservativeSummaryRegeneratesWithoutDiscardingProfile() async throws {
+        let fixture = try fixture(); defer { fixture.close() }
+        let before = fixture.model.professors[0].profile
+        fixture.model.requestSelectedReport()
+        try await waitUntil("first summary starts") { fixture.server.tags == ["a"] }
+        fixture.server.complete(0)
+        try await waitUntil("conservative summary completes") { fixture.model.professors[0].summary != nil && !fixture.model.loadingDetails }
+        fixture.model.retrySummary(id: "a")
+        XCTAssertNil(fixture.model.professors[0].summary)
+        XCTAssertEqual(fixture.model.professors[0].profile, before)
+        try await waitUntil("explicit summary retry starts") { fixture.server.tags == ["a", "a"] }
+        fixture.server.complete(1)
+        try await waitUntil("retry completes") { fixture.model.professors[0].summary != nil && !fixture.model.loadingDetails }
+    }
+    @MainActor
+    private func fixture(makeReader: @escaping @MainActor () -> any ProfileReader = { RMPBrowser() }, summaryProvider: (any SummaryProvider)? = nil) throws -> AppFixture {
         let server = AppTestServer()
         AppTestProtocol.server = server
         let configuration = URLSessionConfiguration.ephemeral
@@ -15,7 +30,7 @@ final class AppModelTests: XCTestCase {
         let session = URLSession(configuration: configuration)
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("BYE-AppTests-\(UUID())")
         let model = AppModel(pcc: PCCClient(session: session),
-                             ollama: OllamaClient(model: "fictional-test-model", session: session),
+                             ollama: OllamaClient(model: "fictional-test-model", session: session), summaryProvider: summaryProvider,
                              cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory), makeReader: makeReader)
         model.course = try Course("MATH 005A")
         model.professors = ["a", "b", "c"].map { id in
@@ -35,6 +50,36 @@ final class AppModelTests: XCTestCase {
         }
         model.showingResults = true; model.selectedID = "a"
         return AppFixture(model: model, server: server, session: session, directory: directory)
+    }
+
+    @MainActor
+    func testInjectedAppleProviderPublishesAndCachesOnlyItsOwnEvidence() async throws {
+        let fixture = try fixture(summaryProvider: SuccessfulAppleFixture()); defer { fixture.close() }
+        fixture.model.requestSelectedReport()
+        try await waitUntil("Apple summary published") { fixture.model.professors[0].summary != nil }
+        let professor = fixture.model.professors[0]
+        let saved = ReportCache(directory: fixture.directory).load(name: professor.name, course: fixture.model.course!,
+            subject: professor.subjectCode, summaryProvider: "apple-fixture|success")
+        XCTAssertEqual(saved?.summary, professor.summary)
+        XCTAssertEqual(saved?.summary?.evidence, professor.profile?.reviews)
+        XCTAssertEqual(saved?.summary?.positives.first?.reviewIDs, ["test-a-1", "test-a-2"])
+        XCTAssertNil(ReportCache(directory: fixture.directory).load(name: professor.name, course: fixture.model.course!, subject: professor.subjectCode)?.summary)
+        XCTAssertTrue(fixture.server.tags.isEmpty)
+    }
+
+    @MainActor
+    func testUnavailableAppleProviderKeepsSourceDataWithoutOllamaFallback() async throws {
+        let fixture = try fixture(summaryProvider: UnavailableAppleFixture()); defer { fixture.close() }
+        let original = fixture.model.professors[0].profile
+        fixture.model.requestSelectedReport()
+        try await waitUntil("Apple readiness failure") { fixture.model.professors[0].summaryIssue != nil }
+        XCTAssertEqual(fixture.model.professors[0].profile, original)
+        XCTAssertNil(fixture.model.professors[0].summary)
+        XCTAssertTrue(fixture.model.professors[0].summaryIssue!.contains("Apple Intelligence"))
+        XCTAssertTrue(fixture.server.tags.isEmpty, "Must not fall back to Ollama")
+        fixture.model.retrySummary(id: "a")
+        try await waitUntil("Apple retry finishes") { !fixture.model.loadingDetails }
+        XCTAssertTrue(fixture.server.tags.isEmpty)
     }
 
     @MainActor
@@ -351,5 +396,25 @@ private final class AppTestProtocol: URLProtocol {
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data)
         client?.urlProtocolDidFinishLoading(self)
+    }
+}
+
+private struct UnavailableAppleFixture: SummaryProvider {
+    let cacheIdentity = "apple-fixture|not-ready"
+    func summarize(reviews: [Review], course: Course) async throws -> ReviewSummary {
+        throw AppError.message("Apple Intelligence model not ready; retry after setup.")
+    }
+}
+
+private struct SuccessfulAppleFixture: SummaryProvider {
+    let cacheIdentity = "apple-fixture|success"
+    func summarize(reviews: [Review], course: Course) async throws -> ReviewSummary {
+        let selected = SummaryBuilder.selectedReviews(reviews, course: course)
+        let point = SummaryEvidence.compactPoint("Clear explanations", numbers: [1, 2], reviews: selected)!
+        struct Output: Encodable { let positives: [SummaryPoint]; let concerns: [SummaryPoint] }
+        let data = try JSONEncoder().encode(Output(positives: [point], concerns: []))
+        var summary = try SummaryBuilder.validate(data, reviews: selected, course: course)
+        summary.providerIdentity = cacheIdentity; summary.evidence = selected
+        return summary
     }
 }

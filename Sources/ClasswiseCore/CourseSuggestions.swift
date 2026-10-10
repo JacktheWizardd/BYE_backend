@@ -44,6 +44,12 @@ public struct CourseSuggestion: Identifiable, Hashable, Sendable {
 }
 
 public enum CourseSuggestions {
+    public static func resolve(_ query: Course, rows: [ScheduleRow]) throws -> Course {
+        let matches = catalog(rows: rows).filter { $0.course.matchingKey == query.matchingKey }
+        if let exact = matches.first(where: { $0.course.key == query.key }) { return exact.course }
+        guard matches.count <= 1 else { throw AppError.message("More than one PCC course matches. Choose an official course from the suggestions.") }
+        return matches.first?.course ?? query
+    }
     public static func catalog(rows: [ScheduleRow]) -> [CourseSuggestion] {
         var unique: [String: CourseSuggestion] = [:]
         for row in rows where !["R", "X"].contains(row["fwSectOpenInd"]) && !row["crn"].isEmpty {
@@ -65,10 +71,11 @@ public enum CourseSuggestions {
         }
         let needle = normalized(query), compact = needle.replacingOccurrences(of: " ", with: "")
         guard !needle.isEmpty, limit > 0 else { return [] }
+        let parsed = try? Course(query)
         func rank(_ item: CourseSuggestion) -> Int? {
             let title = normalized(item.title)
-            if item.course.key == compact { return 0 }
-            if item.course.key.hasPrefix(compact) { return 1 }
+            if item.course.key == compact || item.course.matchingKey == parsed?.matchingKey { return 0 }
+            if item.course.key.hasPrefix(compact) || parsed.map({ item.course.matchingKey.hasPrefix($0.matchingKey) }) == true { return 1 }
             if title.hasPrefix(needle) { return 2 }
             if item.course.key.contains(compact) { return 3 }
             if title.contains(needle) { return 4 }

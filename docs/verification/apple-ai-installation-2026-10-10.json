@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-10",
+  "version": "0.3.0-beta.1",
+  "bundleIdentifier": "local.classwise.mac.apple-ai-beta",
+  "installedPath": "/Applications/BYE Apple AI Beta.app",
+  "platform": {
+    "chip": "Apple M5",
+    "memoryGiB": 16,
+    "macOS": "26.6.2",
+    "buildSDK": "27.0",
+    "appleModelAvailability": "available"
+  },
+  "steps": [
+    "Mounted read-only locally signed DMG",
+    "Copied separate beta to Applications",
+    "Verified installed app signature",
+    "Ejected image",
+    "Launched installed copy",
+    "Searched and opened reports",
+    "Quit and relaunched beta; cached Anahit Asadyan summary restored",
+    "Repeated mount/copy/eject/launch with final artifact"
+  ],
+  "signatures": {
+    "app": "passed strict deep",
+    "installedApp": "passed strict deep",
+    "dmg": "passed strict",
+    "notarized": false
+  },
+  "originalAppExecutableUnchanged": true,
+  "bundledLicenseMatches": true,
+  "sourceArchiveHashesVerified": true,
+  "dmgSHA256": "76682317e34072d16522ce6af4d1c384965453d41e03b0b037363b7659c7c4d5",
+  "installedExecutableSHA256": "c06797e360c25037866b196326039f16b81d2354288684a7656ef6768be5bee4",
+  "tests": {
+    "passed": 136,
+    "failed": 0,
+    "durationSeconds": 26.62
+  },
+  "uiChecks": {
+    "ratingsAndReviewsRemainUsable": true,
+    "appleLabelAndAnalyzedCounts": true,
+    "retry": "Hoa Ly first generation returned recoverable Apple error. Retry completed: no verified recurring theme, 22 of 50 downloaded reviews, no exact course labels.",
+    "restart": "Anahit Asadyan MATH005A Winter2027 report restored cached summary: 19 of 47 downloaded reviews, no verified themes.",
+    "visualScreenshotInspected": true
+  },
+  "ollama": {
+    "productionProvider": "Apple only; no automatic fallback",
+    "verification": "Provider injection and request assertions; code paths inspected. No packet capture; owner service not stopped."
+  },
+  "limitations": [
+    "Real-profile generations were conservative no-theme results, not evidence of useful-summary quality.",
+    "First-use process timing is not guaranteed OS-cold. Fresh network-to-report and screen rendering times not measured.",
+    "Five fictional quality cases do not establish general semantic correctness.",
+    "Unavailable-model paths tested by injection, not changing owner Apple Intelligence settings.",
+    "Another Mac, downloaded-app quarantine prompts and full VoiceOver session unverified.",
+    "Model weights supplied by macOS; initial system download may be needed."
+  ],
+  "commitOrUpload": false
+}

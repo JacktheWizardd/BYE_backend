@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-# Keep compiler caches within the project. The installed CLT SDK also works
-# while Xcode's first-launch setup is pending.
+# Keep compiler caches within the project and use the SDK that matches Xcode.
+# Foundation Models requires the modern macOS SDK.
 mkdir -p .build/ModuleCache .build/cache .build/config .build/security
 export CLANG_MODULE_CACHE_PATH="$PWD/.build/ModuleCache"
 export SWIFTPM_MODULECACHE_OVERRIDE="$PWD/.build/ModuleCache"
@@ -10,15 +10,13 @@ SWIFT_BIN=${CLASSWISE_SWIFT_BIN:-/usr/bin/swift}
 if [ -z "${CLASSWISE_SWIFT_BIN:-}" ] && [ -x /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift ]; then
     SWIFT_BIN=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift
 fi
-if [ -d /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk ]; then
-    export DEVELOPER_DIR=/Library/Developer/CommandLineTools
-    set -- "$@" --sdk /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk
-fi
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+SDK_PATH=${CLASSWISE_SDK_PATH:-$(xcrun --sdk macosx --show-sdk-path)}
+set -- "$@" --sdk "$SDK_PATH"
 if [ "${1:-}" = "test" ] && [ -d /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks ]; then
     TEST_FRAMEWORKS=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks
     TEST_LIBS=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib
-    # Expose XCTest alone to the older SDK; the new Testing framework requires
-    # SDK 27 standard-library types and is not used by these XCTest tests.
+    # Expose XCTest alone for the explicit runner; Swift Testing is not used.
     mkdir -p .build/test-frameworks
     ln -sfn "$TEST_FRAMEWORKS/XCTest.framework" .build/test-frameworks/XCTest.framework
     ln -sfn "$TEST_FRAMEWORKS/XCUIAutomation.framework" .build/test-frameworks/XCUIAutomation.framework

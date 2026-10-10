@@ -1,0 +1,87 @@
+{
+  "cases": [
+    {
+      "case": "shared-positive",
+      "concerns": [],
+      "overview": "Common positive: Clear explanations",
+      "positives": [
+        {
+          "reviewIDs": [
+            "fictional-0",
+            "fictional-1"
+          ],
+          "text": "Clear explanations"
+        }
+      ],
+      "seconds": 1.7447929382324219,
+      "sourceTexts": [
+        "The explanations were clear and helpful.",
+        "Clear explanations helped me understand the material."
+      ]
+    },
+    {
+      "case": "shared-concern",
+      "concerns": [],
+      "overview": "Apple AI couldn\u2019t verify a recurring theme in this sample.",
+      "positives": [],
+      "seconds": 1.1255511045455933,
+      "sourceTexts": [
+        "Exams counted for most of the final grade.",
+        "The exams had a very heavy weight in my grade."
+      ]
+    },
+    {
+      "case": "negation",
+      "concerns": [],
+      "overview": "Common positive: Clear explanations",
+      "positives": [
+        {
+          "reviewIDs": [
+            "fictional-0",
+            "fictional-1"
+          ],
+          "text": "Clear explanations"
+        }
+      ],
+      "seconds": 1.7369869947433472,
+      "sourceTexts": [
+        "Clear explanations. The homework was not excessive.",
+        "Very clear explanations and never too much homework."
+      ]
+    },
+    {
+      "case": "disagreement",
+      "concerns": [],
+      "overview": "Apple AI couldn\u2019t verify a recurring theme in this sample.",
+      "positives": [],
+      "seconds": 1.6259229183197021,
+      "sourceTexts": [
+        "The explanations were clear.",
+        "The explanations were confusing and unclear."
+      ]
+    },
+    {
+      "case": "different-concerns",
+      "concerns": [],
+      "overview": "Apple AI couldn\u2019t verify a recurring theme in this sample.",
+      "positives": [],
+      "seconds": 1.4939030408859253,
+      "sourceTexts": [
+        "The homework was excessive.",
+        "The exams were very difficult."
+      ]
+    }
+  ],
+  "completed": true,
+  "fictional": true,
+  "finishedAt": "2026-10-10 17:37:14 +0000",
+  "note": "Semantic accuracy requires human review; completion is not an automatic quality verdict.",
+  "startedAt": "2026-10-10 17:37:06 +0000",
+  "usesOllama": false,
+  "humanReview": {
+    "acceptedThemesFaithfulInThisRun": true,
+    "usefulCases": 2,
+    "conservativeCases": 3,
+    "limitation": "The shared-concern case omitted a semantically recurring theme. These five fictional cases do not establish general accuracy."
+  }
+}

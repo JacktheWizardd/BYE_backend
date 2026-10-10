@@ -28,7 +28,9 @@ final class AppModel: ObservableObject {
     @Published var suggestionLoading = false
     @Published private var suggestionCatalog: [CourseSuggestion] = []
     private let pcc: PCCClient
-    private let ollama: OllamaClient
+    private let summaryProvider: any SummaryProvider
+    private var summaryCacheProvider: String? { summaryProvider is OllamaClient ? nil : summaryProvider.cacheIdentity }
+    private var prewarmTask: Task<Void, Never>?
     @Published var chooserID: String?
     @Published var chooserIssue: String?
     private let choices: ProfileChoiceStore
@@ -64,11 +66,12 @@ final class AppModel: ObservableObject {
     private(set) var quickPassSnapshot: [Professor] = []
     #endif
 
-    init(pcc: PCCClient = PCCClient(), ollama: OllamaClient = OllamaClient(), cache: ReportCache = ReportCache(),
-         choices: ProfileChoiceStore = ProfileChoiceStore(),
+    init(pcc: PCCClient = PCCClient(), ollama: OllamaClient? = nil, summaryProvider: (any SummaryProvider)? = nil, cache: ReportCache? = nil,
+         choices: ProfileChoiceStore? = nil,
          makeReader: @escaping @MainActor () -> any ProfileReader = { RMPAPIReader() }) {
-        self.pcc = pcc; self.ollama = ollama; self.cache = cache
-        self.choices = choices; self.makeReader = makeReader
+        self.pcc = pcc; self.summaryProvider = summaryProvider ?? ollama ?? AppleSummaries.make()
+        self.cache = cache ?? ReportCache(directory: BetaStorage.directory.appendingPathComponent("Reports"))
+        self.choices = choices ?? ProfileChoiceStore(directory: BetaStorage.directory); self.makeReader = makeReader
     }
     var chooserProfessor: Professor? { professors.first { $0.id == chooserID } }
     func isPreviewing(_ id: String) -> Bool {
@@ -87,7 +90,7 @@ final class AppModel: ObservableObject {
         guard !isPreviewing(id), let index = professors.firstIndex(where: { $0.id == id }),
               professors[index].candidates.contains(where: { $0.id == profileID }) else { return }
         if let old = professors[index].profile, let course {
-            cache.invalidate(name: professors[index].name, course: course, subject: professors[index].subjectCode, profileID: old.id)
+            cache.invalidate(name: professors[index].name, course: course, subject: professors[index].subjectCode, profileID: old.id, summaryProvider: summaryCacheProvider)
         }
         courseReviewIssues = courseReviewIssues.filter { !$0.key.hasPrefix(id + "|") }
         professors[index].generation = UUID()
@@ -261,6 +264,7 @@ final class AppModel: ObservableObject {
         do { parsed = try Course(input) } catch { self.error = error.localizedDescription; return }
         cancel()
         runID = UUID(); let run = runID
+        prewarmTask = Task { [summaryProvider] in await summaryProvider.prewarm() }
         course = parsed; searchedTerm = term; error = nil; busy = true; progress = "Finding classes at PCC…"
         professors = []; selectedID = nil; showAll = false; showingResults = false; attemptedDetails = []; attemptedSummaries = []; courseReviewIssues = [:]
         searchTask = Task { [weak self] in
@@ -274,13 +278,16 @@ final class AppModel: ObservableObject {
             do {
                 let rows = try await pcc.schedule(term: term, force: force)
                 try Task.checkCancellation(); guard runID == run else { return }
+                let parsed = try CourseSuggestions.resolve(parsed, rows: rows)
+                course = parsed
+                input = parsed.display
                 let found = ScheduleParser.professors(rows: rows, course: parsed)
                 professors = found; showingResults = true; selectedID = found.first?.id
                 checkedCount = 0
                 var missing: [Int] = []
                 // All cached scores appear before any website or local-model work.
                 for index in professors.indices {
-                    if !force, let cached = cache.load(name: professors[index].name, course: parsed, subject: professors[index].subjectCode, preferredProfileID: choices.choice(name: professors[index].name, subject: professors[index].subjectCode)) {
+                    if !force, let cached = cache.load(name: professors[index].name, course: parsed, subject: professors[index].subjectCode, preferredProfileID: choices.choice(name: professors[index].name, subject: professors[index].subjectCode), summaryProvider: summaryCacheProvider) {
                         professors[index].profile = cached.profile; professors[index].summary = cached.summary
                         professors[index].checkedAt = cached.checkedAt; professors[index].state = .ready
                         professors[index].reviewsComplete = cached.reviewsComplete ?? true
@@ -303,7 +310,7 @@ final class AppModel: ObservableObject {
         cache.save(CachedReport(profile: profile, summary: professors[index].summary,
                                 checkedAt: professors[index].checkedAt ?? Date(),
                                 reviewsComplete: professors[index].reviewsComplete),
-                   name: professors[index].name, course: course, subject: professors[index].subjectCode)
+                   name: professors[index].name, course: course, subject: professors[index].subjectCode, summaryProvider: summaryCacheProvider)
     }
     /// Website and model work have separate single-worker queues. Only opened
     /// reports are requested; the latest selection replaces pending work.
@@ -427,7 +434,7 @@ final class AppModel: ObservableObject {
                       let evidence = professors[index].profile else { retryingIDs.remove(id); continue }
                 let generation = professors[index].generation
                 do {
-                    let summary = try await ollama.summarize(reviews: evidence.reviews, course: course)
+                    let summary = try await summaryProvider.summarize(reviews: evidence.reviews, course: course)
                     guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: evidence.id) else { return }
                     guard professors[index].profile?.reviews == evidence.reviews else {
                         attemptedSummaries.remove(id); retryingIDs.remove(id); continue
@@ -447,7 +454,9 @@ final class AppModel: ObservableObject {
     }
     func retrySummary(id: String) {
         guard !busy, !loadingDetails, let index = professors.firstIndex(where: { $0.id == id }) else { return }
+        professors[index].summary = nil
         professors[index].summaryIssue = nil; professors[index].reviewIssue = nil
+        if let course { saveReport(index: index, course: course) }
         attemptedDetails.remove(id); attemptedSummaries.remove(id); selectedID = id; requestSelectedReport()
     }
     func cancelDetails() {
@@ -460,6 +469,7 @@ final class AppModel: ObservableObject {
         retryingIDs = []; loadingDetailsID = nil; detailProgress = nil; detailCancelled = true
     }
     func cancel() {
+        prewarmTask?.cancel(); prewarmTask = nil
         runID = UUID(); searchTask?.cancel(); searchTask = nil
         previewTasks.values.forEach { $0.cancel() }; previewReaders.values.forEach { $0.stop() }
         idlePreviewReaders.forEach { $0.stop() }; idlePreviewReaders = []

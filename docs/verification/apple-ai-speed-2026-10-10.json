@@ -1,0 +1,44 @@
+{
+  "analyzedReviews": 19,
+  "availability": "available",
+  "cachedOpenDidNotStartGeneration": true,
+  "cachedReportOpenSeconds": 1.2040138244628906e-05,
+  "cacheReadSeconds": 0.0007621049880981445,
+  "cacheSurvivedRecreation": true,
+  "downloadedReviews": 47,
+  "exactCourseReviews": 0,
+  "finishedAt": "2026-10-10 17:37:21 +0000",
+  "firstAnalyzedReviews": 19,
+  "firstMetrics": {
+    "evidenceCount": 19,
+    "evidenceSelectionSeconds": 0.13051199913024902,
+    "generationSeconds": 2.6961209774017334
+  },
+  "firstSummary": "Apple AI couldn\u2019t verify a recurring theme in this sample.",
+  "firstUseGenerationSeconds": 2.828245997428894,
+  "name": "Anahit Asadyan",
+  "passed": true,
+  "points": [],
+  "prewarmedReportOpenSeconds": 2.865973949432373,
+  "prewarmLeadSeconds": 1.014045000076294,
+  "profileID": "2167794",
+  "provider": "apple-system|26.6.2|whole-reviews-1600-v2|paired-corroborated-prefix-v7",
+  "retrievalNote": "Reuses a previous verified benchmark snapshot for up to 24 hours when present; no saved AI summary.",
+  "retrievalSeconds": 0.0006389617919921875,
+  "scope": "Local first-use is not a guaranteed OS-cold model; generation excludes network retrieval.",
+  "startedAt": "2026-10-10 17:37:14 +0000",
+  "storage": "Temporary directory, removed afterward",
+  "usesOllama": false,
+  "warmMetrics": {
+    "evidenceCount": 19,
+    "evidenceSelectionSeconds": 0.15554499626159668,
+    "generationSeconds": 2.7011380195617676
+  },
+  "warmSummary": "Apple AI couldn\u2019t verify a recurring theme in this sample.",
+  "wholeReviewEvidence": true,
+  "humanReview": {
+    "acceptedThemeCount": 0,
+    "result": "Conservative no-theme fallback on this real profile; generation speed is not useful-summary latency.",
+    "limitation": "No exact-course labels matched MATH005A under the existing strict matching rules. Course shorthand remains deferred."
+  }
+}

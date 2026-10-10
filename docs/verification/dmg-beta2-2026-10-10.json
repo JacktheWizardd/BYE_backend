@@ -1,0 +1,59 @@
+{
+  "version": "0.3.0-beta.2",
+  "build": 4,
+  "date": "2026-10-10",
+  "architecture": "arm64",
+  "tests": {
+    "passed": 140,
+    "failed": 0,
+    "durationSeconds": 26.807
+  },
+  "signatures": {
+    "builtApp": "passed strict deep",
+    "installedApp": "passed strict deep",
+    "dmg": "passed strict",
+    "notarized": false
+  },
+  "installedMatchesBuiltApp": true,
+  "dmgIntegrity": "hdiutil verified",
+  "dmgSHA256": "88ddb24834b208ed256c05e589b8c847b6ef73b9e35cb16907cd0579d9ca9ed4",
+  "dmgBytes": 1194189,
+  "applicationBytes": 3103413,
+  "installerContents": [
+    "BYE Apple AI Beta.app",
+    "Applications shortcut",
+    "START HERE.txt"
+  ],
+  "bundledNoticesMatch": true,
+  "originalAppPreserved": true,
+  "preImplementationMilestone": "app-history/20261010T183306-before-build-x8x4gtac",
+  "releaseArchive": "app-history/20261010T183739-after-build-4sx2k71c",
+  "releaseArchiveHashesVerified": true,
+  "existingDataFilesUnchangedByInitialInstallation": 50,
+  "uiChecks": {
+    "shorthandSuggestion": "math 5a offered MATH 005A",
+    "directSearch": "math 5a and math5a submitted without selecting a suggestion; MATH 005A Winter 2027, 8 sections and 7 professors",
+    "reviewFiltering": "Anahit Asadyan: 10 MATH5A reviews recognized as MATH 005A, of 47 downloaded reviews",
+    "summary": "New matching-policy summary analyzed 10 same-course reviews; no verified recurring theme",
+    "footer": "One simple search.",
+    "reopen": "Two close/reactivate cycles preserved main-AppWindow-1, current course, selected professor and report; app remained running",
+    "minimized": "Reactivation restored same main-AppWindow-1 report",
+    "visualScreenshotInspected": true,
+    "activationMethod": "Computer-use application opening through LaunchServices; not a physical Dock click"
+  },
+  "installSteps": [
+    "Mounted read-only signed DMG",
+    "Updated separate beta in Applications",
+    "Verified data retained and installed signature",
+    "Ejected DMG",
+    "Launched installed app"
+  ],
+  "limitations": [
+    "No GitHub upload, commit or tag",
+    "Actual GitHub browser-download quarantine and another Mac remain unverified",
+    "Unnotarized beta may need manual approval; managed Macs may block it",
+    "No new summary speed or broad quality benchmark; current real sample returned no verified theme",
+    "No full VoiceOver session or physical Dock-click verification"
+  ],
+  "githubReleaseNotes": "docs/GITHUB_PRERELEASE.md"
+}

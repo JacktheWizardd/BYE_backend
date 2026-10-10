@@ -195,7 +195,7 @@ private struct SearchView: View {
             }.frame(width: 540, alignment: .leading)
             Spacer()
             HStack {
-                Text("Official PCC sections. Student feedback. One simple search.")
+                Text("One simple search.")
                 Spacer()
                 Text("Made for a more informed choice.")
             }.font(.system(size: 11)).foregroundStyle(Palette.secondary).padding(40)
@@ -377,21 +377,26 @@ private struct ProfessorReport: View {
     }
     private var summary: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack { Eyebrow(title: "AI review summary"); Spacer(); Text("ON YOUR MAC").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary) }
+            HStack { Eyebrow(title: "AI review summary"); Spacer(); Text("APPLE AI · ON YOUR MAC").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary) }
             if let summary = professor.summary {
                 Text(summary.overview).font(.system(size: 15)).lineSpacing(6)
-                Text("\(summary.analyzedCount) reviews analyzed · \(summary.exactCourseCount) for \(course.display) · \(summary.analyzedCount - summary.exactCourseCount) for other or unspecified courses")
+                Text("\(summary.analyzedCount) of \(professor.profile?.reviews.count ?? 0) downloaded reviews analyzed · \(summary.exactCourseCount) for \(course.display) · \(summary.analyzedCount - summary.exactCourseCount) for other or unspecified courses")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 themes("Common positives", points: summary.positives)
                 themes("Common concerns", points: summary.concerns)
-                Text("AI summary of student opinions. Check the original reviews for context.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                Text("Experimental Apple AI summary of student opinions. Check the original reviews for context.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                if summary.positives.isEmpty && summary.concerns.isEmpty && canRetry && !loadingDetails {
+                    Button("Retry summary", action: retry).buttonStyle(PillStyle()).disabled(checkingRatings || retrying)
+                }
             } else {
                 Text(summaryStatus)
                     .font(.system(size: 14)).foregroundStyle(Palette.secondary).lineSpacing(4)
                 if canRetry && !loadingDetails && (professor.summaryIssue != nil || detailCancelled) {
                     Button(professor.reviewIssue != nil ? "Retry report" : "Retry summary", action: retry)
                         .buttonStyle(PillStyle()).disabled(retrying || (professor.profile?.reviews.isEmpty ?? true))
-                    if professor.summaryIssue != nil { Button("Open Ollama") { NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Ollama.app")) }.buttonStyle(.link) }
+                    if professor.summaryIssue != nil { Button("Apple Intelligence settings") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Siri-Settings.extension")!)
+                    }.buttonStyle(.link) }
                 }
             }
         }.padding(25).frame(maxWidth: .infinity, alignment: .leading).background(Palette.surface, in: RoundedRectangle(cornerRadius: 18))
@@ -407,7 +412,7 @@ private struct ProfessorReport: View {
     private func themes(_ title: String, points: [SummaryPoint]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).font(.system(size: 13, weight: .semibold))
-            if points.isEmpty { Text("Not enough feedback to identify a recurring theme.").font(.system(size: 13)).foregroundStyle(Palette.secondary) }
+            if points.isEmpty { Text("No verified recurring theme in this sample.").font(.system(size: 13)).foregroundStyle(Palette.secondary) }
             ForEach(Array(points.enumerated()), id: \.offset) { _, point in
                 Text("• " + point.text).font(.system(size: 13)).lineSpacing(4)
             }

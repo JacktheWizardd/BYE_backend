@@ -90,7 +90,8 @@ public enum SummaryBuilder {
     }
 }
 
-public final class OllamaClient {
+public final class OllamaClient: SummaryProvider {
+    public var cacheIdentity: String { "ollama|" + model }
     public let model: String
     private let endpoint: URL
     private let session: URLSession
@@ -178,8 +179,9 @@ public final class ReportCache {
         "v4|identity|" + IdentityMatcher.normalizedName(name) + "|" + subject.uppercased()
     }
     private func rawKey(_ id: String) -> String { "v4|raw|2649|" + id }
-    private func summaryKey(_ id: String, course: Course, subject: String) -> String {
-        "v4|summary|2649|" + id + "|" + course.key + "|" + subject.uppercased()
+    private func summaryKey(_ id: String, course: Course, subject: String, provider: String?) -> String {
+        let context = "2649|" + id + "|" + course.key + "|" + subject.uppercased()
+        return provider.map { "v5|summary|" + $0 + "|" + context } ?? "v4|summary|" + context
     }
     private func url(_ key: String) -> URL {
         let encoded = Data(key.utf8).base64EncodedString()
@@ -191,25 +193,34 @@ public final class ReportCache {
     }
     private func fresh(_ date: Date, now: Date) -> Bool { (0..<86400).contains(now.timeIntervalSince(date)) }
     public func load(name: String, course: Course, subject: String? = nil,
-                     preferredProfileID: String? = nil, now: Date = Date()) -> CachedReport? {
+                     preferredProfileID: String? = nil, summaryProvider: String? = nil, now: Date = Date()) -> CachedReport? {
         let subject = subject ?? course.subject
         let indexed = read(context(name: name, subject: subject), as: String.self)
         guard let id = preferredProfileID ?? indexed,
               let raw = read(rawKey(id), as: Raw.self), raw.profile.id == id,
               fresh(raw.checkedAt, now: now), IdentityMatcher.matches(name: name, profile: raw.profile) else { return nil }
-        let saved = read(summaryKey(id, course: course, subject: subject), as: SummaryEntry.self)
+        let saved = read(summaryKey(id, course: course, subject: subject, provider: summaryProvider), as: SummaryEntry.self)
         let evidence = SummaryBuilder.selectedReviews(raw.profile.reviews, course: course)
-        let summary = saved.flatMap { fresh($0.checkedAt, now: now) && $0.evidence == evidence ? $0.summary : nil }
+        let summary = saved.flatMap { saved -> ReviewSummary? in
+            guard fresh(saved.checkedAt, now: now) else { return nil }
+            if let provider = summaryProvider {
+                guard saved.summary.providerIdentity == provider,
+                      saved.summary.evidence == saved.evidence,
+                      !saved.evidence.isEmpty,
+                      saved.evidence == Array(evidence.prefix(saved.evidence.count)) else { return nil }
+            } else if saved.evidence != evidence { return nil }
+            return saved.summary
+        }
         return CachedReport(profile: raw.profile, summary: summary, checkedAt: raw.checkedAt, reviewsComplete: raw.reviewsComplete)
     }
-    public func invalidate(name: String, course: Course, subject: String, profileID: String? = nil) {
+    public func invalidate(name: String, course: Course, subject: String, profileID: String? = nil, summaryProvider: String? = nil) {
         try? FileManager.default.removeItem(at: url(context(name: name, subject: subject)))
         if let id = profileID {
             try? FileManager.default.removeItem(at: url(rawKey(id)))
-            try? FileManager.default.removeItem(at: url(summaryKey(id, course: course, subject: subject)))
+            try? FileManager.default.removeItem(at: url(summaryKey(id, course: course, subject: subject, provider: summaryProvider)))
         }
     }
-    public func save(_ entry: CachedReport, name: String, course: Course, subject: String? = nil) {
+    public func save(_ entry: CachedReport, name: String, course: Course, subject: String? = nil, summaryProvider: String? = nil) {
         let subject = subject ?? course.subject
         guard IdentityMatcher.matches(name: name, profile: entry.profile) else {
             invalidate(name: name, course: course, subject: subject)
@@ -220,9 +231,14 @@ public final class ReportCache {
             let raw = Raw(profile: entry.profile, checkedAt: entry.checkedAt, reviewsComplete: entry.reviewsComplete ?? false)
             try JSONEncoder().encode(raw).write(to: url(rawKey(entry.profile.id)), options: .atomic)
             try JSONEncoder().encode(entry.profile.id).write(to: url(context(name: name, subject: subject)), options: .atomic)
-            let key = summaryKey(entry.profile.id, course: course, subject: subject)
+            let key = summaryKey(entry.profile.id, course: course, subject: subject, provider: summaryProvider)
             if let summary = entry.summary {
-                let saved = SummaryEntry(summary: summary, evidence: SummaryBuilder.selectedReviews(entry.profile.reviews, course: course), checkedAt: entry.checkedAt)
+                let evidence = summary.evidence ?? SummaryBuilder.selectedReviews(entry.profile.reviews, course: course)
+                if let provider = summaryProvider {
+                    guard summary.providerIdentity == provider, !evidence.isEmpty,
+                          evidence == Array(SummaryBuilder.selectedReviews(entry.profile.reviews, course: course).prefix(evidence.count)) else { return }
+                }
+                let saved = SummaryEntry(summary: summary, evidence: evidence, checkedAt: summary.generatedAt)
                 try JSONEncoder().encode(saved).write(to: url(key), options: .atomic)
             } else { try? FileManager.default.removeItem(at: url(key)) }
         } catch { /* Optional cache failures never discard verified live data. */ }

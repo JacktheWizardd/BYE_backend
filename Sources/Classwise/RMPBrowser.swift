@@ -14,7 +14,14 @@ final class RMPBrowser: NSObject, WKNavigationDelegate, ProfileReader {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
         webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 1100, height: 900), configuration: configuration)
+        #if DEBUG
         let resource = Bundle.main.url(forResource: "RMPReader", withExtension: "js") ?? Bundle.module.url(forResource: "RMPReader", withExtension: "js")
+        #else
+        // SwiftPM's generated accessor embeds the developer's absolute build path.
+        // Packaged apps use their resources; release CLI builds use the adjacent bundle.
+        let resource = Bundle.main.url(forResource: "RMPReader", withExtension: "js") ??
+            Bundle(url: Bundle.main.bundleURL.appendingPathComponent("Classwise_Classwise.bundle"))?.url(forResource: "RMPReader", withExtension: "js")
+        #endif
         script = resource.flatMap { try? String(contentsOf: $0) } ?? "'[]'"
         super.init()
         webView.navigationDelegate = self

@@ -9,7 +9,10 @@ import tarfile
 import tempfile
 
 root = pathlib.Path(__file__).resolve().parent.parent
-phase = sys.argv[1] if len(sys.argv) == 2 else "manual"
+phase = sys.argv[1] if len(sys.argv) >= 2 else "manual"
+app_name = sys.argv[2] if len(sys.argv) >= 3 else "BYE.app"
+if app_name not in {"BYE.app", "BYE Apple AI Beta.app"}:
+    raise SystemExit("Unknown app name")
 if phase not in {"before-build", "after-build", "manual"}:
     raise SystemExit("Expected before-build, after-build, or manual")
 history = root / "app-history"
@@ -32,14 +35,15 @@ def digest(path):
 with tarfile.open(destination / "source.tar.gz", "w:gz") as archive:
     for path in sorted(files):
         archive.add(path, arcname=str(path.relative_to(root)), recursive=False)
-app = root / "dist/BYE.app"
+app = root / "dist" / app_name
 executable = app / "Contents/MacOS/Classwise"
 if app.is_dir():
-    with tarfile.open(destination / "BYE.app.tar.gz", "w:gz") as archive:
-        archive.add(app, arcname="BYE.app")
+    with tarfile.open(destination / (app_name + ".tar.gz"), "w:gz") as archive:
+        archive.add(app, arcname=app_name)
 manifest = {
     "createdAtUTC": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     "phase": phase,
+    "appName": app_name,
     "sourceSHA256": {str(p.relative_to(root)): digest(p) for p in sorted(files)},
     "executableSHA256": digest(executable) if executable.is_file() else None,
     "association": ("App built successfully from this source snapshot." if phase == "after-build" else

@@ -5,6 +5,14 @@ public struct Course: Hashable, Codable, Sendable {
     public let number: String
     public var display: String { "\(subject) \(number)" }
     public var key: String { subject + number }
+    /// Comparison only: preserve source labels and persistent cache keys.
+    public var matchingKey: String {
+        let prefix = number.prefix(while: { !$0.isNumber })
+        let remainder = number.dropFirst(prefix.count)
+        let digits = remainder.prefix(while: { $0.isNumber })
+        let significant = digits.drop(while: { $0 == "0" })
+        return subject + prefix + (significant.isEmpty ? "0" : String(significant)) + remainder.dropFirst(digits.count)
+    }
 
     public init(_ input: String) throws {
         let cleaned = input.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -17,7 +25,7 @@ public struct Course: Hashable, Codable, Sendable {
 
     public func matchesReview(_ code: String) -> Bool {
         // Do not guess cross-listed courses or accept a bare number as an exact match.
-        (try? Course(code).key) == key
+        (try? Course(code).matchingKey) == matchingKey
     }
 }
 
@@ -164,6 +172,7 @@ public struct RMPProfile: Codable, Identifiable, Hashable, Sendable {
 public struct SummaryPoint: Codable, Hashable, Sendable {
     public let text: String
     public let reviewIDs: [String]
+    public init(text: String, reviewIDs: [String]) { self.text = text; self.reviewIDs = reviewIDs }
 }
 
 public struct ReviewSummary: Codable, Hashable, Sendable {
@@ -173,6 +182,15 @@ public struct ReviewSummary: Codable, Hashable, Sendable {
     public var analyzedCount: Int
     public var exactCourseCount: Int
     public var generatedAt: Date
+    /// Provider/policy identity and the complete reviews actually analyzed.
+    public var providerIdentity: String? = nil
+    public var evidence: [Review]? = nil
+    public init(overview: String, positives: [SummaryPoint], concerns: [SummaryPoint], analyzedCount: Int,
+                exactCourseCount: Int, generatedAt: Date, providerIdentity: String? = nil, evidence: [Review]? = nil) {
+        self.overview = overview; self.positives = positives; self.concerns = concerns
+        self.analyzedCount = analyzedCount; self.exactCourseCount = exactCourseCount; self.generatedAt = generatedAt
+        self.providerIdentity = providerIdentity; self.evidence = evidence
+    }
 }
 
 public enum LookupState: String, Codable, Sendable { case pending, searching, ready, selectionRequired, unavailable }
@@ -246,7 +264,7 @@ public enum Ordering {
 public enum ScheduleParser {
     public static func professors(rows: [ScheduleRow], course: Course) -> [Professor] {
         let matches = rows.filter {
-            (try? Course($0["subjCode"] + $0["courseNumbDisplay"]).key) == course.key &&
+            (try? Course($0["subjCode"] + $0["courseNumbDisplay"]).matchingKey) == course.matchingKey &&
             !["R", "X"].contains($0["fwSectOpenInd"]) && !$0["crn"].isEmpty
         }
         // Group by instructor as well as CRN to retain explicitly listed co-instructors.

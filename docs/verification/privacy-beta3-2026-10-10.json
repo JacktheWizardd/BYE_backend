@@ -1,0 +1,51 @@
+{
+  "version": "0.3.0-beta.3",
+  "build": 5,
+  "date": "2026-10-10",
+  "architecture": "arm64",
+  "tests": {
+    "swiftPassed": 140,
+    "swiftFailed": 0,
+    "swiftDurationSeconds": 26.7,
+    "privacyPythonPassed": 5,
+    "privacyPythonFailed": 0
+  },
+  "privacy": {
+    "sanitizedDocument": "docs/verification/relocation-2026-10-09.json",
+    "builtAppScan": "passed",
+    "stagedPackageScan": "passed",
+    "mountedDMGScan": "passed",
+    "installedAppScan": "passed",
+    "checks": "Targeted personal-home/temp paths, local username, UTF-8/UTF-16 text and common credential markers. Not a comprehensive privacy or secret audit.",
+    "releaseResourceLookup": "Packaged resources or adjacent bundle, no release dependency on generated absolute-path accessor",
+    "debugRecords": "Removed before signing"
+  },
+  "installation": {
+    "appBytesMatchBuiltApp": true,
+    "previousDataFilesRetained": 14,
+    "mountedCopiedEjectedLaunched": true,
+    "shorthandSearch": "math 5a offered and opened MATH 005A Winter 2027, 8 sections/7 professors",
+    "sameCourseReviews": "10 of 47 downloaded reviews recognized for Anahit Asadyan",
+    "windowReopen": "Closed then reactivated through LaunchServices; same main-AppWindow-1 and report restored",
+    "summary": "Existing course-policy summary retained; no new AI benchmark"
+  },
+  "signatures": {
+    "app": "passed strict deep",
+    "installedApp": "passed strict deep",
+    "dmg": "passed strict",
+    "notarized": false
+  },
+  "dmgIntegrity": "hdiutil verified",
+  "dmgSHA256": "3c47e9e4f65b15ef4b17aaef81c155be5dd06d657ea7c68440ba3705cd92a6e1",
+  "dmgBytes": 1121006,
+  "originalAppPreservedLocally": true,
+  "noticesMatch": true,
+  "historyBaseline": "app-history/20261010T190712-before-build-96ck98r1",
+  "limitations": [
+    "Old Git history still contains prior local paths/built app. No history rewrite.",
+    "Published beta.2 installer and already downloaded copies retain old paths. No release assets replaced.",
+    "No push, tag change or upload.",
+    "Another Mac, browser-download prompts, physical Dock click and full VoiceOver remain unverified.",
+    "Compiler emitted remapped-debug-module lookup warnings; final stripped release passed signature and launch checks."
+  ]
+}
