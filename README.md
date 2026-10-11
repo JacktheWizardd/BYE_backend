@@ -71,6 +71,8 @@ BYE can analyze available student feedback and highlight recurring positives and
 
 On supported Macs, BYE uses Apple's on-device Foundation Models framework. No separate Ollama installation or API key is required.
 
+AI summaries are temporarily disabled in Windows/Electron version `0.1.0-beta.2`, whose ZIP omits inactive model weights. Ratings and original reviews remain available; the summary implementation, development model files and local caches are retained. Native Mac AI and existing published releases retain their original behavior.
+
 AI summaries are experimental and should not replace reading the original reviews.
 
 ### Faster searches and recovery

@@ -6,8 +6,20 @@ import assert from 'node:assert/strict'
 import { LocalSummaries } from '../src/main/summary'
 import { course } from '../src/shared/domain'
 import type { Review } from '../src/shared/types'
+import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_DISABLED_MESSAGE } from '../src/shared/features'
 const root = path.resolve(import.meta.dirname, '..'), repo = path.resolve(root, '../..')
 const provider = new LocalSummaries(path.join(root, 'models'))
+if (!AI_SUMMARIES_ENABLED) {
+  provider.verify = async () => { assert.fail('Disabled summaries must not verify or load a model') }
+  await assert.rejects(provider.summarize([
+    { id: '1', course: 'ETH014', text: 'Clear explanations', date: '' },
+    { id: '2', course: 'ETH014', text: 'Clear explanations', date: '' }
+  ], course('ETH014'), new AbortController().signal), { message: AI_SUMMARIES_DISABLED_MESSAGE })
+  await provider.dispose()
+  await mkdir(path.join(root, 'test-results'), { recursive: true })
+  await writeFile(path.join(root, 'test-results/ai-disabled-verification.json'), JSON.stringify({ date: new Date().toISOString(), summariesEnabled: false, inferenceInvoked: false, passed: true }, null, 2))
+  console.log('AI summaries are disabled; direct requests are rejected before model verification or inference.')
+} else {
 const saved = JSON.parse(await readFile(path.join(repo, 'Tests/ClasswiseCoreTests/Fixtures/summary-trial-cases.json'), 'utf8'))
 const apple = JSON.parse(await readFile(path.join(repo, 'docs/verification/apple-ai-quality-2026-10-10.json'), 'utf8'))
 const cases = [
@@ -41,4 +53,5 @@ try {
   clearInterval(timer); await provider.dispose()
   await mkdir(path.join(root, 'test-results'), { recursive: true })
   await writeFile(path.join(root, 'test-results/ai-verification.json'), JSON.stringify({ date: new Date().toISOString(), fictional: true, provider: provider.cacheIdentity, platform: process.platform, arch: process.arch, cpu: os.cpus()[0]?.model, totalMemoryGB: os.totalmem() / 2 ** 30, peakRSSGB: peakRSS / 2 ** 30, firstProcessUseIncludesModelVerification: true, results, limitations: ['Small development evaluation; semantic accuracy requires review.', 'CPU-only runtime measurements, not complete search-to-screen latency.'] }, null, 2))
+}
 }

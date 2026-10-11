@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Bridge, Command, Professor, Snapshot, Suggestion, Term } from '../../shared/types'
 import { delivery, filterReviews, orderProfessors, orderReviews } from '../../shared/domain'
+import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_DISABLED_MESSAGE } from '../../shared/features'
 import './style.css'
 declare global { interface Window { bye: Bridge } }
 const empty: Snapshot = { operationId: '', professors: [], loading: false, previewPending: 0 }
@@ -22,8 +23,8 @@ function App() {
   }
   useEffect(() => { const unsubscribe = window.bye.subscribe(setState); void loadTerms(); return unsubscribe }, [])
   useEffect(() => {
-    if (state.operationId !== lastOperation.current) { lastOperation.current = state.operationId; setSelected(''); reportOpened.current = ''; summarized.current = ''; setFilter('this'); setVisible(3) }
-    if (state.professors.length && !state.professors.some(x => x.id === selected)) setSelected(state.professors[0].id)
+    if (state.operationId !== lastOperation.current) { lastOperation.current = state.operationId; setSelected(state.professors[0]?.id ?? ''); reportOpened.current = ''; summarized.current = ''; setFilter('this'); setVisible(3) }
+    else if (state.professors.length && !state.professors.some(x => x.id === selected)) setSelected(state.professors[0].id)
   }, [state.operationId, state.professors])
   useEffect(() => { if (state.course) setQuery(state.course.display) }, [state.course?.key])
   useEffect(() => {
@@ -35,7 +36,7 @@ function App() {
     if (reportOpened.current !== key) { reportOpened.current = key; void command({ kind: 'details', professorId: p.id }) }
   }, [selected, p?.profile?.id, p?.state, state.previewPending, state.loading])
   useEffect(() => {
-    if (!p?.profile || p.detailLoading || p.state !== 'ready' || state.loading || state.previewPending) return
+    if (!AI_SUMMARIES_ENABLED || !p?.profile || p.detailLoading || p.state !== 'ready' || state.loading || state.previewPending) return
     const key = `${state.operationId}|${p.id}|${p.profile.id}|${JSON.stringify(p.profile.reviews)}`
     if (summarized.current !== key) { summarized.current = key; void command({ kind: 'summary', professorId: p.id }) }
   }, [selected, p?.profile, p?.detailLoading, p?.state, state.loading, state.previewPending])
@@ -93,8 +94,9 @@ function App() {
             <div className="stats"><div><b>{score(p.profile.rating)}<small>/ 5</small></b><span>Overall rating</span></div><div><b>{score(p.profile.difficulty)}<small>/ 5</small></b><span>Difficulty</span></div><div><b>{p.profile.wouldTakeAgain === undefined ? '—' : `${Math.round(p.profile.wouldTakeAgain)}%`}</b><span>Would take again</span></div></div>
             <div className="source-line"><span>{p.profile.ratingCount ?? 'Unknown'} source ratings · Scores are professor-wide</span><button className="text-button" onClick={() => void command({ kind: 'discover', professorId: p.id })}>Change profile</button></div>
             <section className="summary card"><div className="section-heading"><h3>Student feedback</h3><span className="tag">Local AI</span></div>
+            {!AI_SUMMARIES_ENABLED ? <><p className="muted" role="status">{AI_SUMMARIES_DISABLED_MESSAGE}</p><button disabled>Summary disabled</button></> : <>
             {p.summary ? <><p className="overview">{p.summary.overview}</p>{p.summary.positives.map(point => <p className="theme" key={'p' + point.text}><span className="theme-label">Positive</span>{point.text}<small>Supported by {point.reviewIDs.join(', ')}</small></p>)}{p.summary.concerns.map(point => <p className="theme" key={'c' + point.text}><span className="theme-label">Concern</span>{point.text}<small>Supported by {point.reviewIDs.join(', ')}</small></p>)}<p className="muted small">Analyzed {p.summary.analyzedCount} complete reviews of {p.profile.reviews.length} downloaded · {p.summary.exactCourseCount} for {c?.display}. {p.summary.exactCourseCount < p.summary.analyzedCount && 'Includes feedback from other courses.'} Reported experiences may differ from the current class.</p></> : <p className="muted" role="status">{p.summaryLoading ? 'Preparing a summary on your PC…' : p.detailLoading ? 'Original reviews are available while more feedback loads.' : 'Summary has not been prepared.'}</p>}
-            {p.summaryIssue && <p className="notice" role="status">{p.summaryIssue}</p>}<button disabled={p.summaryLoading} onClick={() => void command({ kind: 'summary', professorId: p.id })}>{p.summaryLoading ? 'Preparing…' : p.summaryIssue ? 'Retry summary' : 'Prepare summary'}</button>
+            {p.summaryIssue && <p className="notice" role="status">{p.summaryIssue}</p>}<button disabled={p.summaryLoading} onClick={() => void command({ kind: 'summary', professorId: p.id })}>{p.summaryLoading ? 'Preparing…' : p.summaryIssue ? 'Retry summary' : 'Prepare summary'}</button></>}
             </section>
             <section className="reviews"><div className="section-heading"><h3>Original reviews <span className="muted">({reviews.length})</span></h3><div className="filters"><label>Review course<select value={filter} onChange={e => { setFilter(e.target.value); setVisible(3) }}><option value="this">This course</option><option value="all">All courses</option>{[...counts].map(([label, count]) => <option key={label} value={label}>{label}{count === undefined ? '' : ` (${count})`}</option>)}</select></label><label>Sort<select value={reviewSort} onChange={e => setReviewSort(e.target.value)}><option value="recent">Most recent</option><option value="highest">Highest rating</option><option value="lowest">Lowest rating</option><option value="difficulty">Lowest difficulty</option></select></label></div></div>
             {reviews.slice(0, visible).map(r => <article className="review card" key={r.id}><div className="review-heading"><strong>{r.course || 'Course unspecified'}</strong><span className="muted small">{r.date ? `Posted ${r.date.slice(0, 10)}` : 'Posted date unavailable'}</span></div><div className="muted small">Rating {score(r.rating)} · Difficulty {score(r.difficulty)}{r.online === undefined ? '' : r.online ? ' · Online' : ' · In person'}</div><p>{r.text}</p><small className="muted">Source review ID: {r.id}</small></article>)}
@@ -107,8 +109,8 @@ function App() {
           </>}
         </main>
       </div>}
-    </> : <div className="welcome"><div className="welcome-glyph" aria-hidden="true">↗</div><h2>A little clarity before you enroll.</h2><p>Search a PCC course and semester to compare the professors teaching it.</p><div className="welcome-features"><span>Published sections</span><span>Original student reviews</span><span>AI that stays on your PC</span></div></div>}
-    <footer><span>One simple search.</span><span>PCC + Rate My Professors · AI summaries are experimental</span></footer>
+    </> : <div className="welcome"><div className="welcome-glyph" aria-hidden="true">↗</div><h2>A little clarity before you enroll.</h2><p>Search a PCC course and semester to compare the professors teaching it.</p><div className="welcome-features"><span>Published sections</span><span>Original student reviews</span><span>{AI_SUMMARIES_ENABLED ? 'AI that stays on your PC' : 'Professor ratings'}</span></div></div>}
+    <footer><span>One simple search.</span><span>PCC + Rate My Professors · {AI_SUMMARIES_ENABLED ? 'AI summaries are experimental' : 'AI summaries temporarily disabled'}</span></footer>
     <dialog ref={dialogRef} className="chooser" onCancel={e => { e.preventDefault(); if (p) void command({ kind: 'dismiss', professorId: p.id }) }} aria-labelledby="chooser-title"><h2 id="chooser-title">Choose the correct profile</h2><p className="muted">Confirm which PCC profile belongs to {p?.name}. Profiles are kept separate.</p>{p?.issue && <p className="notice">{p.issue}</p>}{!p?.candidates.length && <p>No eligible profiles are available yet. Retry discovery or check RMP.</p>}{p?.candidates.map(candidate => <div className="candidate card" key={candidate.id}><div><strong>{candidate.firstName} {candidate.lastName}</strong><p>{candidate.department || 'Department unavailable'}</p><p className="muted small">{candidate.school} · Profile {candidate.id}</p><button className="text-button" onClick={() => void command({ kind: 'source', target: 'rmp', professorId: p.id, candidateId: candidate.id })}>View source profile ↗</button></div><button className="primary" onClick={() => void command({ kind: 'select', professorId: p.id, profileId: candidate.id })}>Use this profile</button></div>)}<div className="actions"><button onClick={() => p && void command({ kind: 'discover', professorId: p.id })}>Retry discovery</button><button onClick={() => p && void command({ kind: 'dismiss', professorId: p.id })}>Cancel</button></div></dialog>
   </div>
   function searchWithSuggestion(text: string) { const term = terms.find(t => t.termCode === termCode); if (term) { setSearching(false); setSuggestions([]); void command({ kind: 'search', query: text, term }) } }

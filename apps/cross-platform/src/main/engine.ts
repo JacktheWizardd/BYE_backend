@@ -5,6 +5,7 @@ import { eligible, identity, orderReviews, professors, resolve } from '../shared
 import { check, IdentityError, PCC, RMP } from './network'
 import { Store } from './storage'
 import type { SummaryProvider } from './summary'
+import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_DISABLED_MESSAGE } from '../shared/features'
 const message = (e: unknown) => e instanceof Error ? e.message : 'This operation could not finish. Try again.'
 export class Queue {
   private active = 0
@@ -29,7 +30,7 @@ export class Engine {
   private summaries = new Queue(1, () => this.previews.pending > 0)
   private tasks = new Set<Promise<unknown>>()
   private jobs = new Map<string, Promise<void>>()
-  constructor(readonly pcc: PCC, readonly rmp: RMP, readonly store: Store, readonly ai: SummaryProvider, private publish: (state: Snapshot) => void) {}
+  constructor(readonly pcc: Pick<PCC, 'terms' | 'schedule' | 'suggest'>, readonly rmp: Pick<RMP, 'candidates' | 'page'>, readonly store: Store, readonly ai: SummaryProvider, private publish: (state: Snapshot) => void, private summariesEnabled = () => AI_SUMMARIES_ENABLED) {}
   emit() { this.state.previewPending = this.previews.pending; this.publish(structuredClone(this.state)) }
   private launch(key: string, task: () => Promise<void>) {
     if (this.jobs.has(key)) return this.jobs.get(key)!
@@ -193,6 +194,10 @@ export class Engine {
   }
   summarize(id: string) {
     const p = this.professor(id), c = this.state.course
+    if (!this.summariesEnabled()) {
+      p.summary = undefined; p.summaryLoading = false; p.summaryIssue = AI_SUMMARIES_DISABLED_MESSAGE
+      this.emit(); return Promise.resolve()
+    }
     if (!p.profile || !c) return Promise.resolve()
     const signal = this.context(p), expected = p.profile.id
     return this.launch(`summary-${this.state.operationId}-${id}`, async () => {

@@ -9,17 +9,18 @@ import { Store } from '../src/main/storage'
 import { IdentityError, PCC, RMP } from '../src/main/network'
 import { course } from '../src/shared/domain'
 import { buildSummary } from '../src/main/summary-evidence'
+import { AI_SUMMARIES_DISABLED_MESSAGE } from '../src/shared/features'
 import type { Profile, Review, Term } from '../src/shared/types'
 const term: Term = { termCode: '202650', termName: 'Summer 2026', termDisplayControl: 'Y' }
 const base = (id = '1'): Profile => ({ id, firstName: 'John', lastName: 'Harris', schoolID: 2649, school: 'Pasadena City College', department: 'History', reviews: [], coverage: {}, courseCounts: [] })
 const review = (id = 'r1'): Review => ({ id, text: 'Clear explanations', course: 'ETH14', date: '2026-01-01' })
 async function temporary(t: any) { const directory = await mkdtemp(path.join(os.tmpdir(), 'bye-test-')); t.after(() => rm(directory, { recursive: true, force: true })); return directory }
-function harness(directory: string, candidates: Profile[] = [base()]) {
+function harness(directory: string, candidates: Profile[] = [base()], summariesEnabled?: () => boolean) {
   const pcc = { terms: async () => [term], schedule: async () => [{ subjCode: 'ETH', courseNumbDisplay: '014', crn: '1', pfaName: 'John Harris' }] } as unknown as PCC
   const fake = { candidates: async () => structuredClone(candidates), page: async (id: string, _count: number, _signal: AbortSignal, cursor?: string) => ({ profile: { ...base(id), reviews: [review(cursor ? 'r2' : 'r1')] }, ids: [cursor ? 'r2' : 'r1'], hasNextPage: !cursor, nextCursor: cursor ? undefined : 'next' }) }
   const ai = { cacheIdentity: 'test', summarize: async (reviews: Review[], c: ReturnType<typeof course>) => buildSummary({ positives: [], concerns: [] }, reviews, c, 'test') }
   const store = new Store(directory), snapshots: any[] = []
-  const engine = new Engine(pcc, fake as unknown as RMP, store, ai, state => snapshots.push(state))
+  const engine = new Engine(pcc, fake as unknown as RMP, store, ai, state => snapshots.push(state), summariesEnabled)
   return { engine, fake, store, snapshots, ai }
 }
 test('cache lifetime, clock rollback, subject isolation and evidence/provider invalidation', async t => {
@@ -81,11 +82,29 @@ test('changed search rejects delayed preview publication and cache writes', asyn
   assert.equal(h.engine.state.course?.key, 'MATH5A'); assert.equal(h.engine.state.professors.length, 0); assert.equal(await h.store.profile('1'), undefined)
 })
 test('cancelled summaries cannot publish or cache and ratings remain usable', async t => {
-  const h = harness(await temporary(t)); await h.engine.search('ETH14', term)
+  const h = harness(await temporary(t), [base()], () => true); await h.engine.search('ETH14', term)
   const p = h.engine.state.professors[0]; let started = false
   h.ai.summarize = async (reviews, c) => { started = true; await delay(40); return buildSummary({ positives: [], concerns: [] }, reviews, c, 'test') }
   const job = h.engine.summarize(p.id); while (!started) await delay(5); h.engine.stop(); await job
   assert.equal(p.summary, undefined); assert.equal(p.profile?.id, '1'); assert.equal(await h.store.summary('1', course('ETH014'), 'test', p.profile!.reviews), undefined)
+})
+
+test('disabled summaries skip both cache reuse and inference while reviews stay usable', async t => {
+  const h = harness(await temporary(t)); await h.engine.search('ETH14', term)
+  const p = h.engine.state.professors[0], c = course('ETH14'), reviews = p.profile!.reviews
+  const cached = buildSummary({ positives: [], concerns: [] }, reviews, c, 'test')
+  await h.store.setSummary(p.profile!.id, c, cached, reviews)
+  p.summary = cached
+  h.ai.summarize = async () => { assert.fail('Disabled summaries must not invoke inference') }
+  const readSummary = h.store.summary.bind(h.store)
+  h.store.summary = async () => { assert.fail('Disabled summaries must not read the summary cache') }
+  await h.engine.summarize(p.id)
+  assert.equal(p.summary, undefined); assert.equal(p.summaryLoading, false)
+  assert.equal(p.summaryIssue, AI_SUMMARIES_DISABLED_MESSAGE)
+  assert.equal(h.snapshots.at(-1).professors[0].summaryIssue, AI_SUMMARIES_DISABLED_MESSAGE)
+  assert.ok(await readSummary(p.profile!.id, c, 'test', reviews), 'Existing local summaries are retained')
+  await h.engine.expand(p.id)
+  assert.equal(p.profile!.reviews.length, 2); assert.equal(p.profile!.id, '1')
 })
 test('detail pagination caps source ratings at 50 including blank comments', async t => {
   const h = harness(await temporary(t)); await h.engine.search('ETH14', term); const p = h.engine.state.professors[0]; let downloaded = 1

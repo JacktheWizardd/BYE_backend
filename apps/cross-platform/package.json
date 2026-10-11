@@ -1,6 +1,6 @@
 {
   "name": "bye-cross-platform",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "private": true,
   "description": "Before You Enroll — separate cross-platform desktop beta",
   "author": "BYE contributors",
@@ -18,7 +18,9 @@
     "ui:verify": "tsx scripts/verify-ui.ts",
     "packaged:verify": "tsx scripts/verify-packaged.ts",
     "package:win": "npm run build && node scripts/package.mjs",
-    "verify:zip": "node scripts/verify-zip.mjs"
+    "verify:zip": "node scripts/verify-zip.mjs",
+    "ui:verify:offline": "npm run build && node scripts/verify-offline.mjs",
+    "perf:verify:offline": "npm run build && node scripts/verify-offline.mjs --perf"
   },
   "dependencies": {
     "node-llama-cpp": "3.22.1",
@@ -39,6 +41,11 @@
     "vite": "7.1.12",
     "playwright": "1.56.1"
   },
-  "engines": { "node": ">=22.16" },
-  "overrides": { "simple-git": "4.0.2", "@simple-git/argv-parser": "2.0.1" }
+  "engines": {
+    "node": ">=22.16"
+  },
+  "overrides": {
+    "simple-git": "4.0.2",
+    "@simple-git/argv-parser": "2.0.1"
+  }
 }
