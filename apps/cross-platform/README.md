@@ -47,4 +47,4 @@ For staged acceptance before compression, run `node scripts/package.mjs --stage-
 - Raw caches and summaries last 24 hours. Summaries also depend on provider/policy identity, course, profile, and exact whole-review evidence. Stable review IDs alone do not permit reuse after text changes.
 - Local AI uses a non-thinking Qwen chat template with JSON grammar and distinct supplied source-ID pairs. Whole recent reviews fit within the evidence budget. Conservative corroboration/sentiment checks reject unsupported observations, and the overview uses accepted themes only. These checks can omit useful feedback and do not prove general semantic correctness.
 
-See [verification results and limitations](VERIFICATION.md). Future Mac/Linux packaging, GPUs, an installer, signing, and automatic updates remain outside this release.
+See [verification results and limitations](VERIFICATION.md).

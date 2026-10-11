@@ -39,6 +39,6 @@
   "humanReview": {
     "acceptedThemeCount": 0,
     "result": "Conservative no-theme fallback on this real profile; generation speed is not useful-summary latency.",
-    "limitation": "No exact-course labels matched MATH005A under the existing strict matching rules. Course shorthand remains deferred."
+    "limitation": "No exact-course labels matched MATH005A under the strict matching rules used in this benchmark."
   }
 }

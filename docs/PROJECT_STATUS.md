@@ -1,6 +1,6 @@
 # BYE development handoff
 
-Updated October 10, 2026 (America/Los_Angeles).
+Updated October 10, 2026.
 
 ## Current application
 
@@ -31,13 +31,13 @@ Removed identifying local paths from the relocation verification record. The old
 
 Release compilation remaps project/home paths to neutral build paths and strips debug records before signing. Release resource lookup avoids SwiftPM's generated accessor, which embeds an absolute build directory; DEBUG tests retain the accessor. A recursive byte-level packaging gate checks personal home/temp paths, local username, UTF-8/UTF-16 and common credential markers in the app/staging/mounted image. This is a targeted check, not proof that every possible secret or identifier is absent.
 
-**140 Swift tests and five Python privacy-gate tests passed.** Release, strict app/DMG signatures, DMG integrity/checksum, arm64, notices and installed-build byte equality passed. Mounted the beta.3 image at its assigned mount point, updated the separate installed beta, preserved all 14 pre-existing data files, ejected the new image, and launched. Another already mounted image was left untouched. Shorthand `math 5a` found Winter 2027 MATH 005A (8 sections/7 professors); 10 same-course reviews remain recognized; close/reactivate restored the same report. No new AI speed/quality claim. Remapped debug-module warnings occurred during compilation; stripped distribution app passed launch checks.
+**140 Swift tests and five Python privacy-gate tests passed.** Release, strict app/DMG signatures, DMG integrity/checksum, arm64, notices and installed-build byte equality passed. Installation from the beta.3 image preserved existing application data; ejection and launch passed. Shorthand `math 5a` found Winter 2027 MATH 005A (8 sections/7 professors); 10 same-course reviews remain recognized; close/reactivate restored the same report. No new AI speed/quality claim. Remapped debug-module warnings occurred during compilation; stripped distribution app passed launch checks.
 
-Local beta.3 DMG/checksum and updated prerelease notes are prepared. The owner already published beta.2; that installer and downloaded copies retain previous paths. Older Git commits also retain them. No history rewrite, push, tag change or release upload is included. Actual GitHub browser download, another Mac, physical Dock click and full VoiceOver remain unverified. Record: `docs/verification/privacy-beta3-2026-10-10.json`.
+Local beta.3 DMG/checksum and updated prerelease notes are prepared. The published beta.2 installer and downloaded copies retain previous paths. Older Git commits also retain them. No history rewrite, push, tag change or release upload is included. Actual GitHub browser download, another Mac, physical Dock click and full VoiceOver remain unverified. Record: `docs/verification/privacy-beta3-2026-10-10.json`.
 
 ## Historical beta.2 installer verification
 
-**140 tests passed, zero failures** after the window lifecycle adjustment. Release and DMG signatures, checksum/integrity, arm64 architecture, source archive hashes and bundled notices verified. Updated `/Applications/BYE Apple AI Beta.app` from the DMG, ejected it, and launched it; all 50 prior data files were unchanged by installation. The original 0.2.0 executable still matches its baseline hash.
+**140 tests passed, zero failures** after the window lifecycle adjustment. Release and DMG signatures, checksum/integrity, arm64 architecture, source archive hashes and bundled notices verified. Updated `/Applications/BYE Apple AI Beta.app` from the DMG, ejected it, and launched it; existing application data was unchanged by installation. The original 0.2.0 executable still matches its baseline hash.
 
 Course shorthand resolves through the selected semester catalog to its official label. The shared comparison ignores leading numeric zeros without rewriting source labels/cache keys. Suggestions, This course filtering, evidence selection and course counts use this equivalence. Apple’s provider policy identity changed so previous summaries are misses, while raw reviews remain reusable. The retained main window restores the current app model after closing and reactivation; minimized windows come forward. New search also brings the window forward.
 
@@ -55,9 +55,9 @@ No separate AI host or Ollama fallback is used. The system supplies model weight
 
 ## Historical 0.2.0 verification
 
-- Full suite: **125 XCTest tests passed, zero failures**. Coverage includes transport privacy/size bounds, retries/cooldown/cancellation/concurrency, native identity and pagination, local filtering and explicit course jobs, partial retry cursors, shared cache/subject isolation/restart, ambiguity recovery, and stale reviews/summaries. Existing legacy WebKit regressions also pass. On this Mac the browser tests require an unsandboxed test process; sandboxed attempts stalled and were stopped before the successful complete run.
+- Full suite: **125 XCTest tests passed, zero failures**. Coverage includes transport privacy/size bounds, retries/cooldown/cancellation/concurrency, native identity and pagination, local filtering and explicit course jobs, partial retry cursors, shared cache/subject isolation/restart, ambiguity recovery, and stale reviews/summaries. Existing legacy WebKit regressions also pass. On the test Mac the browser tests required an unsandboxed test process; sandboxed attempts stalled and were stopped before the successful complete run.
 - Release build and strict deep code-signature checks passed; notices were compared byte-for-byte with the bundled copy. Build scripts automatically save before/after snapshots under ignored app-history/. Archived executable/source hashes were verified against their manifest.
-- Live Winter 2027: Daniel Hamman (POLSC 1000) and Jose Lopez (ETH 014) each returned two eligible profiles and required selection. All four identities were individually verified. Isolated app-model checks passed dismissal, persisted preferences, fresh verification, wrong-identity recovery to selection, replacement and cross-course cache reuse. An unavailable local summary endpoint preserved API data; the owner's running Ollama host was not stopped or used by this check.
+- Live Winter 2027: Daniel Hamman (POLSC 1000) and Jose Lopez (ETH 014) each returned two eligible profiles and required selection. All four identities were individually verified. Isolated app-model checks passed dismissal, persisted preferences, fresh verification, wrong-identity recovery to selection, replacement and cross-course cache reuse. An unavailable loopback summary endpoint preserved API data without using or changing a running Ollama service.
 - Native visual checks used a temporary app/storage: Winter 2027 Daniel ambiguity, chooser dismissal/reopening, Political Science selection, actual quit/relaunch persistence, Change profile to History, correct replacement source/reviews, original course-label menu/counts, local All courses filtering, explicit POLS001 expansion from 24 downloaded to the 50-rating limit against 86 reported by RMP, unchanged overall scores, and failed-summary retry retaining data. Temporary preferences were removed afterward. The release UI uses the same views; the acceptance-only storage/failure flags are DEBUG-only.
 - Fresh MATH 005A / Fall 2026 native ratings pass: **2.05 seconds first result, 6.44 seconds overall**, 35 sections, 26 professors, 21 verified previews, three ambiguous and two unavailable. Every preview was capped at three. Earlier WebKit observation: 2.83/16.81 seconds. These are separate runs, not a controlled benchmark or latency guarantee.
 - Live known-profile previews were approximately 0.14 seconds. Cross-course raw-cache reads after store recreation were approximately 0.0013–0.0020 seconds in the last isolated run; these do not measure complete app startup or a full-course cached search.
@@ -65,11 +65,11 @@ No separate AI host or Ollama fallback is used. The system supplies model weight
 
 ## History and remaining limitations
 
-The pre-implementation app/source baseline is app-history/2026-10-10-before-native-api/. Each build now saves a prior-app/current-source snapshot before building and a matched app/source snapshot after successful signing. Manifests distinguish these associations; snapshots exclude private user data and do not roll back Application Support.
+The pre-implementation app/source baseline was preserved. Each build now saves a prior-app/current-source snapshot before building and a matched app/source snapshot after successful signing. Manifests distinguish these associations; snapshots exclude private user data and do not roll back Application Support.
 
 RMP's endpoint is undocumented and can change or reject requests; client tests cannot guarantee future server availability. A forced live RMP outage/rate limit and packet-level traffic capture were not performed. Failure/retry/cooldown/cookie/header behavior was inspected with deterministic URLProtocol tests, plus live identity-mismatch recovery. A complete VoiceOver session, another Mac, notarization/distribution and Windows remain unverified. The toolchain still emits its existing native SwiftPM-backend deprecation warning.
 
-Leading-zero shorthand is implemented for searches and downloaded review matching; broader aliases and cross-listed course inference remain deferred. Top-three recommendations, loading redesign, Windows, an embedded fallback for unsupported hardware and additional privacy infrastructure remain later milestones. Apple on-device summaries are now experimental in the separate beta; Ollama remains only for explicit legacy regression checks.
+Leading-zero shorthand is implemented for searches and downloaded review matching. Apple on-device summaries are now experimental in the separate beta; Ollama remains only for explicit legacy regression checks.
 
 No commit or upload was performed.
 

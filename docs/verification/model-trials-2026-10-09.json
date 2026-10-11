@@ -19,7 +19,7 @@
         "strict_shape_passes": 5,
         "all_theme_ID_support_passes": 0,
         "overall_quality_passes": 0,
-        "recommendation": "Do not promote Gemma3 1B with the current prompt. Retrieval speed changes remain independent."
+        "recommendation": "Gemma3 1B did not meet acceptance criteria with the tested prompt."
       }
     },
     {
@@ -41,7 +41,7 @@
         "fully_grounded_useful_cases": 0,
         "safe_conservative_cases": 0,
         "semantic_failures_after_app_filter": 2,
-        "decision": "Do not promote Smol; retain existing Qwen pending stronger sentiment validation."
+        "decision": "Smol did not meet acceptance criteria; existing Qwen was retained."
       }
     },
     {

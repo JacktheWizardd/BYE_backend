@@ -26,10 +26,8 @@
   ],
   "bundledNoticesMatch": true,
   "originalAppPreserved": true,
-  "preImplementationMilestone": "app-history/20261010T183306-before-build-x8x4gtac",
-  "releaseArchive": "app-history/20261010T183739-after-build-4sx2k71c",
   "releaseArchiveHashesVerified": true,
-  "existingDataFilesUnchangedByInitialInstallation": 50,
+  "existingDataUnchangedByInitialInstallation": true,
   "uiChecks": {
     "shorthandSuggestion": "math 5a offered MATH 005A",
     "directSearch": "math 5a and math5a submitted without selecting a suggestion; MATH 005A Winter 2027, 8 sections and 7 professors",

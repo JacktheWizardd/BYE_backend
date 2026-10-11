@@ -44,7 +44,7 @@
         "replacementVerified": true,
         "scope": "Real API and model actions; window dismissal/relaunch visual checks are separate.",
         "storage": "Temporary test directory, removed afterward",
-        "summaryFailureMethod": "Unavailable loopback port 1; owner's Ollama service untouched",
+        "summaryFailureMethod": "Unavailable loopback port 1; no Ollama service changes",
         "unavailableSummaryPreservesAPIData": true,
         "usesOllama": false,
         "warmCacheSeconds": 0.0013390779495239258
@@ -96,7 +96,7 @@
         "replacementVerified": true,
         "scope": "Real API and model actions; window dismissal/relaunch visual checks are separate.",
         "storage": "Temporary test directory, removed afterward",
-        "summaryFailureMethod": "Unavailable loopback port 1; owner's Ollama service untouched",
+        "summaryFailureMethod": "Unavailable loopback port 1; no Ollama service changes",
         "unavailableSummaryPreservesAPIData": true,
         "usesOllama": false,
         "warmCacheSeconds": 0.002017974853515625

@@ -45,13 +45,13 @@
   },
   "ollama": {
     "productionProvider": "Apple only; no automatic fallback",
-    "verification": "Provider injection and request assertions; code paths inspected. No packet capture; owner service not stopped."
+    "verification": "Provider injection and request assertions; code paths inspected. No packet capture or service changes."
   },
   "limitations": [
     "Real-profile generations were conservative no-theme results, not evidence of useful-summary quality.",
     "First-use process timing is not guaranteed OS-cold. Fresh network-to-report and screen rendering times not measured.",
     "Five fictional quality cases do not establish general semantic correctness.",
-    "Unavailable-model paths tested by injection, not changing owner Apple Intelligence settings.",
+    "Unavailable-model paths tested by injection without changing system settings.",
     "Another Mac, downloaded-app quarantine prompts and full VoiceOver session unverified.",
     "Model weights supplied by macOS; initial system download may be needed."
   ],

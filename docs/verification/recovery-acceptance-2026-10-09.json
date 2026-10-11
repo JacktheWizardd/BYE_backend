@@ -1,6 +1,5 @@
 {
   "date": "2026-10-09",
-  "timezone": "America/Los_Angeles",
   "automated": {
     "command": "./scripts/swift.sh test",
     "tests": 90,
@@ -33,11 +32,6 @@
     "Individual retry and temporary failures were exercised with deterministic automated tests; no forced live network outage.",
     "Complete VoiceOver user session and another Mac were not verified.",
     "SwiftPM native build backend emits an existing deprecation warning."
-  ],
-  "deferred": [
-    "Course shorthand",
-    "Loading redesign",
-    "AI provider replacement"
   ],
   "committed": false,
   "uploaded": false

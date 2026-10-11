@@ -343,7 +343,7 @@ enum LiveCheck {
         let warmSeconds = Date().timeIntervalSince(warmStart)
         let cacheReused = reused?.profile.id == first.id && reused?.profile.reviews == filtered.reviews
         // Exercise an actually unavailable local summary endpoint without stopping
-        // the owner's running Ollama service or changing their settings.
+        // any running Ollama service or changing system settings.
         let report = AppModel(ollama: OllamaClient(endpoint: URL(string: "http://127.0.0.1:1/api/chat")!), cache: cache, choices: store)
         defer { report.cancel() }
         var opened = professor; opened.profile = filtered; opened.state = .ready
@@ -359,7 +359,7 @@ enum LiveCheck {
                 "changeProfilePreservesUntilConfirmed": openingPreservesData, "confirmationClearsImmediately": clearsImmediately,
                 "replacementVerified": replacement, "crossCourseCacheReused": cacheReused,
                 "unavailableSummaryPreservesAPIData": summaryUnavailable,
-                "summaryFailureMethod": "Unavailable loopback port 1; owner's Ollama service untouched",
+                "summaryFailureMethod": "Unavailable loopback port 1; no Ollama service changes",
                 "previewSeconds": previewSeconds, "allReviewExpansionSeconds": expansionSeconds,
                 "warmCacheSeconds": warmSeconds, "previewReviews": preview.reviews.count,
                 "allReviews": all.reviewCoverage?["all"]?.reviewIDs.count ?? 0,

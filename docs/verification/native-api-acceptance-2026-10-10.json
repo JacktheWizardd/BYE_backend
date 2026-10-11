@@ -1,6 +1,5 @@
 {
   "date": "2026-10-10",
-  "timezone": "America/Los_Angeles",
   "automated": {
     "command": "./scripts/swift.sh test",
     "tests": 125,
@@ -52,19 +51,16 @@
       "PCC CRNs 10268,11166,12396 remain after replacement",
       "Failed summary and repeated retry retain source data"
     ],
-    "temporaryPreferencesRemoved": true,
-    "launchApproval": "Owner approved temporary test app after automatic approval review rejection"
+    "temporaryPreferencesRemoved": true
   },
   "liveMatchingRecord": "native-api-matching-2026-10-10.json",
   "performanceRecord": "native-api-speed-2026-10-10.json",
   "history": {
-    "baseline": "app-history/2026-10-10-before-native-api",
     "baselineSourceFiles": 37,
     "baselineHashesMatch": true,
     "PCCClientSourceUnchanged": true,
     "automaticBeforeAfterBuildSnapshots": true,
     "privateUserDataExcluded": true,
-    "releaseSnapshot": "app-history/20261010T074324-after-build-_1n89jk9",
     "archiveSourceHashesMatch": true,
     "archiveExecutableMatchesRelease": true,
     "currentCompiledSourcesMatchSnapshot": true
@@ -80,7 +76,7 @@
     "No packet capture",
     "Full VoiceOver session, second Mac, notarization and Windows not verified",
     "Historical WebKit vs native timings are separate observations, not controlled benchmarks",
-    "Ollama remains separately required for summaries; embedded AI deferred"
+    "Ollama was separately required for summaries in version 0.2.0"
   ],
   "commitOrUpload": false
 }

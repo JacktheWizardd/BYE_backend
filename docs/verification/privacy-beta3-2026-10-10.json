@@ -22,7 +22,7 @@
   },
   "installation": {
     "appBytesMatchBuiltApp": true,
-    "previousDataFilesRetained": 14,
+    "previousDataRetained": true,
     "mountedCopiedEjectedLaunched": true,
     "shorthandSearch": "math 5a offered and opened MATH 005A Winter 2027, 8 sections/7 professors",
     "sameCourseReviews": "10 of 47 downloaded reviews recognized for Anahit Asadyan",
@@ -40,7 +40,6 @@
   "dmgBytes": 1121006,
   "originalAppPreservedLocally": true,
   "noticesMatch": true,
-  "historyBaseline": "app-history/20261010T190712-before-build-96ck98r1",
   "limitations": [
     "Old Git history still contains prior local paths/built app. No history rewrite.",
     "Published beta.2 installer and already downloaded copies retain old paths. No release assets replaced.",
