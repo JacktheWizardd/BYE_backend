@@ -104,9 +104,9 @@ Choose the instructions for your operating system.
 
 **Steps**
 
-1. Open the [BYE v0.3.0-beta.2 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.2).
+1. Open the [BYE v0.3.0-beta.4 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.4).
 2. Expand **Assets**.
-3. Download `BYE-0.3.0-beta.2-AppleSilicon.dmg`.
+3. Download `BYE-0.3.0-beta.4-AppleSilicon.dmg`.
 4. Open the downloaded DMG.
 5. Drag **BYE Apple AI Beta** into the Applications folder.
 6. Eject the DMG and launch the application.
@@ -135,7 +135,7 @@ Quit the existing application before replacing it with a newer version.
 
 **Steps**
 
-1. Open the [BYE v0.3.0-beta.2 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.2).
+1. Open the [BYE v0.3.0-beta.3 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.3).
 2. Expand **Assets**.
 3. Download the Windows ZIP package.
 4. Right-click the downloaded file and select **Extract All**.
