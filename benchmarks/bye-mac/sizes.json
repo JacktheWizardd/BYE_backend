@@ -1,0 +1,29 @@
+[
+  {
+    "model": "lfm",
+    "staged_app_bytes": 766397194,
+    "archive_bytes": 728768950,
+    "includes_existing_bye_payload": true,
+    "bye_executable_sha256": "93acd5f0ffa278212c4365dcc31e77c95b87e244dbbce32b1801ed1ea1c468ce",
+    "below_1_5GB": true,
+    "archive_sha256": "3d7c2eb2a3049623f012be40a39f33a017d29e7df24ccbc095b1a0c8d4f6f536"
+  },
+  {
+    "model": "qwen",
+    "staged_app_bytes": 598538092,
+    "archive_bytes": 541745180,
+    "includes_existing_bye_payload": true,
+    "bye_executable_sha256": "93acd5f0ffa278212c4365dcc31e77c95b87e244dbbce32b1801ed1ea1c468ce",
+    "below_1_5GB": true,
+    "archive_sha256": "0109f2931128874107d97ccba54019d9260787a1c2966b4d0fb06ae2fe4cfae0"
+  },
+  {
+    "model": "smol",
+    "staged_app_bytes": 306092908,
+    "archive_bytes": 279319906,
+    "includes_existing_bye_payload": true,
+    "bye_executable_sha256": "93acd5f0ffa278212c4365dcc31e77c95b87e244dbbce32b1801ed1ea1c468ce",
+    "below_1_5GB": true,
+    "archive_sha256": "d6ac4e8175778a0ca7bf8d2f2637fd77d11d4301a9befdbdf009d00f850ed561"
+  }
+]

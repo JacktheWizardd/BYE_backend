@@ -43,12 +43,23 @@ struct ContentView: View {
         }
         .foregroundStyle(.black)
         .tint(Palette.accent)
-        .task { await model.loadTerms() }
+        .task {
+            #if !BYE_MODEL_EVAL
+            await model.loadTerms()
+            #endif
+        }
         .sheet(isPresented: Binding(get: { model.chooserID != nil }, set: { if !$0 { model.chooserID = nil } })) {
             ProfileChooser(model: model)
         }
         .onChange(of: model.displayed.map(\.id)) { _, _ in model.reconcileSelection() }
         .onChange(of: model.selectedID) { _, _ in model.requestSelectedReport() }
+        #if BYE_AUDIT
+        .onChange(of: model.selected?.summary) { _, summary in AppAudit.summaryObserved(summary, profile:model.selected?.profile?.id) }
+        #endif
+        #if BYE_MODEL_EVAL
+        .onChange(of: model.selected?.summary) { _, summary in ModelEvaluation.summaryObserved(summary,profile:model.selected?.profile?.id,showingResults:model.showingResults) }
+        .onChange(of: model.showingResults) { _, showing in ModelEvaluation.summaryObserved(model.selected?.summary,profile:model.selected?.profile?.id,showingResults:showing) }
+        #endif
     }
     private var results: some View {
         VStack(spacing: 0) {
@@ -377,14 +388,24 @@ private struct ProfessorReport: View {
     }
     private var summary: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack { Eyebrow(title: "AI review summary"); Spacer(); Text("APPLE AI · ON YOUR MAC").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary) }
+            HStack { Eyebrow(title: "AI review summary"); Spacer()
+                #if BYE_MODEL_EVAL
+                Text("LOCAL MODEL · MEASUREMENT").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary)
+                #else
+                Text("APPLE AI · ON YOUR MAC").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary)
+                #endif
+            }
             if let summary = professor.summary {
                 Text(summary.overview).font(.system(size: 15)).lineSpacing(6)
                 Text("\(summary.analyzedCount) of \(professor.profile?.reviews.count ?? 0) downloaded reviews analyzed · \(summary.exactCourseCount) for \(course.display) · \(summary.analyzedCount - summary.exactCourseCount) for other or unspecified courses")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 themes("Common positives", points: summary.positives)
                 themes("Common concerns", points: summary.concerns)
+                #if BYE_MODEL_EVAL
+                Text("Offline model measurement with fictional UI fixtures. Check the original reviews for context.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                #else
                 Text("Experimental Apple AI summary of student opinions. Check the original reviews for context.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                #endif
                 if summary.positives.isEmpty && summary.concerns.isEmpty && canRetry && !loadingDetails {
                     Button("Retry summary", action: retry).buttonStyle(PillStyle()).disabled(checkingRatings || retrying)
                 }

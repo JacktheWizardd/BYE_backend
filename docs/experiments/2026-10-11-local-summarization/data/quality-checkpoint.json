@@ -1,0 +1,2927 @@
+[
+  {
+    "variant": "danube2-18b--Q5_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 57,
+    "empty_theme_bearing_displays": 18,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 39,
+        "displayed_covered_theme_occurrences": 39,
+        "displayed_coverage": 0.8666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.21428571428571427,
+    "readability_denominator": 42,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "danube2-18b--Q5_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 48,
+    "total_mapped_trials": 48,
+    "technical_failures": 21,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 21,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 18,
+        "displayed_covered_theme_occurrences": 18,
+        "displayed_coverage": 0.4,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.16666666666666666,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "danube2-18b--Q5_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 57,
+    "empty_theme_bearing_displays": 18,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 39,
+        "displayed_covered_theme_occurrences": 39,
+        "displayed_coverage": 0.8666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.21428571428571427,
+    "readability_denominator": 42,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "danube2-18b--Q5_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 45,
+    "total_mapped_trials": 45,
+    "technical_failures": 24,
+    "unsafe_reviewed_trials": 36,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 21,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 18,
+        "displayed_covered_theme_occurrences": 18,
+        "displayed_coverage": 0.4,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.16666666666666666,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "gemma3-270m-qat--Q4_0",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 48,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.13333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 6,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "gemma3-270m-qat--Q4_0",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 51,
+    "total_mapped_trials": 51,
+    "technical_failures": 18,
+    "unsafe_reviewed_trials": 36,
+    "empty_theme_bearing_displays": 21,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 18,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 30,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.13333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.125,
+    "readability_denominator": 24,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "gemma3-270m-qat--Q4_0",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 48,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.13333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 6,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "gemma3-270m-qat--Q4_0",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 54,
+    "total_mapped_trials": 54,
+    "technical_failures": 15,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 21,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 18,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 30,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.13333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.125,
+    "readability_denominator": 24,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.18181818181818182,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 36,
+        "displayed_covered_theme_occurrences": 36,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6,
+    "readability_denominator": 45,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 7,
+    "total_mapped_trials": 7,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 6,
+    "empty_theme_bearing_displays": 2,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 2,
+        "displayed_covered_theme_occurrences": 2,
+        "displayed_coverage": 0.18181818181818182,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.25,
+    "readability_denominator": 4,
+    "designated_abstention_not_passed": 1,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 48,
+    "total_mapped_trials": 48,
+    "technical_failures": 21,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 9,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 30,
+        "displayed_covered_theme_occurrences": 30,
+        "displayed_coverage": 0.6666666666666666,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6363636363636364,
+    "readability_denominator": 33,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.18181818181818182,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 36,
+        "displayed_covered_theme_occurrences": 36,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6,
+    "readability_denominator": 45,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 45,
+    "total_mapped_trials": 45,
+    "technical_failures": 24,
+    "unsafe_reviewed_trials": 36,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 9,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 30,
+        "displayed_covered_theme_occurrences": 30,
+        "displayed_coverage": 0.6666666666666666,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6363636363636364,
+    "readability_denominator": 33,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q5_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 9,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 42,
+        "displayed_covered_theme_occurrences": 42,
+        "displayed_coverage": 0.9333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.625,
+    "readability_denominator": 48,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q5_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 39,
+    "total_mapped_trials": 39,
+    "technical_failures": 30,
+    "unsafe_reviewed_trials": 27,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 15,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 27,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q5_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 9,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 42,
+        "displayed_covered_theme_occurrences": 42,
+        "displayed_coverage": 0.9333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.625,
+    "readability_denominator": 48,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-1b--Q5_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 42,
+    "total_mapped_trials": 42,
+    "technical_failures": 27,
+    "unsafe_reviewed_trials": 30,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 15,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 27,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-350m--Q8_0",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 42,
+    "empty_theme_bearing_displays": 30,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.06666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 21,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-350m--Q8_0",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 27,
+    "total_mapped_trials": 27,
+    "technical_failures": 42,
+    "unsafe_reviewed_trials": 27,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 3,
+        "technical_failure_trials": 18,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 24,
+        "technical_failure_trials": 18,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 18,
+        "displayed_covered_theme_occurrences": 18,
+        "displayed_coverage": 0.4,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 18,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-350m--Q8_0",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 27,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.06666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 21,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "granite4-350m--Q8_0",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 27,
+    "total_mapped_trials": 27,
+    "technical_failures": 42,
+    "unsafe_reviewed_trials": 27,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 3,
+        "technical_failure_trials": 18,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 24,
+        "technical_failure_trials": 18,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 18,
+        "displayed_covered_theme_occurrences": 18,
+        "displayed_coverage": 0.4,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 18,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "lfm25-thinking--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 51,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 24,
+        "displayed_covered_theme_occurrences": 24,
+        "displayed_coverage": 0.5333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.2777777777777778,
+    "readability_denominator": 54,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "lfm25-thinking--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 60,
+    "total_mapped_trials": 60,
+    "technical_failures": 9,
+    "unsafe_reviewed_trials": 51,
+    "empty_theme_bearing_displays": 15,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 18,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 36,
+        "technical_failure_trials": 6,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.3333333333333333,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "lfm25-thinking--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 51,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 24,
+        "displayed_covered_theme_occurrences": 24,
+        "displayed_coverage": 0.5333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.2777777777777778,
+    "readability_denominator": 54,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "lfm25-thinking--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 60,
+    "total_mapped_trials": 60,
+    "technical_failures": 9,
+    "unsafe_reviewed_trials": 51,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 18,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 36,
+        "technical_failure_trials": 6,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.3333333333333333,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 63,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 36,
+        "displayed_covered_theme_occurrences": 36,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.06666666666666667,
+    "readability_denominator": 45,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 45,
+    "total_mapped_trials": 45,
+    "technical_failures": 24,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 9,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 27,
+        "displayed_covered_theme_occurrences": 27,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.09090909090909091,
+    "readability_denominator": 33,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 63,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 36,
+        "displayed_covered_theme_occurrences": 36,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.06666666666666667,
+    "readability_denominator": 45,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 42,
+    "total_mapped_trials": 42,
+    "technical_failures": 27,
+    "unsafe_reviewed_trials": 42,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 9,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 27,
+        "displayed_covered_theme_occurrences": 27,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.09090909090909091,
+    "readability_denominator": 33,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q8_0",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 69,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 42,
+        "displayed_covered_theme_occurrences": 42,
+        "displayed_coverage": 0.9333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.11764705882352941,
+    "readability_denominator": 51,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q8_0",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 51,
+    "total_mapped_trials": 51,
+    "technical_failures": 18,
+    "unsafe_reviewed_trials": 51,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 15,
+        "technical_failure_trials": 6,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q8_0",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 69,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 42,
+        "displayed_covered_theme_occurrences": 42,
+        "displayed_coverage": 0.9333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.11764705882352941,
+    "readability_denominator": 51,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "llama32-1b--Q8_0",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 51,
+    "total_mapped_trials": 51,
+    "technical_failures": 18,
+    "unsafe_reviewed_trials": 51,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 15,
+        "technical_failure_trials": 6,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.0,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 54,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 27,
+        "displayed_covered_theme_occurrences": 27,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6428571428571429,
+    "readability_denominator": 42,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 18,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 9,
+        "displayed_covered_theme_occurrences": 9,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5294117647058824,
+    "readability_denominator": 17,
+    "designated_abstention_not_passed": 4,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 39,
+    "total_mapped_trials": 39,
+    "technical_failures": 30,
+    "unsafe_reviewed_trials": 21,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 15,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 27,
+        "displayed_covered_theme_occurrences": 27,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 27,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 13,
+    "total_mapped_trials": 13,
+    "technical_failures": 10,
+    "unsafe_reviewed_trials": 7,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 2,
+        "technical_failure_trials": 5,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 11,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 9,
+        "displayed_covered_theme_occurrences": 9,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 9,
+    "designated_abstention_not_passed": 2,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 54,
+    "empty_theme_bearing_displays": 12,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 27,
+        "displayed_covered_theme_occurrences": 27,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6428571428571429,
+    "readability_denominator": 42,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 18,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 9,
+        "displayed_covered_theme_occurrences": 9,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5294117647058824,
+    "readability_denominator": 17,
+    "designated_abstention_not_passed": 4,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 39,
+    "total_mapped_trials": 39,
+    "technical_failures": 30,
+    "unsafe_reviewed_trials": 21,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 15,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 27,
+        "displayed_covered_theme_occurrences": 27,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 27,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 13,
+    "total_mapped_trials": 13,
+    "technical_failures": 10,
+    "unsafe_reviewed_trials": 7,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 2,
+        "technical_failure_trials": 5,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 11,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 9,
+        "displayed_covered_theme_occurrences": 9,
+        "displayed_coverage": 0.6,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 9,
+    "designated_abstention_not_passed": 2,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 57,
+    "empty_theme_bearing_displays": 18,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 21,
+        "displayed_covered_theme_occurrences": 21,
+        "displayed_coverage": 0.4666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.8333333333333334,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 19,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 1,
+        "displayed_covered_theme_occurrences": 1,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 7,
+        "displayed_covered_theme_occurrences": 7,
+        "displayed_coverage": 0.4666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6666666666666666,
+    "readability_denominator": 15,
+    "designated_abstention_not_passed": 4,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 42,
+    "total_mapped_trials": 42,
+    "technical_failures": 27,
+    "unsafe_reviewed_trials": 27,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 9,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 30,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 24,
+        "displayed_covered_theme_occurrences": 24,
+        "displayed_coverage": 0.5333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 27,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 14,
+    "total_mapped_trials": 14,
+    "technical_failures": 9,
+    "unsafe_reviewed_trials": 9,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 3,
+        "technical_failure_trials": 4,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 1,
+        "displayed_covered_theme_occurrences": 1,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 10,
+        "technical_failure_trials": 4,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 8,
+        "displayed_covered_theme_occurrences": 8,
+        "displayed_coverage": 0.5333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 9,
+    "designated_abstention_not_passed": 2,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 57,
+    "empty_theme_bearing_displays": 18,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 21,
+        "displayed_covered_theme_occurrences": 21,
+        "displayed_coverage": 0.4666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.8333333333333334,
+    "readability_denominator": 36,
+    "designated_abstention_not_passed": 12,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 19,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 1,
+        "displayed_covered_theme_occurrences": 1,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 7,
+        "displayed_covered_theme_occurrences": 7,
+        "displayed_coverage": 0.4666666666666667,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6666666666666666,
+    "readability_denominator": 15,
+    "designated_abstention_not_passed": 4,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 39,
+    "total_mapped_trials": 39,
+    "technical_failures": 30,
+    "unsafe_reviewed_trials": 24,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 9,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 30,
+        "technical_failure_trials": 12,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 24,
+        "displayed_covered_theme_occurrences": 24,
+        "displayed_coverage": 0.5333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 27,
+    "designated_abstention_not_passed": 6,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen25-15b--Q5_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 13,
+    "total_mapped_trials": 13,
+    "technical_failures": 10,
+    "unsafe_reviewed_trials": 8,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 3,
+        "technical_failure_trials": 4,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 1,
+        "displayed_covered_theme_occurrences": 1,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 10,
+        "technical_failure_trials": 4,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 8,
+        "displayed_covered_theme_occurrences": 8,
+        "displayed_coverage": 0.5333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 9,
+    "designated_abstention_not_passed": 2,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 54,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 45,
+        "displayed_covered_theme_occurrences": 45,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5294117647058824,
+    "readability_denominator": 51,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 18,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 1,
+        "displayed_covered_theme_occurrences": 1,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 15,
+        "displayed_covered_theme_occurrences": 15,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5263157894736842,
+    "readability_denominator": 19,
+    "designated_abstention_not_passed": 5,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 54,
+    "total_mapped_trials": 54,
+    "technical_failures": 15,
+    "unsafe_reviewed_trials": 45,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 18,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 36,
+        "displayed_covered_theme_occurrences": 36,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.38461538461538464,
+    "readability_denominator": 39,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 18,
+    "total_mapped_trials": 18,
+    "technical_failures": 5,
+    "unsafe_reviewed_trials": 15,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 1,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 11,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 12,
+        "displayed_covered_theme_occurrences": 12,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.3333333333333333,
+    "readability_denominator": 15,
+    "designated_abstention_not_passed": 3,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 54,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 45,
+        "displayed_covered_theme_occurrences": 45,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5294117647058824,
+    "readability_denominator": 51,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 18,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 1,
+        "displayed_covered_theme_occurrences": 1,
+        "displayed_coverage": 0.09090909090909091,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 15,
+        "displayed_covered_theme_occurrences": 15,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5263157894736842,
+    "readability_denominator": 19,
+    "designated_abstention_not_passed": 5,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 57,
+    "total_mapped_trials": 57,
+    "technical_failures": 12,
+    "unsafe_reviewed_trials": 48,
+    "empty_theme_bearing_displays": 6,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 18,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 33,
+        "technical_failure_trials": 9,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 36,
+        "displayed_covered_theme_occurrences": 36,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.38461538461538464,
+    "readability_denominator": 39,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen3-17b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 19,
+    "total_mapped_trials": 19,
+    "technical_failures": 4,
+    "unsafe_reviewed_trials": 16,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 1,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 11,
+        "technical_failure_trials": 3,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 12,
+        "displayed_covered_theme_occurrences": 12,
+        "displayed_coverage": 0.8,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.3333333333333333,
+    "readability_denominator": 15,
+    "designated_abstention_not_passed": 3,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 54,
+    "empty_theme_bearing_displays": 15,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.18181818181818182,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 45,
+        "displayed_covered_theme_occurrences": 45,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6428571428571429,
+    "readability_denominator": 42,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 2048,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 18,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.2727272727272727,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 15,
+        "displayed_covered_theme_occurrences": 15,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 18,
+    "designated_abstention_not_passed": 5,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 45,
+    "total_mapped_trials": 45,
+    "technical_failures": 24,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 15,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 36,
+        "technical_failure_trials": 6,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6363636363636364,
+    "readability_denominator": 33,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 2048,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 15,
+    "total_mapped_trials": 15,
+    "technical_failures": 8,
+    "unsafe_reviewed_trials": 13,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 2,
+        "technical_failure_trials": 5,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 12,
+        "technical_failure_trials": 2,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 11,
+        "displayed_covered_theme_occurrences": 11,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6363636363636364,
+    "readability_denominator": 11,
+    "designated_abstention_not_passed": 3,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 256,
+    "reviewed_trials": 69,
+    "total_mapped_trials": 69,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 54,
+    "empty_theme_bearing_displays": 15,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 21,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 6,
+        "displayed_covered_theme_occurrences": 6,
+        "displayed_coverage": 0.18181818181818182,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 42,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 45,
+        "displayed_covered_theme_occurrences": 45,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6428571428571429,
+    "readability_denominator": 42,
+    "designated_abstention_not_passed": 15,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 4096,
+    "mode": "direct",
+    "output_limit": 384,
+    "reviewed_trials": 23,
+    "total_mapped_trials": 23,
+    "technical_failures": 0,
+    "unsafe_reviewed_trials": 18,
+    "empty_theme_bearing_displays": 0,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 7,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 3,
+        "displayed_covered_theme_occurrences": 3,
+        "displayed_coverage": 0.2727272727272727,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 14,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 15,
+        "displayed_covered_theme_occurrences": 15,
+        "displayed_coverage": 1.0,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.5555555555555556,
+    "readability_denominator": 18,
+    "designated_abstention_not_passed": 5,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 256,
+    "reviewed_trials": 45,
+    "total_mapped_trials": 45,
+    "technical_failures": 24,
+    "unsafe_reviewed_trials": 39,
+    "empty_theme_bearing_displays": 3,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 6,
+        "technical_failure_trials": 15,
+        "eligible_theme_occurrences": 33,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 36,
+        "technical_failure_trials": 6,
+        "eligible_theme_occurrences": 45,
+        "raw_covered_theme_occurrences": 33,
+        "displayed_covered_theme_occurrences": 33,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6363636363636364,
+    "readability_denominator": 33,
+    "designated_abstention_not_passed": 9,
+    "release_recommendation": "none for this configuration"
+  },
+  {
+    "variant": "qwen35-2b--Q4_K_M",
+    "context": 4096,
+    "mode": "extract",
+    "output_limit": 384,
+    "reviewed_trials": 15,
+    "total_mapped_trials": 15,
+    "technical_failures": 8,
+    "unsafe_reviewed_trials": 13,
+    "empty_theme_bearing_displays": 1,
+    "semantic_review_complete": true,
+    "reviewed_subset_coverage": {
+      "development": {
+        "reviewed_trials": 2,
+        "technical_failure_trials": 5,
+        "eligible_theme_occurrences": 11,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": 0.0,
+        "complete": true
+      },
+      "held_out": {
+        "reviewed_trials": 0,
+        "technical_failure_trials": 0,
+        "eligible_theme_occurrences": 0,
+        "raw_covered_theme_occurrences": 0,
+        "displayed_covered_theme_occurrences": 0,
+        "displayed_coverage": null,
+        "complete": true
+      },
+      "synthetic": {
+        "reviewed_trials": 12,
+        "technical_failure_trials": 2,
+        "eligible_theme_occurrences": 15,
+        "raw_covered_theme_occurrences": 11,
+        "displayed_covered_theme_occurrences": 11,
+        "displayed_coverage": 0.7333333333333333,
+        "complete": true
+      }
+    },
+    "displayed_readability_at_least4_fraction": 0.6363636363636364,
+    "readability_denominator": 11,
+    "designated_abstention_not_passed": 3,
+    "release_recommendation": "none for this configuration"
+  }
+]

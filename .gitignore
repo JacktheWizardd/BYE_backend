@@ -3,6 +3,11 @@
 app-history/
 /.local-docs/
 
+# Local experiment outputs and source-linked review annotations.
+# Preserve these on disk; publish summaries and tooling instead.
+/docs/verification/bye-local*-2026-10-11/
+/benchmarks/model-eval/expected-facts.json
+
 .swiftpm/
 dist/
 __pycache__/

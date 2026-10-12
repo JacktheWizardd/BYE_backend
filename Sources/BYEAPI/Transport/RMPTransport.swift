@@ -53,6 +53,7 @@ public final class RMPTransport: @unchecked Sendable {
     private let session: URLSession
     private let gate: RequestGate
     private let retryDelay: TimeInterval
+    private let maximumAttempts: Int
     public static func configuration() -> URLSessionConfiguration {
         let config = URLSessionConfiguration.ephemeral
         config.httpCookieStorage = nil; config.httpShouldSetCookies = false
@@ -63,16 +64,17 @@ public final class RMPTransport: @unchecked Sendable {
         config.httpAdditionalHeaders = ["Accept": "application/json", "Content-Type": "application/json", "User-Agent": "BYE/0.2"]
         return config
     }
-    public init(protocolClasses: [AnyClass]? = nil, spacing: TimeInterval = 0.1, retryDelay: TimeInterval = 0.5) {
+    public init(protocolClasses: [AnyClass]? = nil, spacing: TimeInterval = 0.1, retryDelay: TimeInterval = 0.5, maximumAttempts: Int = 3) {
         let config = Self.configuration()
         if let protocolClasses { config.protocolClasses = protocolClasses }
         session = URLSession(configuration: config, delegate: NoRedirects(), delegateQueue: nil)
         gate = RequestGate(spacing: max(0, spacing)); self.retryDelay = max(0, retryDelay)
+        self.maximumAttempts = max(1, min(3, maximumAttempts))
     }
     deinit { session.invalidateAndCancel() }
 
     func send(_ body: Data) async throws -> Data {
-        for attempt in 0..<3 {
+        for attempt in 0..<maximumAttempts {
             try Task.checkCancellation()
             awaitAttempt: do {
                 try await gate.acquire()
@@ -89,7 +91,7 @@ public final class RMPTransport: @unchecked Sendable {
                     try Task.checkCancellation()
                     if let error = error as? URLError, error.code == .cancelled { throw CancellationError() }
                     let retryable: Set<URLError.Code> = [.timedOut, .networkConnectionLost, .cannotConnectToHost, .notConnectedToInternet, .dnsLookupFailed, .cannotFindHost]
-                    guard attempt < 2, let urlError = error as? URLError, retryable.contains(urlError.code) else { throw RMPAPIError.network }
+                    guard attempt + 1 < maximumAttempts, let urlError = error as? URLError, retryable.contains(urlError.code) else { throw RMPAPIError.network }
                     try await Task.sleep(for: .seconds(retryDelay * pow(2, Double(attempt))))
                     break awaitAttempt
                 }
@@ -101,7 +103,7 @@ public final class RMPTransport: @unchecked Sendable {
                     return result.0
                 }
                 let status = response.statusCode
-                guard attempt < 2, [429, 500, 502, 503, 504].contains(status) else { throw RMPAPIError.http(status) }
+                guard attempt + 1 < maximumAttempts, [429, 500, 502, 503, 504].contains(status) else { throw RMPAPIError.http(status) }
                 let delay = Self.retryAfter(response.value(forHTTPHeaderField: "Retry-After")) ?? retryDelay * pow(2, Double(attempt))
                 // Do not retry sooner than requested; long waits become a recoverable failure.
                 guard delay <= 30 else { throw RMPAPIError.http(status) }

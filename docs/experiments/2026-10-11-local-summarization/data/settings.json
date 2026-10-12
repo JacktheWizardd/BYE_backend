@@ -1,0 +1,22 @@
+{
+  "contexts": [
+    2048,
+    4096
+  ],
+  "output_tokens": 256,
+  "extraction_tokens": 512,
+  "threads": 4,
+  "seed": 42,
+  "temperature": 0,
+  "batch": 512,
+  "ubatch": 128,
+  "parallel": 1,
+  "prompt_cache": false,
+  "context_shift": false,
+  "sample_interval_ms": 100,
+  "request_timeout_s": 180,
+  "pipeline_timeout_s": 900,
+  "rounds": 3,
+  "cold_filesystem_cache": false,
+  "format_contract": "compact-v2-overview24w180c-point10w96c-extraction14w140c"
+}

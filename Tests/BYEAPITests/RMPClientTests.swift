@@ -131,6 +131,13 @@ final class RMPClientTests: XCTestCase {
         catch { XCTAssertEqual(error as? RMPAPIError, .malformedResponse) }
         XCTAssertEqual(server.requests.count, 1)
     }
+    func testAuditCanDisableAutomaticRetries() async throws {
+        let server = APIServer { _, _ in Reply(status: 503) }
+        APIProtocol.server = server
+        let client = RMPClient(transport:RMPTransport(protocolClasses:[APIProtocol.self],spacing:0,retryDelay:0,maximumAttempts:1))
+        do { _ = try await client.profile(id:"42"); XCTFail("Expected failure") } catch { }
+        XCTAssertEqual(server.requests.count,1)
+    }
     func testTransientHTTPFailuresRetryAtMostThreeTimes() async throws {
         let server = APIServer { _, attempt in Reply(data: Data("{}".utf8), status: attempt < 2 ? 503 : 200) }
         _ = try await transport(server).send(Data("{}".utf8))

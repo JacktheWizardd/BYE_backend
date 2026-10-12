@@ -139,6 +139,9 @@ actor AppleSummaryProvider: SummaryProvider {
         guard cost + 128 + 256 <= model.contextSize else { return nil }
         let response = try await session.respond(to: prompt, generating: AppleSharedTheme.self,
             options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 128))
+        #if BYE_AUDIT
+        AuditTrace.log?.event("apple_raw_theme", ["sentiment":sentiment,"theme":response.content.theme as Any? ?? NSNull(),"review_numbers":pair.reviewNumbers])
+        #endif
         guard let text = response.content.theme,
               let proposed = SummaryEvidence.compactPoint(text, numbers: pair.reviewNumbers, reviews: selected),
               let point = SummaryEvidence.corroboratedPoint(proposed, reviews: selected, concern: sentiment == "unfavorable") else { return nil }
@@ -150,6 +153,9 @@ actor AppleSummaryProvider: SummaryProvider {
         let checker = LanguageModelSession(model: model, instructions: Self.supportInstructions)
         let check = try await checker.respond(to: checkingPrompt, generating: AppleSupportCheck.self,
             options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 32))
+        #if BYE_AUDIT
+        AuditTrace.log?.event("apple_raw_support", ["sentiment":sentiment,"theme":point.text,"supported":check.content.supported])
+        #endif
         return check.content.supported ? point : nil
     }
 
@@ -182,6 +188,9 @@ actor AppleSummaryProvider: SummaryProvider {
             do {
                 let response = try await session.respond(to: Self.prompt(selected, course: course), generating: ApplePairs.self,
                     options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 128))
+                #if BYE_AUDIT
+                AuditTrace.log?.event("apple_raw_pairs", ["positive":response.content.positive?.reviewNumbers as Any? ?? NSNull(),"concern":response.content.concern?.reviewNumbers as Any? ?? NSNull(),"evidence_ids":selected.map(\.id)])
+                #endif
                 struct Output: Encodable { let positives: [SummaryPoint]; let concerns: [SummaryPoint] }
                 let positive = try await sharedPoint(response.content.positive, sentiment: "favorable", selected: selected, course: course)
                 let concern = try await sharedPoint(response.content.concern, sentiment: "unfavorable", selected: selected, course: course)

@@ -1,0 +1,8 @@
+{
+  "python_syntax": "passed",
+  "shell_syntax": "passed",
+  "native_host_compile": "passed",
+  "memory_sampler_compile": "passed",
+  "download_hashes": "all matched",
+  "runtime_archive_hash": "matched publisher digest"
+}

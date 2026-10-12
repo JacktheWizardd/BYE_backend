@@ -27,6 +27,10 @@ final class AppModel: ObservableObject {
     @Published var courseReviewIssues: [String: String] = [:]
     @Published var suggestionLoading = false
     @Published private var suggestionCatalog: [CourseSuggestion] = []
+    #if BYE_AUDIT
+    var auditPreviewLimit: Int? = nil
+    var auditSummariesEnabled = true
+    #endif
     private let pcc: PCCClient
     private let summaryProvider: any SummaryProvider
     private var summaryCacheProvider: String? { summaryProvider is OllamaClient ? nil : summaryProvider.cacheIdentity }
@@ -264,7 +268,11 @@ final class AppModel: ObservableObject {
         do { parsed = try Course(input) } catch { self.error = error.localizedDescription; return }
         cancel()
         runID = UUID(); let run = runID
+        #if BYE_AUDIT
+        if auditSummariesEnabled { prewarmTask = Task { [summaryProvider] in await summaryProvider.prewarm() } }
+        #else
         prewarmTask = Task { [summaryProvider] in await summaryProvider.prewarm() }
+        #endif
         course = parsed; searchedTerm = term; error = nil; busy = true; progress = "Finding classes at PCC…"
         professors = []; selectedID = nil; showAll = false; showingResults = false; attemptedDetails = []; attemptedSummaries = []; courseReviewIssues = [:]
         searchTask = Task { [weak self] in
@@ -295,7 +303,13 @@ final class AppModel: ObservableObject {
                     } else { missing.append(index) }
                 }
                 // Queue all jobs before dispatch, so optional detail work stays gated.
+                #if BYE_AUDIT
+                let selectedMissing = auditPreviewLimit.map { limit in missing.filter { $0 < limit } } ?? missing
+                pendingPreviews = selectedMissing.map { PreviewJob(id: self.professors[$0].id, generation: self.professors[$0].generation, action: .lookup) }
+                AppAudit.log?.event("course_results", ["course":parsed.display,"professors":found.count,"selected_lookups":selectedMissing.count])
+                #else
                 pendingPreviews = missing.map { PreviewJob(id: self.professors[$0].id, generation: self.professors[$0].generation, action: .lookup) }
+                #endif
                 pumpPreviews()
             } catch is CancellationError { }
             catch { if runID == run { self.error = error.localizedDescription } }
@@ -307,6 +321,9 @@ final class AppModel: ObservableObject {
     }
     private func saveReport(index: Int, course: Course) {
         guard let profile = professors[index].profile else { return }
+        #if BYE_AUDIT
+        AppAudit.log?.event("profile_saved", ["profile":profile.id,"course":course.display,"decoded_reviews":profile.reviews.count,"complete":professors[index].reviewsComplete])
+        #endif
         cache.save(CachedReport(profile: profile, summary: professors[index].summary,
                                 checkedAt: professors[index].checkedAt ?? Date(),
                                 reviewsComplete: professors[index].reviewsComplete),
@@ -413,6 +430,9 @@ final class AppModel: ObservableObject {
         if selectedID == id { queueSummary(id: id) }
     }
     private func queueSummary(id: String) {
+        #if BYE_AUDIT
+        guard auditSummariesEnabled else { return }
+        #endif
         guard !busy, !attemptedSummaries.contains(id), summaryLoadingID != id,
               let professor = professors.first(where: { $0.id == id }),
               professor.profile != nil, professor.summary == nil else { return }

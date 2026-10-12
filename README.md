@@ -206,6 +206,43 @@ When reporting a bug, please include:
 
 Please remove unrelated personal information from screenshots.
 
+## Testing and experiment records
+
+BYE keeps records of trials, measurements, failed approaches, and the decisions
+that follow. These records explain what was tested, what worked, what failed,
+and what remains unverified. Experimental results are kept separate from claims
+about published releases.
+
+### Local summarization trials — October 11–12, 2026
+
+The first screening tested LFM2.5-1.2B-Instruct, Qwen3.5-0.8B, and
+SmolLM2-360M-Instruct. A later comparison tested nine candidates across twelve
+GGUF variants, completing 4,401 development pipelines before testing was stopped.
+These counts include failed attempts and repeated runs.
+
+**Outcome:** no tested configuration earned a release recommendation. Observed
+problems included unsupported claims, incorrect citation support, lost
+disagreements, and incomplete summaries. The remaining tests were cancelled;
+unfinished work is explicitly marked as untested. Existing releases were unchanged.
+
+| Record | What you can inspect |
+| --- | --- |
+| [Experiment overview](docs/experiments/2026-10-11-local-summarization/README.md) | Goals, model lists, protocol, process, findings, and lessons learned |
+| [Results and comparisons](docs/experiments/2026-10-11-local-summarization/RESULTS.md) | Timing, memory, prototype bundle sizes, quality findings, and limitations |
+| [Recorded data and examples](docs/experiments/2026-10-11-local-summarization/data/README.md) | CSV/JSON measurements, model identities, and fictional input/output examples |
+| [Validation record](docs/experiments/2026-10-11-local-summarization/VALIDATION.md) | Checks performed, passing tests, build results, and unverified behavior |
+| [App performance audit](docs/verification/bye-app-audit-2026-10-11.md) | Bounded collection, app responsiveness, resource observations, and audit failures |
+| [CPU measurement correction](docs/verification/bye-cpu-accounting-erratum-2026-10-11.md) | A discovered accounting error, its impact, and the correction |
+
+One lesson was to introduce an earlier quality stop/go decision before spending
+hours on performance repetitions. Future options include extractive summaries,
+templates, small classifiers, and fine-tuning; none has been selected or validated
+as the replacement.
+
+Public records include numeric results and clearly labeled fictional examples.
+Raw student reviews, user caches, model weights, and full machine-specific logs
+remain in local storage and are excluded from Git.
+
 ## Development transparency
 
 BYE is built with the assistance of AI coding tools while I continue learning software development.

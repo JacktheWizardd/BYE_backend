@@ -25,7 +25,12 @@ fi
 if [ "${1:-}" = "test" ] && [ -x /Applications/Xcode.app/Contents/Developer/usr/bin/xctest ]; then
     "$SWIFT_BIN" "$@" --build-system native --disable-sandbox --cache-path "$PWD/.build/cache" --config-path "$PWD/.build/config" --security-path "$PWD/.build/security"
     for bundle in .build/*/debug/ClasswisePackageTests.xctest; do
-        if [ -d "$bundle" ]; then exec /Applications/Xcode.app/Contents/Developer/usr/bin/xctest "$bundle"; fi
+        if [ -d "$bundle" ]; then
+            if [ -n "${CLASSWISE_TEST_FILTER:-}" ]; then
+                exec /Applications/Xcode.app/Contents/Developer/usr/bin/xctest -XCTest "$CLASSWISE_TEST_FILTER" "$bundle"
+            fi
+            exec /Applications/Xcode.app/Contents/Developer/usr/bin/xctest "$bundle"
+        fi
     done
     printf 'No compiled XCTest bundle found.\n' >&2
     exit 1

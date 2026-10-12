@@ -6,8 +6,21 @@ struct ClasswiseApp: App {
     @NSApplicationDelegateAdaptor(BYEApplicationDelegate.self) private var applicationDelegate
     @StateObject private var model: AppModel
     init() {
+        #if BYE_MODEL_EVAL
+        let initial = ModelEvaluation.makeModel()
+        #elseif BYE_AUDIT
+        // A UI tool may relaunch a closed app without arguments. Fail before constructing network clients.
+        guard let index = CommandLine.arguments.firstIndex(of: "--audit-session"),
+              CommandLine.arguments.count > index + 1,
+              !CommandLine.arguments[index + 1].hasPrefix("--") else {
+            FileHandle.standardError.write(Data("Measurement build requires --audit-session; refusing unmetered startup.\n".utf8))
+            exit(64)
+        }
+        let initial = AppAudit.makeModel(directory: URL(fileURLWithPath: CommandLine.arguments[index + 1]))
+        #else
         var initial = AppModel()
-        #if DEBUG
+        #endif
+        #if DEBUG && !BYE_AUDIT
         // Explicit acceptance mode keeps visual checks out of user preferences
         // while retaining the real Apple summary provider.
         if let index = CommandLine.arguments.firstIndex(of: "--verification-storage"), CommandLine.arguments.count > index + 1 {
@@ -50,7 +63,15 @@ struct ClasswiseApp: App {
                 .background(MainWindowRegistration(owner: applicationDelegate))
                 .frame(minWidth: 1000, minHeight: 700)
                 .preferredColorScheme(.light)
-                .onAppear { NSApplication.shared.activate(ignoringOtherApps: true) }
+                .onAppear {
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+                    #if BYE_AUDIT
+                    AppAudit.windowAppeared(model: model)
+                    #endif
+                    #if BYE_MODEL_EVAL
+                    ModelEvaluation.windowAppeared(model: model)
+                    #endif
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1180, height: 800)

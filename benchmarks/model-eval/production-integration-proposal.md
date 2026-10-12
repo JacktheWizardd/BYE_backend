@@ -1,0 +1,19 @@
+# Production integration proposal — conditional on quality gates
+
+No production model is selected by this document. Keep current releases intact. The measurement adapter is compiled only with `BYE_MODEL_EVAL` and is not a production provider.
+
+Implement the existing `SummaryProvider` interface with an actor that owns one bundled runtime session. Resolve weights, executable/libraries, Metal resources and notices exclusively inside the signed application bundle. Reject missing, corrupt or unsupported resources with a readable local error; never fall back to a download or external installation. Verify the pinned model identity during packaging and validate installed resources before inference.
+
+Serialize work through one cancellation-aware queue. Replacing a professor request cancels its queued or running operation, closes the runtime request, waits for the slot to become idle and discards stale UI results using the request generation identity. Cancellation must cover template processing, tokenization, prompt evaluation, generation and reduction. Terminate and restart only the app-owned helper after a failed cancellation or helper crash. A localhost connection is a measurement mechanism; a production helper should use a private authenticated channel or XPC with explicit lifecycle ownership.
+
+Apply exact-course and duplicate policy before token budgeting. Reserve the full generation allowance and all prompt/template overhead. Partition oversized evidence at whole-review boundaries and preserve original source IDs throughout extraction and reduction. Explicitly report coverage limits and source dates. Isolated observations cannot become recurring themes; ambiguous course labels cannot be treated as equivalent. Review instructions are untrusted evidence. Preserve disagreements rather than manufacturing consensus.
+
+The current display validator checks source-ID membership and distinct IDs but cannot establish semantic support or source independence. It also rebuilds the overview from the first pro/con. Before production adoption, address demonstrated citation-support, duplicate-content, disagreement and overview-loss failures. A successful JSON parse is insufficient. Formatting or validation must not hide unsafe raw answers in evaluation records.
+
+Include model SHA-256, runtime build, template, prompt version, pipeline, context, generation budget and evidence-policy version in provider cache identity. Add a hash of exact course-specific evidence and source coverage to each result key. Store only validated results in isolated, versioned cache entries. Cancellation and failure do not create successful cached summaries.
+
+Load lazily, use bounded contexts, and unload the owned runtime after 30 seconds idle with no queued requests. Respond to memory pressure by canceling queued work and releasing the helper when safe. Perform template/tokenization/inference and disk work off the main actor; publish state changes on the main actor. Measure the production implementation again because transport, validation, UI and lifecycle costs differ from command-line inference.
+
+Measure the complete signed installed `.app`, including native payload, one model, runtime, Metal dependencies and notices. Logical bytes must remain strictly below **1,500,000,000**. Report distribution size, allocated filesystem blocks and runtime footprint separately. Preserve applicable Apache notices and custom Llama/Gemma/LFM terms from pinned preparation records; license clearance remains a separate release decision.
+
+Validate empty-cache first launch offline without external runtime paths, corrupt/missing weights, oversized evidence, rapid replacement, helper failure and cancellation during prompt processing and generation. Repeat native responsiveness and energy measurements on the intended release build. This small held-out pilot supports candidate screening; it cannot establish production reliability.

@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "client_date": "2026-10-11",
+  "installed_app_limit_exclusive_bytes": 1500000000,
+  "total_weight_bytes": 11949057632,
+  "models": [
+    {
+      "id": "qwen35-2b",
+      "name": "Qwen3.5-2B",
+      "repository": "unsloth/Qwen3.5-2B-GGUF",
+      "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+      "upstream": "Qwen/Qwen3.5-2B",
+      "upstream_metadata_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Apache-2.0",
+      "redistribution_obligations": "Include license, preserve attribution and applicable NOTICE, and mark modifications where required.",
+      "files": [
+        {
+          "filename": "Qwen3.5-2B-Q4_K_M.gguf",
+          "bytes": 1280835840,
+          "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223"
+        }
+      ]
+    },
+    {
+      "id": "qwen3-17b",
+      "name": "Qwen3-1.7B",
+      "repository": "bartowski/Qwen_Qwen3-1.7B-GGUF",
+      "revision": "dcb19155b962dbb6389f4691a982043a8e651022",
+      "upstream": "Qwen/Qwen3-1.7B",
+      "upstream_metadata_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Apache-2.0",
+      "redistribution_obligations": "Include license, preserve attribution and applicable NOTICE, and mark modifications where required.",
+      "files": [
+        {
+          "filename": "Qwen_Qwen3-1.7B-Q4_K_M.gguf",
+          "bytes": 1282439584,
+          "sha256": "72c5c3cb38fa32d5256e2fe30d03e7a64c6c79e668ad84057e3bd66e250b24fb"
+        }
+      ]
+    },
+    {
+      "id": "qwen25-15b",
+      "name": "Qwen2.5-1.5B-Instruct",
+      "repository": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+      "revision": "91cad51170dc346986eccefdc2dd33a9da36ead9",
+      "upstream": "Qwen/Qwen2.5-1.5B-Instruct",
+      "upstream_metadata_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Apache-2.0",
+      "redistribution_obligations": "Include license, preserve attribution and applicable NOTICE, and mark modifications where required.",
+      "files": [
+        {
+          "filename": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+          "bytes": 1117320736,
+          "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"
+        },
+        {
+          "filename": "qwen2.5-1.5b-instruct-q5_k_m.gguf",
+          "bytes": 1285494304,
+          "sha256": "b46661073c18e5b56a41fa320975f866a00def1ff08feef4718e013258896f8c"
+        }
+      ]
+    },
+    {
+      "id": "granite4-1b",
+      "name": "Granite 4.0 1B",
+      "repository": "ibm-granite/granite-4.0-1b-GGUF",
+      "revision": "b27c2fe3f211b7f44e80fa620177aea371099aaa",
+      "upstream": "ibm-granite/granite-4.0-1b",
+      "upstream_metadata_revision": "6a7381ba1f54d684ff508d991aeb7dc580157103",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Apache-2.0",
+      "redistribution_obligations": "Include license, preserve attribution and applicable NOTICE, and mark modifications where required.",
+      "files": [
+        {
+          "filename": "granite-4.0-1b-Q4_K_M.gguf",
+          "bytes": 1023645440,
+          "sha256": "22ec0f9cc99a90185312de3c882c84e7bd6789bdd050389844380a01a831d7f1"
+        },
+        {
+          "filename": "granite-4.0-1b-Q5_K_M.gguf",
+          "bytes": 1178310400,
+          "sha256": "3d977db90ec00a2152cc3cdb788f7273c6258f49394a914046cc90c266831598"
+        }
+      ]
+    },
+    {
+      "id": "granite4-350m",
+      "name": "Granite 4.0 350M",
+      "repository": "ibm-granite/granite-4.0-350m-GGUF",
+      "revision": "b8208a86a58427e1739265318028eb5895b74bf2",
+      "upstream": "ibm-granite/granite-4.0-350m",
+      "upstream_metadata_revision": "bd8a1497065c0d6ba1ef19af6b0d2b14bacf71c2",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Apache-2.0",
+      "redistribution_obligations": "Include license, preserve attribution and applicable NOTICE, and mark modifications where required.",
+      "files": [
+        {
+          "filename": "granite-4.0-350m-Q8_0.gguf",
+          "bytes": 378138016,
+          "sha256": "9595dafb4ed15aa02512c8ea26188744192a6f09530eae0a2747bd3ada96cd36"
+        }
+      ]
+    },
+    {
+      "id": "llama32-1b",
+      "name": "Llama 3.2 1B Instruct",
+      "repository": "bartowski/Llama-3.2-1B-Instruct-GGUF",
+      "revision": "067b946cf014b7c697f3654f621d577a3e3afd1c",
+      "upstream": "meta-llama/Llama-3.2-1B-Instruct",
+      "upstream_metadata_revision": "9213176726f574b556790deb65791e0c5aa438b6",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Llama-3.2-Community",
+      "redistribution_obligations": "Include license and NOTICE attribution, prominently display Built with Llama, obey acceptable-use policy; additional licensing applies above the license-defined 700M MAU threshold.",
+      "files": [
+        {
+          "filename": "Llama-3.2-1B-Instruct-Q4_K_M.gguf",
+          "bytes": 807694464,
+          "sha256": "6f85a640a97cf2bf5b8e764087b1e83da0fdb51d7c9fab7d0fece9385611df83"
+        },
+        {
+          "filename": "Llama-3.2-1B-Instruct-Q8_0.gguf",
+          "bytes": 1321083008,
+          "sha256": "432f310a77f4650a88d0fd59ecdd7cebed8d684bafea53cbff0473542964f0c3"
+        }
+      ]
+    },
+    {
+      "id": "gemma3-270m-qat",
+      "name": "Gemma 3 270M IT QAT",
+      "repository": "ggml-org/gemma-3-270m-it-qat-GGUF",
+      "revision": "7dba9faa7cdb58c7dc44b238c7dbb00e391fbf65",
+      "upstream": "google/gemma-3-270m-it-qat-q4_0-unquantized",
+      "upstream_metadata_revision": "8f726c6a497fd439f0d6f726e52f8e3b439a26e5",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Gemma-Terms",
+      "redistribution_obligations": "Include agreement and required Notice, preserve modification notices, and pass through enforceable use restrictions and prohibited-use policy.",
+      "files": [
+        {
+          "filename": "gemma-3-270m-it-qat-Q4_0.gguf",
+          "bytes": 241410624,
+          "sha256": "3626e245220ca4a1c5911eb4010b3ecb7bdbf5bc53c79403c21355354d1e2dc6"
+        }
+      ]
+    },
+    {
+      "id": "danube2-18b",
+      "name": "H2O Danube2 1.8B Chat",
+      "repository": "h2oai/h2o-danube2-1.8b-chat-GGUF",
+      "revision": "8683c1aff099497d64785336532113f61ddf161d",
+      "upstream": "h2oai/h2o-danube2-1.8b-chat",
+      "upstream_metadata_revision": "6d8114cb4160755a092babed10a7d383cc10b1db",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "Apache-2.0",
+      "redistribution_obligations": "Include license, preserve attribution and applicable NOTICE, and mark modifications where required.",
+      "files": [
+        {
+          "filename": "h2o-danube2-1.8b-chat-Q5_K_M.gguf",
+          "bytes": 1301789856,
+          "sha256": "2b2c4614e6d17e3cb3906af15b63ebccdee0d81c0b12f98147a686420f41624e"
+        }
+      ]
+    },
+    {
+      "id": "lfm25-thinking",
+      "name": "LFM2.5-1.2B Thinking",
+      "repository": "LiquidAI/LFM2.5-1.2B-Thinking-GGUF",
+      "revision": "9584426effbfa44b677e925793a12188a36b44ce",
+      "upstream": "LiquidAI/LFM2.5-1.2B-Thinking",
+      "upstream_metadata_revision": "f313478934a7612d22991f752959d7a1a8756fec",
+      "conversion_source_revision": null,
+      "conversion_source_revision_status": "Not independently verified; metadata revision is not proof of conversion source.",
+      "license": "LFM-Open-License-1.0",
+      "redistribution_obligations": "Include license and applicable notices; commercial eligibility depends on $10M annual-revenue conditions. Definition and exceeding language differ at the boundary; release eligibility remains unconfirmed.",
+      "files": [
+        {
+          "filename": "LFM2.5-1.2B-Thinking-Q4_K_M.gguf",
+          "bytes": 730895360,
+          "sha256": "7223a2202405b02e8e1e6c5baa543c43dc98c1d9741a5c2a0ee1583212e1231b"
+        }
+      ]
+    }
+  ]
+}
