@@ -26,7 +26,7 @@ Since the current public release is a prerelease, you can also access it directl
 
 No programming experience is required to use the packaged application.
 
-Currently there is no plan for windows development, but you can access it here:
+Currently there is no plan for windows development but you can access it here:
 [BYE V0.3.0-beta.3](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases#release-v0.3.0-beta.3)
 
 ## Features
