@@ -14,17 +14,20 @@ Currently designed for **Pasadena City College (PCC)**, BYE is available in beta
 
 ## Download
 
-**Latest public beta: v0.3.0-beta.3**
+**Latest public beta: v0.3.0-beta.4**
 
 Download BYE from the official GitHub Releases page:
 
-**[Download BYE for macOS or Windows](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/latest)**
+**[Download BYE for macOS](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/latest)**
 
 Since the current public release is a prerelease, you can also access it directly:
 
-[BYE v0.3.0-beta.3](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.3)
+[BYE v0.3.0-beta.4](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.4)
 
 No programming experience is required to use the packaged application.
+
+Currently there is no plan for windows development, but you can access it here:
+[BYE V0.3.0-beta.3](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases#release-v0.3.0-beta.3)
 
 ## Features
 
