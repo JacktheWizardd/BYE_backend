@@ -138,6 +138,44 @@ final class CoreTests: XCTestCase {
         var b = Professor(id: "b", name: "B", sections: []); b.state = .unavailable
         XCTAssertEqual(Ordering.professors([b, a], by: .rating, course: course).first?.id, "a")
     }
+
+    func testAllSixReviewOrdersUseIndividualScoresAndDeterministicTies() {
+        let a = review("a", date: "2026-01-01", rating: 2, difficulty: 4)
+        let b = review("b", date: "2026-06-01", rating: 5, difficulty: 1)
+        let c = review("c", date: "2026-06-01", rating: 5, difficulty: 1)
+        let missing = review("missing", date: "", rating: nil, difficulty: nil)
+        let values = [missing, c, a, b]
+        XCTAssertEqual(ReviewSort.allCases.count, 6)
+        for order in [ReviewSort.recent, .highest, .difficulty] {
+            XCTAssertEqual(Ordering.reviews(values, by: order).map(\.id), ["b", "c", "a", "missing"])
+        }
+        for order in [ReviewSort.oldest, .lowest, .highestDifficulty] {
+            XCTAssertEqual(Ordering.reviews(values, by: order).map(\.id), ["a", "b", "c", "missing"])
+        }
+        for order in ReviewSort.allCases {
+            XCTAssertEqual(Ordering.reviews(values, by: order), Ordering.reviews(values.reversed(), by: order))
+        }
+    }
+
+    func testReviewDatesAreChronologicalAcrossSourceFormatsAndInvalidDatesLast() {
+        let values = [review("bad", date: "not a date"), review("empty", date: ""),
+                      review("offset", date: "2026-01-01T01:00:00+02:00"),
+                      review("day", date: "2026-01-01"),
+                      review("utc", date: "2026-01-01 00:30:00 +0000 UTC"),
+                      review("fraction", date: "2026-01-01T00:30:00.500Z")]
+        XCTAssertEqual(Ordering.reviews(values, by: .recent).map(\.id), ["fraction", "utc", "day", "offset", "bad", "empty"])
+        XCTAssertEqual(Ordering.reviews(values, by: .oldest).map(\.id), ["offset", "day", "utc", "fraction", "bad", "empty"])
+    }
+
+    func testEveryReviewSortStaysWithinActiveCourseFilter() throws {
+        let profile = RMPProfile(id: "p", firstName: "Test", lastName: "Instructor", school: "PCC", schoolID: 2649,
+                                 department: "Math", rating: 5, difficulty: 5, ratingCount: 3, wouldTakeAgain: nil,
+                                 reviews: [review("a", course: "MATH5A", rating: 1), review("b", course: "MATH 005A", rating: 2), review("other", course: "MATH5B", rating: 5)])
+        for order in ReviewSort.allCases {
+            let sorted = Ordering.reviews(ReviewFilter.thisCourse.reviews(in: profile, course: try Course("MATH005A")), by: order)
+            XCTAssertEqual(Set(sorted.map(\.id)), ["a", "b"])
+        }
+    }
     func testCacheExpiryAndIdentityValidation() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

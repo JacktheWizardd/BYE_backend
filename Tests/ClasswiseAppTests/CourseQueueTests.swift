@@ -73,6 +73,51 @@ final class CourseQueueTests: XCTestCase {
         try await wait { model.loadingDetailsID == nil }
         XCTAssertNil(model.courseReviewIssues["p|MATH005B"])
     }
+
+    func testThisCourseActionQueuesEquivalentSourceLabelsAndCompletesTogether() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let (model, hub) = try fixture(directory); defer { model.cancel() }
+        model.professors[0].profile?.courseCounts = ["MATH 5A", "math05a", "MATH5A5B"].map { ReviewCourseCount(label: $0, count: 1) }
+        model.findMoreReviews(id: "p", filter: .thisCourse)
+        try await wait { hub.continuation != nil }
+        XCTAssertEqual(hub.filters, ["MATH 5A"])
+        var first = model.professors[0].profile!
+        first.reviews = [Review(id: "one", course: "MATH 5A", text: "Fictional first review", date: "2026-01-01", rating: 4, difficulty: 2, online: nil)]
+        first.reviewCoverage = ["course|MATH 5A": ReviewCoverage(reviewIDs: ["one"], nextCursor: nil, hasNextPage: false)]
+        hub.callback?(first)
+        let firstRequest = hub.continuation!; hub.continuation = nil; firstRequest.resume(returning: first)
+        try await wait { hub.continuation != nil }
+        XCTAssertEqual(hub.filters, ["MATH 5A", "math05a"])
+        XCTAssertEqual(hub.inputs.last?.reviews.count, 1)
+        var full = first
+        full.reviewCoverage?["course|math05a"] = ReviewCoverage(reviewIDs: [], nextCursor: nil, hasNextPage: false)
+        model.selectedID = nil
+        let secondRequest = hub.continuation!; hub.continuation = nil; secondRequest.resume(returning: full)
+        try await wait { model.loadingDetailsID == nil }
+        XCTAssertTrue(ReviewFilter.thisCourse.finished(in: model.professors[0].profile!, course: model.course!))
+        model.findMoreReviews(id: "p", filter: .thisCourse)
+        await Task.yield()
+        XCTAssertEqual(hub.filters.count, 2)
+        XCTAssertNil(model.courseReviewIssues["p|MATH005A"])
+    }
+
+    func testProfileReplacementRejectsStalePartialAndFinalResults() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let (model, hub) = try fixture(directory); defer { model.cancel() }
+        model.findMoreReviews(id: "p", filter: .source("MATH005B"))
+        try await wait { hub.continuation != nil }
+        let stale = model.professors[0].profile!
+        let replacement = RMPProfile(id: "99", firstName: "Fictional", lastName: "Instructor", school: "Pasadena City College", schoolID: 2649, department: "Math", rating: 3, difficulty: 1, ratingCount: 0, wouldTakeAgain: nil, reviews: [])
+        model.professors[0].generation = UUID(); model.professors[0].profile = replacement
+        model.selectedID = nil
+        hub.callback?(stale)
+        XCTAssertEqual(model.professors[0].profile?.id, "99")
+        let request = hub.continuation!; hub.continuation = nil; request.resume(returning: stale)
+        try await wait { model.loadingDetailsID == nil }
+        XCTAssertEqual(model.professors[0].profile, replacement)
+    }
 }
 
 @MainActor
@@ -80,7 +125,7 @@ private final class CourseQueueHub {
     var filters: [String] = []
     var inputs: [RMPProfile] = []
     var continuation: CheckedContinuation<RMPProfile, Error>?
-    var callback: ((RMPProfile) -> Void)?
+    var callback: (@MainActor (RMPProfile) -> Void)?
 }
 @MainActor
 private final class CourseQueueReader: CourseProfileReader {
@@ -90,7 +135,7 @@ private final class CourseQueueReader: CourseProfileReader {
     func candidates(_ professor: Professor, discoverAll: Bool) async throws -> [RMPProfile] { [] }
     func preview(_ professor: Professor, profileID: String) async throws -> RMPProfile { throw URLError(.unsupportedURL) }
     func expand(_ professor: Professor, profile: RMPProfile, onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile { profile }
-    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?, onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
+    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?, limit: Int, onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
         hub.filters.append(courseFilter ?? "all"); hub.inputs.append(profile)
         // Preserve the real callback for partial-result publication tests.
         return try await withoutActuallyEscaping(onProfile) { callback in

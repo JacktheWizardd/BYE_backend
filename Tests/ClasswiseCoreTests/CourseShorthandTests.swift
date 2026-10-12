@@ -25,7 +25,7 @@ final class CourseShorthandTests: XCTestCase {
     func testPrefixesSuffixesAndSubjectsRemainDistinct() throws {
         let course = try Course("MATH005A")
         for code in ["MATH5A", "math 05a", "MATH0005A"] { XCTAssertTrue(course.matchesReview(code)) }
-        for code in ["MATH5", "MATH5B", "MATH15A", "HIST5A", "5A", "MATH C5A", "MATH5A junk"] { XCTAssertFalse(course.matchesReview(code)) }
+        for code in ["MATH5", "MATH5B", "MATH15A", "HIST5A", "5A", "MATH C5A", "MATH5A junk", "MATH5A5B"] { XCTAssertFalse(course.matchesReview(code)) }
         XCTAssertTrue(try Course("POLS C1000").matchesReview("POLSC1000"))
         XCTAssertFalse(try Course("POLS C1000").matchesReview("POLS1000"))
         XCTAssertTrue(try Course("MATH 000").matchesReview("MATH0"))
@@ -51,5 +51,23 @@ final class CourseShorthandTests: XCTestCase {
         let summary = try SummaryBuilder.validate(Data("{\"positives\":[],\"concerns\":[]}".utf8), reviews: Array(reviews.prefix(2)), course: course)
         XCTAssertEqual(summary.exactCourseCount, 2)
         XCTAssertEqual(ReviewFilter.thisCourse.requestLabel(course: course), "MATH005A")
+    }
+
+    func testSourceLabelsRetainOriginalSpellingsAndAggregateCoverage() throws {
+        let course = try Course("MATH005A")
+        var profile = RMPProfile(id: "p", firstName: "Test", lastName: "Instructor", school: "PCC", schoolID: 2649,
+                                 department: "Math", rating: nil, difficulty: nil, ratingCount: nil, wouldTakeAgain: nil, reviews: [],
+                                 courseCounts: ["math 5a", "MATH05A", "MATH5A5B", "MATH5B", "5A"].map { ReviewCourseCount(label: $0, count: nil) })
+        XCTAssertEqual(ReviewFilter.thisCourse.sourceLabels(in: profile, course: course), ["MATH05A", "math 5a"])
+        profile.reviewCoverage = ["course|MATH05A": ReviewCoverage(reviewIDs: ["one"], nextCursor: nil, hasNextPage: false)]
+        XCTAssertFalse(ReviewFilter.thisCourse.finished(in: profile, course: course))
+        profile.reviewCoverage?["course|math 5a"] = ReviewCoverage(reviewIDs: ["one", "two"], nextCursor: nil, hasNextPage: false)
+        XCTAssertEqual(ReviewFilter.thisCourse.retrievedIDs(in: profile, course: course), ["one", "two"])
+        XCTAssertTrue(ReviewFilter.thisCourse.finished(in: profile, course: course))
+        profile.courseCounts = nil
+        XCTAssertEqual(ReviewFilter.thisCourse.sourceLabels(in: profile, course: course), ["MATH05A", "math 5a"], "Saved pagination survives omitted metadata")
+        profile.reviewCoverage = nil
+        XCTAssertEqual(ReviewFilter.thisCourse.sourceLabels(in: profile, course: course), ["MATH005A"])
+        XCTAssertFalse(ReviewFilter.thisCourse.finished(in: profile, course: course))
     }
 }

@@ -62,6 +62,22 @@ private struct DynamicKey: CodingKey {
     init?(intValue: Int) { return nil }
 }
 
+public enum Weekday: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
+    case monday = "Monday", tuesday = "Tuesday", wednesday = "Wednesday", thursday = "Thursday"
+    case friday = "Friday", saturday = "Saturday", sunday = "Sunday"
+    public var id: String { rawValue }
+    public var shortLabel: String { String(rawValue.prefix(3)) }
+    var sourceField: String { shortLabel.lowercased() + "Day" }
+}
+
+public struct SectionSchedule: Codable, Hashable, Sendable {
+    public let days: Set<Weekday>
+    public let hasUnannouncedMeetings: Bool
+    public init(days: Set<Weekday>, hasUnannouncedMeetings: Bool) {
+        self.days = days; self.hasUnannouncedMeetings = hasUnannouncedMeetings
+    }
+}
+
 public struct Section: Codable, Identifiable, Hashable, Sendable {
     public var id: String { crn }
     public let crn: String
@@ -71,7 +87,16 @@ public struct Section: Codable, Identifiable, Hashable, Sendable {
     public let formats: [String]
     public let meetings: [String]
     public let status: String
+    public var schedule: SectionSchedule? = nil
     public var fullyOnline: Bool { !formats.isEmpty && formats.allSatisfy { $0 == "OD" } }
+    public var scheduleNotAnnounced: Bool {
+        !fullyOnline && (schedule == nil || schedule?.hasUnannouncedMeetings == true || schedule?.days.isEmpty == true)
+    }
+    public func fits(availableDays: Set<Weekday>) -> Bool {
+        if availableDays.isEmpty || fullyOnline { return true }
+        guard let schedule, !schedule.hasUnannouncedMeetings else { return false }
+        return !schedule.days.isEmpty && schedule.days.isSubset(of: availableDays)
+    }
     public var delivery: String {
         if fullyOnline { return "Online · no scheduled meetings" }
         if formats.contains("HY") { return "Hybrid · campus meetings required" }
@@ -114,6 +139,8 @@ public struct ReviewCourseCount: Codable, Hashable, Sendable {
 
 /// Coverage belongs to a source filter, never to an instructor name alone.
 public struct ReviewCoverage: Codable, Hashable, Sendable {
+    /// Most reviews retrieved per source filter, and per combined "this course" view.
+    public static let limit = 50
     public var reviewIDs: [String]
     public var nextCursor: String?
     public var hasNextPage: Bool
@@ -121,7 +148,7 @@ public struct ReviewCoverage: Codable, Hashable, Sendable {
     public init(reviewIDs: [String], nextCursor: String?, hasNextPage: Bool, updatedAt: Date = Date()) {
         self.reviewIDs = reviewIDs; self.nextCursor = nextCursor; self.hasNextPage = hasNextPage; self.updatedAt = updatedAt
     }
-    public var finished: Bool { !hasNextPage || reviewIDs.count >= 50 }
+    public var finished: Bool { !hasNextPage || reviewIDs.count >= ReviewCoverage.limit }
 }
 
 public enum ReviewFilter: Hashable, Sendable {
@@ -142,6 +169,34 @@ public enum ReviewFilter: Hashable, Sendable {
         switch self { case .thisCourse: return course.key; case .allCourses: return nil; case .source(let label): return label }
     }
     public static func coverageKey(_ label: String?) -> String { label.map { "course|" + $0 } ?? "all" }
+
+    /// Use source spellings for network requests, never guessed aliases.
+    public func sourceLabels(in profile: RMPProfile, course: Course) -> [String] {
+        switch self {
+        case .allCourses: return []
+        case .source(let label): return [label]
+        case .thisCourse:
+            let covered = (profile.reviewCoverage ?? [:]).keys.compactMap {
+                $0.hasPrefix("course|") ? String($0.dropFirst(7)) : nil
+            }
+            let labels = Set(((profile.courseCounts ?? []).map(\.label) + profile.reviews.map(\.course) + covered)
+                .filter { course.matchesReview($0) })
+            return labels.isEmpty ? [course.key] : labels.sorted()
+        }
+    }
+
+    public func retrievedIDs(in profile: RMPProfile, course: Course) -> Set<String> {
+        Set(sourceLabels(in: profile, course: course).flatMap {
+            profile.reviewCoverage?[Self.coverageKey($0)]?.reviewIDs ?? []
+        })
+    }
+
+    public func finished(in profile: RMPProfile, course: Course) -> Bool {
+        if self == .allCourses { return profile.reviewCoverage?["all"]?.finished == true }
+        return retrievedIDs(in: profile, course: course).count >= ReviewCoverage.limit || sourceLabels(in: profile, course: course).allSatisfy {
+            profile.reviewCoverage?[Self.coverageKey($0)]?.finished == true
+        }
+    }
 }
 
 public struct RMPProfile: Codable, Identifiable, Hashable, Sendable {
@@ -226,8 +281,31 @@ public enum ProfessorSort: String, CaseIterable, Identifiable {
     public var id: String { rawValue }
 }
 public enum ReviewSort: String, CaseIterable, Identifiable {
-    case recent = "Most recent", highest = "Highest rating", lowest = "Lowest rating", difficulty = "Lowest difficulty"
+    case recent = "Latest first", oldest = "Oldest first"
+    case highest = "Highest rating", lowest = "Lowest rating"
+    case highestDifficulty = "Highest difficulty", difficulty = "Lowest difficulty"
     public var id: String { rawValue }
+}
+
+/// Shared, configured once. Each formatter keeps fixed options, so concurrent reads are safe.
+private enum ReviewDate {
+    private static let isoFractional: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    private static let iso = ISO8601DateFormatter()
+    private static let fallbacks: [DateFormatter] = ["yyyy-MM-dd HH:mm:ss Z 'UTC'", "yyyy-MM-dd HH:mm:ss Z", "yyyy-MM-dd"].map { format in
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.isLenient = false
+        formatter.dateFormat = format
+        return formatter
+    }
+    static func parse(_ raw: String) -> Date? {
+        isoFractional.date(from: raw) ?? iso.date(from: raw) ?? fallbacks.lazy.compactMap { $0.date(from: raw) }.first
+    }
 }
 
 public enum Ordering {
@@ -248,16 +326,27 @@ public enum Ordering {
         }
     }
     public static func reviews(_ list: [Review], by order: ReviewSort) -> [Review] {
-        list.sorted { a, b in
-            let av: Double; let bv: Double
-            switch order {
-            case .recent: return a.date == b.date ? a.id < b.id : a.date > b.date
-            case .highest: av = a.rating ?? -1; bv = b.rating ?? -1
-            case .lowest: av = -(a.rating ?? 100); bv = -(b.rating ?? 100)
-            case .difficulty: av = -(a.difficulty ?? 100); bv = -(b.difficulty ?? 100)
+        // Parse once per review rather than inside the sorting comparator.
+        let dated = list.map { (review: $0, date: ReviewDate.parse($0.date)) }
+        return dated.sorted { a, b in
+            func compare<T: Comparable>(_ x: T?, _ y: T?, ascending: Bool) -> Bool? {
+                switch (x, y) {
+                case (nil, nil): return nil
+                case (nil, _): return false
+                case (_, nil): return true
+                case let (x?, y?): return x == y ? nil : (ascending ? x < y : x > y)
+                }
             }
-            return av == bv ? a.date > b.date : av > bv
-        }
+            let scoreOrder: Bool?
+            switch order {
+            case .recent, .oldest: scoreOrder = nil
+            case .highest, .lowest:
+                scoreOrder = compare(a.review.rating.flatMap { $0.isFinite ? $0 : nil }, b.review.rating.flatMap { $0.isFinite ? $0 : nil }, ascending: order == .lowest)
+            case .highestDifficulty, .difficulty:
+                scoreOrder = compare(a.review.difficulty.flatMap { $0.isFinite ? $0 : nil }, b.review.difficulty.flatMap { $0.isFinite ? $0 : nil }, ascending: order == .difficulty)
+            }
+            return scoreOrder ?? compare(a.date, b.date, ascending: order == .oldest) ?? (a.review.id < b.review.id)
+        }.map(\.review)
     }
 }
 
@@ -267,19 +356,27 @@ public enum ScheduleParser {
             (try? Course($0["subjCode"] + $0["courseNumbDisplay"]).matchingKey) == course.matchingKey &&
             !["R", "X"].contains($0["fwSectOpenInd"]) && !$0["crn"].isEmpty
         }
-        // Group by instructor as well as CRN to retain explicitly listed co-instructors.
+        let meetingsByCRN = Dictionary(grouping: matches, by: { $0["crn"] })
+        // Retain explicitly listed co-instructors, with every required meeting for their CRN.
         let instructors = Dictionary(grouping: matches) { row in
             let name = row["pfaName"].trimmingCharacters(in: .whitespacesAndNewlines)
             return name.isEmpty ? "Instructor to be announced" : name
         }
         return instructors.map { name, records in
-            let sections = Dictionary(grouping: records, by: { $0["crn"] }).map { crn, meetings in
+            let sections = Dictionary(grouping: records, by: { $0["crn"] }).map { crn, instructorMeetings in
+                let meetings = meetingsByCRN[crn] ?? instructorMeetings
                 let first = meetings[0]
                 let formats = Set(meetings.map { $0["schdCode"] }.filter { !$0.isEmpty }).sorted()
+                let scheduledMeetings = meetings.filter { $0["schdCode"] != "OD" }
+                let rowDays = scheduledMeetings.map { row in
+                    Set(Weekday.allCases.filter { !row[$0.sourceField].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+                }
+                let schedule = SectionSchedule(days: rowDays.reduce(into: Set<Weekday>()) { $0.formUnion($1) },
+                                               hasUnannouncedMeetings: rowDays.contains(where: \.isEmpty))
                 let descriptions = Set(meetings.compactMap { row -> String? in
                     if row["schdCode"] == "OD" { return nil }
-                    let weekdays = [("monDay", "Mon"), ("tueDay", "Tue"), ("wedDay", "Wed"), ("thuDay", "Thu"), ("friDay", "Fri"), ("satDay", "Sat"), ("sunDay", "Sun")]
-                    let days = weekdays.filter { !row[$0.0].isEmpty }.map { $0.1 }.joined(separator: ", ")
+                    let days = Weekday.allCases.filter { !row[$0.sourceField].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                        .map(\.shortLabel).joined(separator: ", ")
                     func clock(_ value: String) -> String {
                         guard value.count == 4, let hour = Int(value.prefix(2)), let minute = Int(value.suffix(2)), (0..<24).contains(hour), (0..<60).contains(minute) else { return value }
                         return "\(hour % 12 == 0 ? 12 : hour % 12):\(String(format: "%02d", minute)) \(hour < 12 ? "AM" : "PM")"
@@ -288,7 +385,7 @@ public enum ScheduleParser {
                     return [days, times, row["bldgDesc"], row["roomCode"]].filter { !$0.isEmpty }.joined(separator: " ")
                 }.filter { !$0.isEmpty }).sorted()
                 return Section(crn: crn, title: first["courseTitle"], start: first["ptrmStartDate"], end: first["ptrmEndDate"],
-                               formats: formats, meetings: descriptions, status: first["fwSectOpenInd"])
+                               formats: formats, meetings: descriptions, status: first["fwSectOpenInd"], schedule: schedule)
             }.sorted { $0.crn < $1.crn }
             var professor = Professor(id: name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current), name: name, sections: sections)
             professor.subjectCode = course.subject

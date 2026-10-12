@@ -20,13 +20,13 @@ final class APIReaderTests: XCTestCase {
     private nonisolated func search(_ nodes: [[String: Any]], next: String? = nil) -> [String: Any] {
         ["data": ["search": ["teachers": ["edges": nodes.map { ["node": $0] }, "pageInfo": ["hasNextPage": next != nil, "endCursor": next as Any? ?? NSNull()]]]]]
     }
-    private nonisolated func page(vars: [String: Any], node: [String: Any]? = nil, total: Int = 100) -> [String: Any] {
+    private nonisolated func page(vars: [String: Any], node: [String: Any]? = nil, total: Int = 100, idPrefix: String? = nil) -> [String: Any] {
         var profile = node ?? self.node()
         let offset = (vars["cursor"] as? String).flatMap(Int.init) ?? 0
         let count = min(vars["count"] as? Int ?? 3, max(0, total - offset))
         let filter = vars["courseFilter"] as? String
         profile["ratings"] = ["edges": (offset..<(offset + count)).map { index in
-            ["node": ["id": "\(filter ?? "all")-\(index)", "class": filter ?? "MATH005A", "comment": "Original \(index)", "date": "2026-01-01", "helpfulRating": 4, "difficultyRating": 2]]
+            ["node": ["id": "\(idPrefix ?? filter ?? "all")-\(index)", "class": filter ?? "MATH005A", "comment": "Original \(index)", "date": "2026-01-01", "helpfulRating": 4, "difficultyRating": 2]]
         }, "pageInfo": ["hasNextPage": offset + count < total, "endCursor": "\(offset + count)"]]
         return ["data": ["node": profile]]
     }
@@ -126,6 +126,142 @@ final class APIReaderTests: XCTestCase {
         do { _ = try await reader.expand(professor, profile: preview) { _ in XCTFail("No progress") }; XCTFail("Must fail") }
         catch { XCTAssertEqual(error as? RMPAPIError, .pagination) }
         XCTAssertEqual(preview.reviews.count, 3); XCTAssertEqual(ReaderAPIProtocol.calls.count, 2)
+    }
+
+    private func matchingPreview(_ reader: RMPAPIReader, labels: [String]) async throws -> RMPProfile {
+        var profile = try await reader.preview(professor, profileID: "42")
+        profile.reviews = []
+        profile.courseCounts = labels.map { ReviewCourseCount(label: $0, count: nil) }
+        return profile
+    }
+
+    func testMatchingRetrievalRequestsRawEquivalentLabelsAndSharesFiftyRatingLimit() async throws {
+        let labels = ["MATH 05A", "math5a", "MATH5A5B", "MATH15A", "5A"]
+        let reader = reader { vars, _ in
+            var node = self.node(); node["courseCodes"] = labels.map { ["courseName": $0, "courseCount": 40] }
+            return self.page(vars: vars, node: node, total: 40)
+        }
+        let profile = try await matchingPreview(reader, labels: labels)
+        let course = try Course("MATH005A")
+        let full = try await reader.expand(professor, profile: profile, matching: course) { _ in }
+        XCTAssertEqual(full.reviews.count, 50)
+        XCTAssertEqual(ReviewFilter.thisCourse.retrievedIDs(in: full, course: course).count, 50)
+        XCTAssertTrue(ReviewFilter.thisCourse.finished(in: full, course: course))
+        XCTAssertEqual(ReaderAPIProtocol.calls.dropFirst().compactMap { $0["courseFilter"] as? String }, ["MATH 05A", "MATH 05A", "math5a"])
+        XCTAssertEqual(ReaderAPIProtocol.calls.last?["count"] as? Int, 10)
+        XCTAssertEqual(full.reviewCoverage?["course|math5a"]?.hasNextPage, true, "Combined cap must not falsely exhaust source coverage")
+        let count = ReaderAPIProtocol.calls.count
+        _ = try await reader.expand(professor, profile: full, matching: course) { _ in XCTFail("Already capped") }
+        XCTAssertEqual(ReaderAPIProtocol.calls.count, count)
+    }
+
+    func testMatchingRetrievalDeduplicatesIDsAndPreservesOverallCoverage() async throws {
+        let reader = reader { vars, _ in
+            var node = self.node(); node["courseCodes"] = NSNull()
+            return self.page(vars: vars, node: node, total: vars["courseFilter"] as? String == "MATH 5A" ? 10 : 20, idPrefix: "shared")
+        }
+        let profile = try await matchingPreview(reader, labels: ["MATH 5A", "MATH05A"])
+        let course = try Course("MATH005A")
+        let full = try await reader.expand(professor, profile: profile, matching: course) { _ in }
+        XCTAssertEqual(full.reviews.count, 20)
+        XCTAssertEqual(ReviewFilter.thisCourse.retrievedIDs(in: full, course: course).count, 20)
+        XCTAssertTrue(ReviewFilter.thisCourse.finished(in: full, course: course))
+        XCTAssertEqual(full.reviewCoverage?["all"], profile.reviewCoverage?["all"])
+        XCTAssertEqual(Set(full.courseCounts?.map(\.label) ?? []), ["MATH 5A", "MATH05A"])
+        XCTAssertEqual(full.rating, profile.rating)
+    }
+
+    func testMatchingFailureRetrySkipsFinishedLabelAndResumesCursor() async throws {
+        var failing = true
+        let reader = reader { vars, _ in
+            if failing, vars["courseFilter"] as? String == "math5a", vars["cursor"] as? String == "20" { throw URLError(.timedOut) }
+            var node = self.node(); node["courseCodes"] = NSNull()
+            return self.page(vars: vars, node: node, total: vars["courseFilter"] as? String == "MATH 5A" ? 5 : 30)
+        }
+        let profile = try await matchingPreview(reader, labels: ["MATH 5A", "math5a"])
+        let course = try Course("MATH005A")
+        var partial = profile
+        do {
+            _ = try await reader.expand(professor, profile: profile, matching: course) { partial = $0 }
+            XCTFail("Expected failure")
+        } catch {
+            XCTAssertEqual(partial.reviews.count, 25)
+            XCTAssertEqual(partial.reviewCoverage?["course|math5a"]?.nextCursor, "20")
+            XCTAssertFalse(ReviewFilter.thisCourse.finished(in: partial, course: course))
+        }
+        failing = false
+        let before = ReaderAPIProtocol.calls.count
+        let full = try await reader.expand(professor, profile: partial, matching: course) { _ in }
+        XCTAssertEqual(full.reviews.count, 35)
+        XCTAssertEqual(ReaderAPIProtocol.calls.count, before + 1)
+        XCTAssertEqual(ReaderAPIProtocol.calls.last?["cursor"] as? String, "20")
+        XCTAssertTrue(ReviewFilter.thisCourse.finished(in: full, course: course))
+    }
+
+    func testMatchingRetrievalContinuesAfterCrossLabelDuplicatesLeaveBudget() async throws {
+        let reader = reader { vars, _ in
+            var node = self.node(); node["courseCodes"] = NSNull()
+            return self.page(vars: vars, node: node, total: vars["courseFilter"] as? String == "MATH 5A" ? 10 : 100, idPrefix: "shared")
+        }
+        let profile = try await matchingPreview(reader, labels: ["MATH 5A", "math5a"])
+        let course = try Course("MATH005A")
+        let full = try await reader.expand(professor, profile: profile, matching: course) { _ in }
+        XCTAssertEqual(full.reviews.count, 50)
+        XCTAssertEqual(ReviewFilter.thisCourse.retrievedIDs(in: full, course: course).count, 50)
+        XCTAssertEqual(ReaderAPIProtocol.calls.last?["cursor"] as? String, "40")
+        XCTAssertEqual(ReaderAPIProtocol.calls.last?["count"] as? Int, 10)
+    }
+
+    func testMatchingRetrievalFallbackAndEmptyCompletedLabels() async throws {
+        let reader = reader { vars, _ in
+            var node = self.node(); node["courseCodes"] = NSNull()
+            return self.page(vars: vars, node: node, total: 0)
+        }
+        let profile = try await matchingPreview(reader, labels: ["MATH5A5B"])
+        let course = try Course("MATH005A")
+        let full = try await reader.expand(professor, profile: profile, matching: course) { _ in }
+        XCTAssertEqual(ReaderAPIProtocol.calls.last?["courseFilter"] as? String, "MATH005A")
+        XCTAssertTrue(ReviewFilter.thisCourse.finished(in: full, course: course))
+    }
+
+    func testMatchingRetrievalStopsBeforeNextLabel() async throws {
+        let reader = reader { vars, _ in
+            var node = self.node(); node["courseCodes"] = NSNull()
+            return self.page(vars: vars, node: node, total: 2)
+        }
+        let profile = try await matchingPreview(reader, labels: ["MATH 5A", "math5a"])
+        var partial = profile
+        do {
+            _ = try await reader.expand(professor, profile: profile, matching: try Course("MATH005A")) { partial = $0; reader.stop() }
+            XCTFail("Expected cancellation")
+        } catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertEqual(partial.reviews.count, 2)
+        XCTAssertEqual(ReaderAPIProtocol.calls.count, 2)
+    }
+
+    func testMatchingRetrievalReverifiesEveryLabel() async throws {
+        let reader = reader { vars, _ in
+            var node = self.node(lastName: vars["courseFilter"] as? String == "math5a" ? "Wrong" : "Instructor")
+            node["courseCodes"] = NSNull()
+            return self.page(vars: vars, node: node, total: 2)
+        }
+        let profile = try await matchingPreview(reader, labels: ["MATH 5A", "math5a"])
+        var partial = profile
+        do {
+            _ = try await reader.expand(professor, profile: profile, matching: try Course("MATH005A")) { partial = $0 }
+            XCTFail("Expected identity failure")
+        } catch { XCTAssertTrue(error is ProfileIdentityMismatch) }
+        XCTAssertEqual(partial.reviews.count, 2)
+        XCTAssertTrue(partial.reviews.allSatisfy { $0.course == "MATH 5A" })
+    }
+    func testCourseCountMergeKeepsFirstSeenOrderAndLatestCount() {
+        let first = ["MATH005B", "MATH005A", "MATH 5A"].map { ReviewCourseCount(label: $0, count: 1) }
+        let page = [ReviewCourseCount(label: "MATH005A", count: 9), ReviewCourseCount(label: "MATH05A", count: 2)]
+        let merged = RMPAPIReader.mergeCourseCounts(first, page)
+        XCTAssertEqual(merged?.map(\.label), ["MATH005B", "MATH005A", "MATH 5A", "MATH05A"])
+        XCTAssertEqual(merged?.first { $0.label == "MATH005A" }?.count, 9)
+        XCTAssertEqual(RMPAPIReader.mergeCourseCounts(first, nil), first, "A page without metadata keeps known labels")
+        XCTAssertEqual(RMPAPIReader.mergeCourseCounts(nil, page), page)
     }
 }
 

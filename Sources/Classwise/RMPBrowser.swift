@@ -157,7 +157,7 @@ final class RMPBrowser: NSObject, WKNavigationDelegate, ProfileReader {
                     if clicked { break }
                     stableRenderedSamples = 0
                 } else {
-                    if profile.reviews.count >= 50 { return nil }
+                    if profile.reviews.count >= ReviewCoverage.limit { return nil }
                     if let total = profile.ratingCount, profile.reviews.count >= total { return nil }
                     if profile.ratingCount == nil, (state["rendered"] as? Int ?? 0) > 0,
                        state["ready"] as? Bool == true {
@@ -247,17 +247,17 @@ final class RMPBrowser: NSObject, WKNavigationDelegate, ProfileReader {
     func collectReviews(_ initial: RMPProfile,
                                 onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
         var profile = initial
-        profile.reviews = Array(profile.reviews.prefix(50))
+        profile.reviews = Array(profile.reviews.prefix(ReviewCoverage.limit))
         onProfile(profile)
         for _ in 0..<10 {
-            if profile.reviews.count >= 50 { break }
+            if profile.reviews.count >= ReviewCoverage.limit { break }
             let before = profile.reviews.count
             guard let profiles = try await clickMore(before: before, profileID: profile.id) else { break }
             guard let next = profiles.first(where: { $0.id == profile.id }) else {
                 throw AppError.message("The professor’s review page could not be verified.")
             }
             profile = next
-            profile.reviews = Array(profile.reviews.prefix(50))
+            profile.reviews = Array(profile.reviews.prefix(ReviewCoverage.limit))
             onProfile(profile)
             if profile.reviews.count <= before { break }
         }

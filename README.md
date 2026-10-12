@@ -230,6 +230,7 @@ unfinished work is explicitly marked as untested. Existing releases were unchang
 | [Experiment overview](docs/experiments/2026-10-11-local-summarization/README.md) | Goals, model lists, protocol, process, findings, and lessons learned |
 | [Results and comparisons](docs/experiments/2026-10-11-local-summarization/RESULTS.md) | Timing, memory, prototype bundle sizes, quality findings, and limitations |
 | [Recorded data and examples](docs/experiments/2026-10-11-local-summarization/data/README.md) | CSV/JSON measurements, model identities, and fictional input/output examples |
+| [Reusable test dataset](benchmarks/datasets/bye-summary-2026-10-11/README.md) | Fixture locations, frozen local corpus, expected facts, and instructions for future testing |
 | [Validation record](docs/experiments/2026-10-11-local-summarization/VALIDATION.md) | Checks performed, passing tests, build results, and unverified behavior |
 | [App performance audit](docs/verification/bye-app-audit-2026-10-11.md) | Bounded collection, app responsiveness, resource observations, and audit failures |
 | [CPU measurement correction](docs/verification/bye-cpu-accounting-erratum-2026-10-11.md) | A discovered accounting error, its impact, and the correction |

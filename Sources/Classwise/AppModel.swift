@@ -17,7 +17,12 @@ final class AppModel: ObservableObject {
     @Published var progress = ""
     @Published var selectedID: String?
     @Published var sort: ProfessorSort = .rating
-    @Published var onlineOnly = false
+    @Published var onlineOnly = false {
+        didSet { if showingResults { reconcileSelection() } }
+    }
+    @Published var availableDays: Set<Weekday> = [] {
+        didSet { if showingResults { reconcileSelection() } }
+    }
     @Published var showAll = false
     @Published var retryingIDs: Set<String> = []
     @Published var loadingDetailsID: String?
@@ -59,7 +64,7 @@ final class AppModel: ObservableObject {
     private var suggestionTermID = ""
     private var detailReader: (any ProfileReader)?
     private var pendingDetailID: String?
-    private var pendingDetailFilter: String?
+    private var pendingDetailFilter: ReviewFilter?
     private var pendingSummaryID: String?
     private var attemptedSummaries: Set<String> = []
     private var attemptedDetails: Set<String> = []
@@ -221,7 +226,9 @@ final class AppModel: ObservableObject {
         guard let course else { return [] }
         let list = professors.compactMap { professor -> Professor? in
             var result = professor
-            if onlineOnly { result.sections = professor.sections.filter(\.fullyOnline) }
+            result.sections = professor.sections.filter {
+                (!onlineOnly || $0.fullyOnline) && $0.fits(availableDays: availableDays)
+            }
             return result.sections.isEmpty ? nil : result
         }
         return Ordering.professors(list, by: sort, course: course)
@@ -351,11 +358,11 @@ final class AppModel: ObservableObject {
         guard !busy, loadingDetailsID == nil, let course,
               let professor = professors.first(where: { $0.id == id }), let profile = professor.profile,
               let label = filter.requestLabel(course: course), !label.isEmpty,
-              profile.reviewCoverage?[ReviewFilter.coverageKey(label)]?.finished != true else { return }
+              !filter.finished(in: profile, course: course) else { return }
         if case .source(let source) = filter {
             guard profile.courseCounts?.contains(where: { $0.label == source }) == true || profile.reviews.contains(where: { $0.course == source }) else { return }
         }
-        selectedID = id; pendingDetailID = id; pendingDetailFilter = label; detailCancelled = false
+        selectedID = id; pendingDetailID = id; pendingDetailFilter = filter; detailCancelled = false
         courseReviewIssues[id + "|" + label] = nil
         startDetailQueue()
     }
@@ -387,7 +394,7 @@ final class AppModel: ObservableObject {
             detailProgress = "Preparing summary · \(professor.name)"
         } else { detailProgress = nil }
     }
-    private func loadDetails(index: Int, course: Course, run: UUID, detailRun: UUID, filter: String? = nil) async {
+    private func loadDetails(index: Int, course: Course, run: UUID, detailRun: UUID, filter: ReviewFilter? = nil) async {
         guard let profile = professors[index].profile else { return }
         let id = professors[index].id, generation = professors[index].generation
         let profileID = profile.id
@@ -406,7 +413,11 @@ final class AppModel: ObservableObject {
                 let full: RMPProfile
                 if let filter {
                     guard let courseReader = reader as? any CourseProfileReader else { throw AppError.message("Class-specific retrieval is unavailable.") }
-                    full = try await courseReader.expand(professors[index], profile: profile, courseFilter: filter, onProfile: publish)
+                    if filter == .thisCourse {
+                        full = try await courseReader.expand(professors[index], profile: profile, matching: course, onProfile: publish)
+                    } else {
+                        full = try await courseReader.expand(professors[index], profile: profile, courseFilter: filter.requestLabel(course: course), onProfile: publish)
+                    }
                 } else { full = try await reader.expand(professors[index], profile: profile, onProfile: publish) }
                 guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: profileID) else { return }
                 if profile.reviews != full.reviews {
@@ -415,11 +426,11 @@ final class AppModel: ObservableObject {
                 }
                 professors[index].profile = full
                 if filter == nil { professors[index].reviewsComplete = true; professors[index].reviewIssue = nil }
-                else { courseReviewIssues[id + "|" + filter!] = nil }
+                else if let label = filter?.requestLabel(course: course) { courseReviewIssues[id + "|" + label] = nil }
                 saveReport(index: index, course: course)
             } catch {
                 guard !Task.isCancelled, runID == run, detailRunID == detailRun, currentProfile(index: index, generation: generation, profileID: profileID) else { return }
-                if let filter { courseReviewIssues[id + "|" + filter] = "More reviews for this class couldn’t be loaded. Saved reviews remain available; try again." }
+                if let label = filter?.requestLabel(course: course) { courseReviewIssues[id + "|" + label] = "More reviews for this class couldn’t be loaded. Saved reviews remain available; try again." }
                 else { professors[index].reviewIssue = "More reviews couldn’t be loaded. The verified scores and retrieved reviews are still available." }
             }
             detailReader = nil

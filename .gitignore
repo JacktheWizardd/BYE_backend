@@ -7,9 +7,12 @@ app-history/
 # Preserve these on disk; publish summaries and tooling instead.
 /docs/verification/bye-local*-2026-10-11/
 /benchmarks/model-eval/expected-facts.json
+/benchmarks/datasets/bye-summary-2026-10-11/private/
 
 .swiftpm/
 dist/
+/test/*.app/
+/test/.build-*/
 __pycache__/
 *.pyc
 apps/cross-platform/node_modules/

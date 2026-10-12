@@ -1,55 +1,53 @@
 # Suggested commit scope
 
-No files were staged or committed as part of organization. Review the diff first.
-The instrumented native views share audit/evaluation changes, so keep those changes
-together rather than splitting interdependent compilation flags across commits.
+This guide covers the current app improvements and repository organization. The
+original experiment tooling is already in the repository. Review the staged diff
+before committing, and keep the view split together with its model and reader changes.
 
 ## Suggested commit
 
-Title: `Add local summarization experiment tooling and document stopped evaluation`
+Title: `Add class-day filtering and improve review browsing`
 
 Description:
 
-> Add bounded collection/performance instrumentation, pinned model preparation,
-> and sequential offline summarization evaluation with raw/display quality review.
-> Preserve experiment summaries and document the stop decision after observed
-> factual failures. Keep generated evidence, reviews and model weights local.
+> Add class-day filtering, chronological and difficulty review sorting, and
+> retrieval across equivalent course labels. Split native views into separate
+> files and bring class sections to the top of professor reports.
 >
-> The 256-token development matrix completed 3,312 pipelines; the 384-token
-> comparison stopped after 1,089. No release model is selected. Remaining held-out,
-> energy and final native integration checks are untested.
+> Add a stable local test-app build workflow and document the reusable benchmark
+> dataset. Keep generated apps and private review data out of Git.
 
 ## Explicit staging paths
 
 From the repository root, after reviewing the changes:
 
 ```sh
-git add -- .gitignore README.md benchmarks/README.md \
-  Sources/BYEAPI/Transport/RMPTransport.swift \
+git add -A -- .gitignore AGENTS.md README.md \
   Sources/Classwise/AppModel.swift \
-  Sources/Classwise/AppleSummaryProvider.swift \
-  Sources/Classwise/ClasswiseApp.swift \
-  Sources/Classwise/Views.swift \
-  Sources/Classwise/AppAudit.swift \
-  Sources/Classwise/ModelEvaluation.swift \
-  Sources/ClasswiseCore/CollectionAudit.swift \
-  Tests/BYEAPITests/RMPClientTests.swift \
-  Tests/ClasswiseCoreTests/CollectionGateTests.swift \
-  scripts/swift.sh scripts/benchmark-bye-mac.sh \
-  benchmarks/app-audit benchmarks/bye-mac benchmarks/model-prep benchmarks/model-eval \
-  docs/experiments/2026-10-11-local-summarization \
-  docs/verification/bye-app-audit-2026-10-11.md \
-  docs/verification/bye-cpu-accounting-erratum-2026-10-11.md \
-  docs/verification/bye-model-preparation-2026-10-11.md \
-  docs/verification/bye-model-evaluation-2026-10-11.md
+  Sources/Classwise/ProfileLookup.swift \
+  Sources/Classwise/RMPAPIReader.swift \
+  Sources/Classwise/RMPBrowser.swift \
+  'Sources/Classwise/Views*' \
+  Sources/ClasswiseCore/Models.swift \
+  Tests/ClasswiseAppTests/APIReaderTests.swift \
+  Tests/ClasswiseAppTests/CourseQueueTests.swift \
+  Tests/ClasswiseAppTests/ScheduleFilterTests.swift \
+  Tests/ClasswiseCoreTests/CoreTests.swift \
+  Tests/ClasswiseCoreTests/CourseShorthandTests.swift \
+  Tests/ClasswiseCoreTests/ScheduleAvailabilityTests.swift \
+  scripts/build-test-app.sh test/README.md \
+  benchmarks/datasets/bye-summary-2026-10-11/README.md \
+  docs/experiments/2026-10-11-local-summarization/COMMIT_GUIDE.md
 git diff --cached --stat
 git diff --cached --check
 ```
 
-The directory adds honor `.gitignore`, including local real-review expected facts.
+The quoted `Views*` Git pathspec includes both the removed monolithic file and its
+replacement directory. The adds honor `.gitignore`, including generated test apps
+and local real-review expected facts.
 Do not force-add ignored experiment outputs, `.local-docs/`, `.build/`, models,
-user caches, or release archives. This is source/documentation for an incomplete
-experiment, not a production-model integration or a release-readiness claim.
+user caches, or release archives. This commit does not resume the stopped experiment
+or publish a release.
 
 The fresh-clone fixture suites need no model downloads or live collection:
 
@@ -58,6 +56,10 @@ python3 -m unittest discover -s benchmarks/model-prep -v
 python3 -m unittest discover -s benchmarks/model-eval -v
 ```
 
-See `VALIDATION.md` for checks performed while organizing this commit. Historical
-Swift audit/build checks are reported in the audit summary. The latest native
-evaluation UI was not built or exercised during this stopped benchmark.
+The current native app passed all 170 tests with `./scripts/swift.sh test` during
+the October 12 pre-commit review. WebKit fixture tests required running outside the
+review sandbox. This does not establish live-service or visual UI validation.
+
+See `VALIDATION.md` for historical experiment checks. Those records describe the
+stopped benchmark and do not claim that held-out inference or final native model
+integration was completed.

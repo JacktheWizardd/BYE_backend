@@ -55,7 +55,7 @@ final class RMPAPIReader: CourseProfileReader {
                 onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
         try await expand(professor, profile: profile, courseFilter: nil, onProfile: onProfile)
     }
-    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?,
+    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?, limit: Int,
                 onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
         let run = generation, key = ReviewFilter.coverageKey(courseFilter)
         var result = profile
@@ -64,23 +64,35 @@ final class RMPAPIReader: CourseProfileReader {
         // A finite page budget also handles repeated/empty source pages safely.
         for _ in 0..<10 {
             try check(run)
-            if coverage.finished { return result }
-            let page = try await fetch(professor, id: profile.id, count: min(20, 50 - coverage.reviewIDs.count), cursor: coverage.nextCursor, filter: courseFilter)
+            if coverage.finished || coverage.reviewIDs.count >= limit { return result }
+            let page = try await fetch(professor, id: profile.id, count: min(20, limit - coverage.reviewIDs.count), cursor: coverage.nextCursor, filter: courseFilter)
             try check(run)
             let newIDs = page.sourceReviewIDs.filter { !coverage.reviewIDs.contains($0) }
             guard !page.hasNextPage || !newIDs.isEmpty,
                   !page.hasNextPage || visited.insert(page.nextCursor ?? "").inserted else { throw RMPAPIError.pagination }
-            coverage.reviewIDs = Array((coverage.reviewIDs + newIDs).prefix(50))
+            coverage.reviewIDs = Array((coverage.reviewIDs + newIDs).prefix(ReviewCoverage.limit))
             coverage.nextCursor = page.nextCursor; coverage.hasNextPage = page.hasNextPage; coverage.updatedAt = Date()
             // Refresh source metadata and overwrite changed reviews by their stable source IDs.
             var merged = page.profile
             let reviews = Dictionary((result.reviews + page.profile.reviews).map { ($0.id, $0) }, uniquingKeysWith: { _, latest in latest })
             merged.reviews = Ordering.reviews(Array(reviews.values), by: .recent)
+            // A filtered page can omit course metadata; retain labels already discovered.
+            merged.courseCounts = Self.mergeCourseCounts(result.courseCounts, page.profile.courseCounts)
             merged.reviewCoverage = result.reviewCoverage ?? [:]; merged.reviewCoverage?[key] = coverage
             result = merged
             onProfile(result)
         }
-        if !coverage.finished { throw RMPAPIError.pagination }
+        if !coverage.finished && coverage.reviewIDs.count < limit { throw RMPAPIError.pagination }
         return result
+    }
+    /// Keeps first-seen label order so the UI doesn't reshuffle between pages; later counts win.
+    nonisolated static func mergeCourseCounts(_ existing: [ReviewCourseCount]?, _ incoming: [ReviewCourseCount]?) -> [ReviewCourseCount]? {
+        guard let incoming else { return existing }
+        var merged = existing ?? []
+        for count in incoming {
+            if let index = merged.firstIndex(where: { $0.label == count.label }) { merged[index] = count }
+            else { merged.append(count) }
+        }
+        return merged
     }
 }

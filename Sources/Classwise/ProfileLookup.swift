@@ -20,8 +20,38 @@ protocol ProfileReader: AnyObject {
 
 @MainActor
 protocol CourseProfileReader: ProfileReader {
-    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?,
+    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?, limit: Int,
                 onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile
+}
+
+extension CourseProfileReader {
+    func expand(_ professor: Professor, profile: RMPProfile, courseFilter: String?,
+                onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
+        try await expand(professor, profile: profile, courseFilter: courseFilter, limit: ReviewCoverage.limit, onProfile: onProfile)
+    }
+
+    func expand(_ professor: Professor, profile: RMPProfile, matching course: Course,
+                onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
+        var result = profile
+        while !ReviewFilter.thisCourse.finished(in: result, course: course) {
+            try Task.checkCancellation()
+            guard let label = ReviewFilter.thisCourse.sourceLabels(in: result, course: course).first(where: {
+                result.reviewCoverage?[ReviewFilter.coverageKey($0)]?.finished != true
+            }) else { break }
+            let remaining = ReviewCoverage.limit - ReviewFilter.thisCourse.retrievedIDs(in: result, course: course).count
+            let existing = result.reviewCoverage?[ReviewFilter.coverageKey(label)]?.reviewIDs.count ?? 0
+            result = try await expand(professor, profile: result, courseFilter: label,
+                                      limit: min(ReviewCoverage.limit, existing + remaining), onProfile: onProfile)
+            // Duplicate IDs across labels can leave room in the combined budget.
+            // Continue that source, but never spin on a reader that made no progress.
+            if result.reviewCoverage?[ReviewFilter.coverageKey(label)]?.finished != true,
+               (result.reviewCoverage?[ReviewFilter.coverageKey(label)]?.reviewIDs.count ?? 0) <= existing {
+                throw AppError.message("Review retrieval made no progress. Try again.")
+            }
+        }
+        try Task.checkCancellation()
+        return result
+    }
 }
 
 extension ProfileReader {
