@@ -173,4 +173,13 @@ function profileFor(plan: ProfilePlan): Profile {
   }
 }
 
-export const demoData: DemoData = { terms: [FALL], schedules: { [FALL.termCode]: schedule }, profiles: plans.map(profileFor) }
+export interface Seats { open: number; capacity: number; waitlist: number; waitCapacity: number }
+// Open seats and waitlists by CRN (the Mac app reads these from PCC; here they are invented).
+// Closed sections ('C' above) have no open seats.
+export const demoSeats: Record<string, Seats> = Object.fromEntries(([
+  ['61204', 18, 40, 0], ['61207', 0, 40, 4], ['61215', 9, 35, 0], ['61222', 26, 45, 0], ['61223', 3, 45, 0], ['61231', 12, 40, 0], ['61238', 30, 40, 0],
+  ['62110', 0, 35, 6], ['62112', 7, 35, 0], ['62118', 15, 35, 0], ['62125', 2, 35, 0], ['62131', 21, 35, 0],
+  ['63302', 5, 25, 0], ['63305', 11, 25, 0], ['63311', 0, 25, 3], ['63318', 14, 25, 0], ['63319', 19, 25, 0]
+] as const).map(([crn, open, capacity, waitlist]) => [crn, { open, capacity, waitlist, waitCapacity: 10 }]))
+
+export const demoData: DemoData ={ terms: [FALL], schedules: { [FALL.termCode]: schedule }, profiles: plans.map(profileFor) }
