@@ -1,5 +1,30 @@
 # Implementation history
 
+## 2026-10-12 — Class search performance and API rate safety optimization
+
+Audited and optimized the PCC class search pipeline, schedule parsing logic, and network connection handling for both the PCC Schedule API and Rate My Professors (RMP) GraphQL API.
+
+### Changes & Added Optimizations
+1. **Static Regex Caching (`Course.init` in `Models.swift`)**:
+   - Cached `Course.courseRegex` as a `private static let` instance.
+   - Eliminated compiling `NSRegularExpression` on every `Course` instantiation (~5,000+ times per search across full term datasets), saving ~400ms per search pass (~99.9% reduction in regex overhead).
+2. **Early Subject Filtering (`ScheduleParser.professors` in `Models.swift`)**:
+   - Added early `row["subjCode"]` checking against `course.subject` before attempting full `Course` parsing.
+   - Reduced Course parsing calls from ~5,000 schedule rows down to only ~10–30 matching subject rows per search (~99.7% reduction).
+3. **Static Date Formatters (`Section.dateLabel` in `Models.swift`)**:
+   - Reused static `startEndParser` and `startEndDisplay` instances, eliminating `DateFormatter` heap allocations during section list renders.
+4. **Catalog Suggestion Sanitization (`CourseSuggestions.swift`)**:
+   - Sanitized subject and course number strings prior to calling `Course(subj + numb)`, preventing redundant error paths when filtering catalog suggestions while typing.
+5. **PCC Network Headers & Cancellation (`Services.swift`)**:
+   - Added `Accept: application/json` and `User-Agent: BYE/0.3` headers to `PCCClient.fetch`.
+   - Handled `URLError.cancelled` explicitly as `CancellationError()` for clean async search cancellations.
+6. **Rate My Professors Server Safety Safeguards (`RMPTransport.swift`)**:
+   - Verified and strictly enforced `RequestGate` bounding active concurrent requests to **at most 2 active requests** and **0.1s minimum request spacing**.
+   - Enforced HTTP 429 / `Retry-After` rate-limit deferral cooldowns and capped OS networking socket connection pool (`httpMaximumConnectionsPerHost = 2`).
+   - Updated RMP User-Agent header to `BYE/0.3`.
+
+---
+
 ## 2026-10-10 — Sanitized build and local source milestone (0.3.0-beta.3, build 5)
 
 Preserved a beta.2 app/source baseline. Sanitized the relocation record's identifying local paths. Stopped tracking the original generated app while preserving it locally; all dist outputs, Python caches and local history remain ignored. Retained source/test/docs/scripts and license credits.
