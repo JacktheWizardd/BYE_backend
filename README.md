@@ -1,36 +1,55 @@
 # BYE — Before You Enroll
 
-> **Internal developer documentation.** This source repository is private and is not the public BYE download or product website.
+**BYE is an independent student software project** focused on making college course selection easier. It currently helps Pasadena City College (PCC) students search for classes and compare professors before enrolling.
 
-BYE is a student-focused course-planning application, currently centered on Pasadena City College (PCC). The implemented experience helps students find course sections, compare professor information, and read original reviews. Broader transfer-plan evaluation is a longer-term product goal, **not an implemented feature**.
+This is the **private source-code repository**, mainly for development and learning. The separate BYE website is where public information and app downloads belong.
 
-## Current status
+## What BYE can do today
 
-- **Native macOS application:** Swift/SwiftUI, Swift Package Manager, Apple Silicon, macOS 14+. The version declared in `scripts/beta-version.sh` is **0.3.0-beta.5 (build 7)**. Local preparation, verification, and publication are separate steps.
-- **Separate Windows-oriented prototype:** Electron, React, and TypeScript in `apps/cross-platform/`. Its own package version is **0.1.0-beta.2**; this is not the native Mac app.
-- **Implemented:** PCC course/section search, schedule filters, professor profile selection, RMP ratings and original review retrieval, sorting, local caches, and failure/retry handling.
-- **Temporarily disabled:** AI-generated review summaries in the current prepared Mac beta and the separate Windows beta. Existing experimental code and records remain in the repository.
-- **Proposed, not integrated:** Supabase student-submitted reviews, a hosted/cache-backed school schedule API, and educational-plan/transfer requirement evaluation.
+The current app helps students:
 
-For an up-to-date engineering handoff and verified-versus-unverified behavior, read [Project Status](docs/PROJECT_STATUS.md). Do not treat this README as a release announcement.
+- Search PCC courses and see available class sections.
+- Review class schedules and filter by meeting days or delivery format.
+- Compare professor ratings and difficulty information.
+- Read original student reviews and sort available results.
+- Choose the correct professor when multiple profiles are similar.
 
-## Quick start
+Information comes from PCC and Rate My Professors (RMP). BYE is not affiliated with either organization, and official college information should be checked before making enrollment decisions.
 
-### Native macOS
+**Current focus:** a native macOS app built with Swift/SwiftUI. There is also a separate Electron/React/TypeScript Windows-oriented beta under `apps/cross-platform/`. Both are experimental; see [project status](docs/PROJECT_STATUS.md) for version details and limitations. AI-generated review summaries are temporarily disabled in the prepared betas.
 
-Requires a Mac with a compatible Xcode installation and macOS SDK. Run from the repository root:
+## What comes later
+
+These are **ideas and plans, not finished features**:
+
+- Let students submit their own professor ratings and reviews to a BYE-owned database.
+- Explore a separate hosted PCC class-schedule API/cache to improve speed and reduce repeated requests.
+- Eventually let students upload education plans and check transfer requirements and recommended courses.
+
+The two database/API initiatives are separate projects, described in [database plans](docs/database.md). The transfer-planning vision is not yet part of the working app.
+
+## Getting started with the code
+
+### macOS (main development track)
+
+You need a Mac with a compatible Xcode installation and macOS SDK. From the repository root:
 
 ~~~sh
 ./scripts/swift.sh build
-./scripts/swift.sh test
 ./scripts/build-test-app.sh
 ~~~
 
-The last command creates the locally generated `test/BYE Test.app` for interactive review; it is ignored by Git. See [Development Setup](docs/development.md) for details. Packaging and publication are **not** part of this quick-start workflow.
+This builds a local test application at `test/BYE Test.app`. Open that app to try your changes. It is generated locally and is not committed to Git.
 
-### Windows-oriented Electron application
+To run the existing Swift tests when you want to check a change:
 
-On Windows x64, install Node 24 LTS (or Node 22.16+), npm, and development prerequisites. Then:
+~~~sh
+./scripts/swift.sh test
+~~~
+
+### Windows-oriented Electron beta
+
+On Windows x64, install Node 24 LTS (or Node 22.16+) and npm, then:
 
 ~~~powershell
 cd apps/cross-platform
@@ -39,52 +58,42 @@ npm run runtime:fetch
 npm run dev
 ~~~
 
-See the [cross-platform README](apps/cross-platform/README.md) before building or testing that application.
+See the [Windows development guide](apps/cross-platform/README.md) for its separate setup and test commands. These commands are for development, not publishing a release.
 
-## Repository map
+## Finding your way around
 
-| Location | Responsibility |
+| Location | What's there |
 | --- | --- |
-| `Sources/Classwise/` | Native Mac app, UI, workflows, and local state |
-| `Sources/ClasswiseCore/` | Shared Swift course/schedule domain logic |
-| `Sources/BYEAPI/` | Typed native RMP client and transport |
-| `Tests/` | Swift unit and integration tests |
-| `apps/cross-platform/` | Separate Electron/React/TypeScript app, scripts, and tests |
-| `scripts/` | Mac build, verification, packaging, and update tooling |
-| `test/` | Local Mac test-app entry point; generated app is not committed |
-| `benchmarks/` | Performance and summarization evaluation fixtures/tooling |
-| `docs/` | Engineering guides, decisions, experiments, release and verification records |
+| `Sources/Classwise/` | Native Mac app and interface |
+| `Sources/ClasswiseCore/` | Reusable course and schedule logic |
+| `Sources/BYEAPI/` | Code that retrieves professor information |
+| `Tests/` | Existing Swift tests |
+| `apps/cross-platform/` | Separate Windows-oriented application |
+| `scripts/` | Build and packaging tools |
+| `docs/` | Technical notes, plans, experiments, and past verification records |
 
-## Developer guides
+## How this project is being developed
 
-- [Architecture](docs/architecture.md) — application boundaries, data flow, storage, and external services.
-- [Development](docs/development.md) — setup, local workflow, branches, and configuration hygiene.
-- [Database plans](docs/database.md) — **two proposed, separate Supabase initiatives** and their data boundaries.
-- [API and integrations](docs/api.md) — current direct integrations versus the proposed hosted schedule API.
-- [Testing](docs/testing.md) — commands, offline versus live checks, and evidence requirements.
+BYE is currently a student-led project. I define the goals, choose features, and use AI coding tools to help implement parts of the application while I learn programming and software engineering.
 
-Existing reference material:
+The repository contains architecture notes, test suites, and development tools. **Having these files does not mean I personally wrote every part or already follow a formal professional engineering workflow.** They are references I can study and practices I can gradually learn to use.
 
-- [Project status and handoff](docs/PROJECT_STATUS.md)
-- [Implementation history](docs/IMPLEMENTATION_HISTORY.md)
-- [Mac release and update procedure](docs/RELEASING.md)
-- [Prepared release notes](docs/GITHUB_PRERELEASE.md)
-- [Windows development/verification](apps/cross-platform/README.md)
-- [RMP client design](Sources/BYEAPI/README.md)
-- [Third-party notices](THIRD_PARTY_NOTICES.md)
+My long-term goal is to understand, modify, test, and maintain the application more independently—not just have AI generate code.
 
-## Contribution and change workflow
+## Technical notes (for learning when needed)
 
-1. Branch from the current `main` for a single change or coherent workstream.
-2. Make focused changes, keeping new or unfinished features clearly marked as experimental.
-3. Run the relevant checks in [Testing](docs/testing.md), and record what was **not** tested.
-4. Open a pull request and review the diff before merging into `main`.
-5. Update the relevant docs when behavior, dependencies, data handling, or release steps change.
+You **don't need to read these all at once**. Start with the app, then open a guide when you encounter a related question.
 
-Do not commit credentials, student-submitted content, raw personal data, model weights, build products, or local machine-specific logs. Verify the Git diff even when a path is ignored. A private repository is **not** a substitute for secret management or access controls.
+- [Development notes](docs/development.md) — how to run the app and optional Git habits to learn.
+- [Architecture](docs/architecture.md) — how the pieces of BYE fit together.
+- [Testing](docs/testing.md) — what the existing checks do and how to use them.
+- [API and integrations](docs/api.md) — where schedule and professor data come from.
+- [Database plans](docs/database.md) — the two proposed Supabase-related projects.
+- [Project status](docs/PROJECT_STATUS.md) — implementation history, verification, and known limits.
+- [Release notes and procedure](docs/RELEASING.md) — advanced reference for preparing Mac releases.
 
-## Scope and distribution
+## Privacy and distribution
 
-This repository serves authorized BYE developers and collaborators. Product marketing, end-user installation, feedback collection, and public downloads belong on the separate BYE website/distribution channel. The Mac update feed and release artifacts are handled as documented in [Releasing](docs/RELEASING.md).
+Do not commit passwords, API service-role keys, personal student data, private caches, model weights, or generated builds. Keep production release steps separate from ordinary local development; see [release documentation](docs/RELEASING.md).
 
-BYE is an independent project and is not affiliated with PCC or Rate My Professors. Class, professor, and transfer information should be verified against authoritative sources; RMP uses an undocumented endpoint and can change. Do not infer permission to republish third-party data from its technical accessibility.
+The source repository stays private. Public product information and downloads are maintained separately. RMP is accessed through an undocumented interface that may change; technical access does not automatically grant rights to redistribute its data.
