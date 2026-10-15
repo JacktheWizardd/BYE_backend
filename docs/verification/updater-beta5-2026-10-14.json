@@ -63,5 +63,12 @@
     "download": "/download 302 to the beta.5 DMG; DMG identical to dist build",
     "home_page": "shows Version 0.3.0-beta.5",
     "note": "Results above are from the workers.dev Worker; see live_check_pages for the Pages site."
+  },
+  "live_check_pages": {
+    "site": "https://bye-before-you-enroll.pages.dev (Cloudflare Pages, deployed from BYE_website main)",
+    "appcast": "200, application/xml, Cache-Control public max-age=300, identical to repo appcast.xml; enclosure on pages.dev",
+    "update_zip": "200, identical to dist build, EdDSA signature valid",
+    "download": "/download redirects to the beta.5 DMG; DMG identical to dist build",
+    "home_page": "shows Version 0.3.0-beta.5"
   }
 }
