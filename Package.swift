@@ -14,6 +14,6 @@ let package = Package(
                           linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]),
         .testTarget(name: "BYEAPITests", dependencies: ["BYEAPI", "ClasswiseCore"]),
         .testTarget(name: "ClasswiseCoreTests", dependencies: ["ClasswiseCore"], resources: [.process("Fixtures")]),
-        .testTarget(name: "ClasswiseAppTests", dependencies: ["Classwise", "ClasswiseCore", "BYEAPI"])
+        .testTarget(name: "ClasswiseAppTests", dependencies: ["Classwise", "ClasswiseCore", "BYEAPI"], resources: [.process("Fixtures")])
     ]
 )
