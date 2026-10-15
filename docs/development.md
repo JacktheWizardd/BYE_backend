@@ -1,6 +1,6 @@
-# Developer setup and workflow
+# Development notes — learning and building BYE
 
-This is the working guide for authorized contributors to the private BYE source repository. The root [README](../README.md) provides the overview; [Project Status](PROJECT_STATUS.md) documents verified behavior and current blockers.
+This guide records how to run the project and explains development habits worth learning over time. BYE is currently a student-led, AI-assisted project, not a team with a formal engineering process. The commands below describe existing tools; the Git advice is **recommended practice**, not a claim that every step is already followed. Start with the [README](../README.md). For verified technical details see [Project Status](PROJECT_STATUS.md).
 
 ## Prerequisites
 
@@ -50,13 +50,13 @@ npm run perf:verify:offline
 
 The explicit runtime fetch is a setup operation. AI summary behavior is currently disabled in the Windows beta. Read [the app-specific instructions](../apps/cross-platform/README.md) for additional checks, environment constraints, and packaging.
 
-## Branches and pull requests
+## Git practices to learn (optional workflow)
 
-- Start from an up-to-date `main`; name branches for the change (for example, `feature/course-filters`, `fix/profile-selection`, or `developer-docs`).
-- Keep unrelated experiments and platform-specific work in separate branches.
-- Make focused commits with a summary of behavior and the reason for the change.
-- Run relevant tests and document evidence/limitations in the pull request.
-- Review changes before merging. Do not commit generated builds, temporary evidence, personal caches, or credentials.
+- When trying something new, consider starting from an up-to-date `main` in a feature branch (for example, `feature/course-filters` or `fix/profile-selection`).
+- As the project grows, keeping unrelated experiments and Mac/Windows work separate can make changes easier to understand.
+- Practice making focused commits that describe what changed and why.
+- When possible, run the relevant checks and note what you did and did not test.
+- Review a change or pull request before merging. Never commit secrets, student data, generated builds, or local caches.
 
 The `docs/` folder already contains historical experiments and verification records. Preserve them rather than rewriting history to make failed approaches appear successful.
 
@@ -69,9 +69,9 @@ The current checked-in applications make direct PCC and RMP requests; **Supabase
 - Confirm the ignore rules before adding new generated directories. The root `.gitignore` excludes `.build/`, `dist/`, app bundles, local records, model weights, and common caches.
 - Use test/synthetic data for documentation, fixtures, and screenshots unless there is explicit authorization for other data.
 
-## When changing external integrations
+## Questions to ask when changing external integrations
 
-Changes involving the PCC source, RMP, or future hosted services should document upstream terms/permissions, caching policy, failure recovery, schema changes, rate limits, and privacy implications. Start with [API and integrations](api.md) and [Database plans](database.md).
+When adding or changing a PCC, RMP, or hosted integration, try to understand where data comes from, whether access and caching are permitted, how errors work, and what information is exposed. These are useful engineering questions to learn, not a requirement to produce a large specification for every small edit. See [API and integrations](api.md) and [Database plans](database.md).
 
 ## Release workflow
 
