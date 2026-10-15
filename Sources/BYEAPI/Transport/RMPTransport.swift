@@ -61,7 +61,7 @@ public final class RMPTransport: @unchecked Sendable {
         config.urlCache = nil; config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.timeoutIntervalForRequest = 15; config.timeoutIntervalForResource = 25
         config.httpMaximumConnectionsPerHost = 2
-        config.httpAdditionalHeaders = ["Accept": "application/json", "Content-Type": "application/json", "User-Agent": "BYE/0.2"]
+        config.httpAdditionalHeaders = ["Accept": "application/json", "Content-Type": "application/json", "User-Agent": "BYE/0.3"]
         return config
     }
     public init(protocolClasses: [AnyClass]? = nil, spacing: TimeInterval = 0.1, retryDelay: TimeInterval = 0.5, maximumAttempts: Int = 3) {
@@ -84,7 +84,7 @@ public final class RMPTransport: @unchecked Sendable {
                     request.httpMethod = "POST"; request.httpBody = body; request.httpShouldHandleCookies = false
                     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                     request.setValue("application/json", forHTTPHeaderField: "Accept")
-                    request.setValue("BYE/0.2", forHTTPHeaderField: "User-Agent")
+                    request.setValue("BYE/0.3", forHTTPHeaderField: "User-Agent")
                     result = try await session.data(for: request)
                 } catch {
                     await gate.release()
