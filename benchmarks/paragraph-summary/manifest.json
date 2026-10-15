@@ -1,0 +1,43 @@
+{
+  "installed_app_limit_bytes": 8000000000,
+  "runtime_build": "11559",
+  "runtime_commit": "f2cc7282c",
+  "models": [
+    {
+      "id": "qwen35-9b-q4",
+      "repository": "unsloth/Qwen3.5-9B-GGUF",
+      "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+      "upstream": "Qwen/Qwen3.5-9B",
+      "upstream_metadata_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "filename": "Qwen3.5-9B-Q4_K_M.gguf",
+      "bytes": 5680522464,
+      "sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+      "license": "Apache-2.0",
+      "conversion_source_revision": null
+    },
+    {
+      "id": "ministral3-8b-q4",
+      "repository": "mistralai/Ministral-3-8B-Instruct-2512-GGUF",
+      "revision": "0102285ad796bd99af90f58de616092e5630e970",
+      "upstream": "mistralai/Ministral-3-8B-Instruct-2512",
+      "upstream_metadata_revision": "5b26027e7b19eeb4b7352e1fed3926375dd2cb4d",
+      "filename": "Ministral-3-8B-Instruct-2512-Q4_K_M.gguf",
+      "bytes": 5198911904,
+      "sha256": "33e7a72cf5e6e2cfc2f2847075acc013d68bba023e35310cef86b5cf8fdca761",
+      "license": "Apache-2.0",
+      "conversion_source_revision": null
+    },
+    {
+      "id": "qwen35-4b-q5",
+      "repository": "unsloth/Qwen3.5-4B-GGUF",
+      "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+      "upstream": "Qwen/Qwen3.5-4B",
+      "upstream_metadata_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+      "filename": "Qwen3.5-4B-Q5_K_M.gguf",
+      "bytes": 3143656608,
+      "sha256": "8814232b85594dcd46c50e5b8b29324a7efe9e746edbe8a3d1df3d3fce7aad39",
+      "license": "Apache-2.0",
+      "conversion_source_revision": null
+    }
+  ]
+}

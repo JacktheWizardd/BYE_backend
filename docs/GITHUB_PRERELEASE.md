@@ -13,7 +13,8 @@ Find PCC classes that fit your available days and compare professor ratings and 
 - **Reviews open on something useful.** When none of a professor’s downloaded reviews mention the class you searched, the report shows reviews from all their courses, with a one-tap way to look for reviews of your class.
 - Rating bars and the progress bar while ratings load are shown in yellow. BYE doesn’t label any professor as the best pick; you compare and decide.
 - Fixes: new course numbers like STAT C1000 no longer show as "STATC 1000"; hybrid meeting times read clearly ("Online, no set meeting time", "Time TBA · R 218", "room TBA") instead of PCC's raw building codes; review text shows punctuation like — and & instead of codes such as `&#8212;`; course suggestions no longer push the Find button off-screen.
-- AI summaries stay paused, as in beta.5. Everything else from beta.5, including in-app updates, is unchanged.
+- **In-app updates.** BYE Beta now checks for new versions about once a day and installs them when you quit. Every update is signature-checked before it installs. You can turn automatic checks off in Settings or use **Check for Updates…** in the app menu. (This shipped in 0.3.0-beta.5 on the BYE website and is new on GitHub.)
+- AI summaries stay paused, as in beta.4.
 
 ## Install or update
 
@@ -22,7 +23,7 @@ Find PCC classes that fit your available days and compare professor ratings and 
 3. Eject the DMG and open BYE Beta from Applications.
 4. If upgrading from **BYE Apple AI Beta**, confirm BYE Beta works, then remove the old app to avoid launching the previous version. Existing beta data is reused; deleting the old app bundle does not delete that data. The original BYE app remains separate.
 
-Future versions install automatically through the app; keep BYE Beta in Applications so it can replace itself.
+Coming from beta.4 or earlier? Install this one by hand once. After that, future versions install through the app; keep BYE Beta in Applications so it can replace itself. If you already have 0.3.0-beta.5, BYE offers this update on its own.
 
 This beta is locally signed and **not Apple-notarized**. If macOS blocks it and you trust this download, follow [Apple’s instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac) to approve it in System Settings → Privacy & Security. Managed Macs may not permit approval.
 
@@ -38,6 +39,6 @@ Credits and license notices are included at `BYE Beta.app/Contents/Resources/THI
 
 ## Feedback
 
-Please include your app version, macOS version, Mac chip, course/semester, what happened, and what you expected. Try weekday filtering, review sorting, close/reopen, and quit/relaunch with cached results. Remove unrelated personal information from screenshots.
+Please include your app version, macOS version, Mac chip, course/semester, what happened, and what you expected. Try the day buttons and “Fully online only”, the course overview, seat counts against PCC’s schedule, review sorting, and quit/relaunch with cached results. Remove unrelated personal information from screenshots.
 
 Another-Mac installation and GitHub browser-download security prompts require separate tester verification.

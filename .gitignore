@@ -32,3 +32,7 @@ apps/cross-platform/.cache/
 
 # Live Claude Code / Codex coordination board (scripts/agents.py).
 /.agents/
+
+# Web demo build outputs.
+apps/web/node_modules/
+apps/web/dist/

@@ -6,7 +6,7 @@ BYE is a student-focused course-planning application, currently centered on Pasa
 
 ## Current status
 
-- **Native macOS application:** Swift/SwiftUI, Swift Package Manager, Apple Silicon, macOS 14+. The version declared in `scripts/beta-version.sh` is **0.3.0-beta.5 (build 7)**. Local preparation, verification, and publication are separate steps.
+- **Native macOS application:** Swift/SwiftUI, Swift Package Manager, Apple Silicon, macOS 14+. The version declared in `scripts/beta-version.sh` is **0.4.0-beta.1 (build 8)**. Local preparation, verification, and publication are separate steps.
 - **Separate Windows-oriented prototype:** Electron, React, and TypeScript in `apps/cross-platform/`. Its own package version is **0.1.0-beta.2**; this is not the native Mac app.
 - **Implemented:** PCC course/section search, schedule filters, professor profile selection, RMP ratings and original review retrieval, sorting, local caches, and failure/retry handling.
 - **Temporarily disabled:** AI-generated review summaries in the current prepared Mac beta and the separate Windows beta. Existing experimental code and records remain in the repository.
