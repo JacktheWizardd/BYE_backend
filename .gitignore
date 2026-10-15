@@ -29,3 +29,6 @@ apps/cross-platform/.cache/
 
 # Exported Sparkle EdDSA private keys must never be committed.
 *.edkey
+
+# Live Claude Code / Codex coordination board (scripts/agents.py).
+/.agents/

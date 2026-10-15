@@ -30,6 +30,14 @@ final class CourseShorthandTests: XCTestCase {
         XCTAssertFalse(try Course("POLS C1000").matchesReview("POLS1000"))
         XCTAssertTrue(try Course("MATH 000").matchesReview("MATH0"))
     }
+    func testCommonCourseNumbersKeepTheirLetterWithTheNumber() throws {
+        let rows = try JSONDecoder().decode([ScheduleRow].self, from: Data("""
+        [{"subjCode":"STAT","courseNumbDisplay":"C1000","courseTitle":"Introduction to Statistics","crn":"9","pfaName":"Fictional Instructor","fwSectOpenInd":"O"}]
+        """.utf8))
+        XCTAssertEqual(CourseSuggestions.match(rows: rows, query: "stat c1000").map(\.course.display), ["STAT C1000"], "Not \"STATC 1000\"")
+        XCTAssertEqual(try CourseSuggestions.resolve(try Course("statc1000"), rows: rows).display, "STAT C1000")
+        XCTAssertEqual(ScheduleParser.professors(rows: rows, course: try Course("STAT C1000")).count, 1)
+    }
     func testSuggestionsSupportPartialShorthandWithoutHiddenRows() throws {
         XCTAssertEqual(CourseSuggestions.match(rows: try rows(), query: "math 5").map(\.course.display), ["MATH 005A", "MATH 005B"])
         XCTAssertTrue(CourseSuggestions.match(rows: try rows(), query: "math5c").isEmpty)
@@ -51,6 +59,29 @@ final class CourseShorthandTests: XCTestCase {
         let summary = try SummaryBuilder.validate(Data("{\"positives\":[],\"concerns\":[]}".utf8), reviews: Array(reviews.prefix(2)), course: course)
         XCTAssertEqual(summary.exactCourseCount, 2)
         XCTAssertEqual(ReviewFilter.thisCourse.requestLabel(course: course), "MATH005A")
+    }
+
+    func testReviewTextShowsCharactersInsteadOfHTMLReferences() {
+        XCTAssertEqual(Review.visibleText("hard to understand&#8212; lectures"), "hard to understand— lectures")
+        XCTAssertEqual(Review.visibleText("Q&amp;A, &quot;fair&quot; &#x2019;s &lt;3"), "Q&A, \"fair\" ’s <3")
+        XCTAssertEqual(Review.visibleText("A & B; 5&6 &unknown; &#99999999;"), "A & B; 5&6 &unknown; &#99999999;", "Leave text that is not a valid reference")
+        let cached = Review(id: "c", course: "MATH5A", text: "Great class &#8212; take it", date: "", rating: nil, difficulty: nil, online: nil)
+        XCTAssertEqual(cached.excerpt, "Great class — take it", "Older cached reviews are decoded on display")
+    }
+
+    func testReportsOpenOnAllCoursesWhenNoReviewIsAboutTheClass() throws {
+        let course = try Course("MATH004Z")
+        func profile(_ labels: [String]) -> RMPProfile {
+            RMPProfile(id: "p", firstName: "Test", lastName: "Instructor", school: "PCC", schoolID: 2649, department: "Math",
+                       rating: 4, difficulty: 2, ratingCount: labels.count, wouldTakeAgain: nil,
+                       reviews: labels.enumerated().map { i, label in
+                           Review(id: "r\(i)", course: label, text: "Fictional review", date: "2026-10-10", rating: 4, difficulty: 2, online: nil)
+                       })
+        }
+        XCTAssertEqual(ReviewFilter.preferred(in: profile(["MATH3", "MATH4Z"]), course: course), .thisCourse, "Shorthand labels count as this class")
+        XCTAssertEqual(ReviewFilter.preferred(in: profile(["MATH003", "MATH015"]), course: course), .allCourses)
+        XCTAssertEqual(ReviewFilter.preferred(in: profile([]), course: course), .thisCourse)
+        XCTAssertEqual(ReviewFilter.preferred(in: nil, course: course), .thisCourse)
     }
 
     func testSourceLabelsRetainOriginalSpellingsAndAggregateCoverage() throws {

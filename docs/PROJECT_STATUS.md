@@ -1,6 +1,12 @@
 # BYE development handoff
 
-Updated October 14, 2026.
+Updated October 15, 2026.
+
+## Redesign (0.4.0-beta.1, in progress)
+
+Version metadata is bumped to **0.4.0-beta.1 (build 8)**; nothing is packaged or published yet. The Mac app adopts the new BYE design system: ivory/linen/stone grounds, Jet Black type and buttons, warm grey secondary text, and yellow only for the wordmark swipe, rating bars and the progress meter. It is light mode only. BYE deliberately does not single out a "best" or recommended professor (a "Top pick" label was tried and removed). For the same reason no professor opens automatically: results start on a neutral course overview (`CourseOverview` in ContentView.swift), and a filter that hides the open professor returns there. Libre Baskerville (SemiBold and Bold, under the OFL, listed in the third-party notices) is bundled for headlines and scores and registered at launch. The theme and shared components live in `Sources/Classwise/Views/Components.swift`. The app icon is the wordmark on ivory (`assets/branding/AppIcon.png`, reproducible with `scripts/render-wordmark-icon.swift`).
+
+Class cards add data PCC's `classSchedule` feed already sent but BYE ignored: `seatsAvail`, `maxEnrl`, `waitCount`, `waitCapacity`, `ptrmDesc` (term part), `campDesc` and `creditHrLow`. These are parsed into the optional `Section.details` (`SectionDetails`); older caches decode with `details == nil`. The format label (In person, Hybrid, Online · live, Online · async) is derived from the existing schedule codes, and filtering behaviour is unchanged. Design references are the design-system and prototype artifacts linked in the commit notes. The class-day filter changes meaning in 0.4.0: a section matches when it meets on every picked day (it may meet on other days too). Before 0.4.0 it had to meet only within the picked days. Fully online sections still always match, and sections with no announced days still never match (`Section.fits(availableDays:)`). The website redesign is not started.
 
 ## Current application
 

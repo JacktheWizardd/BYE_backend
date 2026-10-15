@@ -27,6 +27,8 @@ rm -rf "$APP/Classwise_Classwise.bundle"
 cp Sources/Classwise/Resources/RMPReader.js "$APP/Contents/Resources/RMPReader.js"
 cp Sources/Classwise/Resources/THIRD_PARTY_NOTICES.txt "$APP/Contents/Resources/THIRD_PARTY_NOTICES.txt"
 cp Sources/Classwise/Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp Sources/Classwise/Resources/LibreBaskerville-SemiBold.ttf "$APP/Contents/Resources/LibreBaskerville-SemiBold.ttf"
+cp Sources/Classwise/Resources/LibreBaskerville-Bold.ttf "$APP/Contents/Resources/LibreBaskerville-Bold.ttf"
 ./scripts/embed-sparkle.sh "$BIN_DIR" "$APP"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

@@ -1,9 +1,13 @@
 # Mac app icon
 
-`AppIcon.png` is the source image for the temporary profile-picture icon.
-To replace it, save a square PNG at that path, then run:
+`AppIcon.png` is the square source artwork: Libre Baskerville Bold "BYE" in Jet Black
+(#161618) over the yellow highlighter swipe (#F2C14E), on ivory (#FAF8F3). It matches the
+wordmark in the app and on the website.
+
+To regenerate it and the app icon:
 
 ```sh
+swift scripts/render-wordmark-icon.swift Sources/Classwise/Resources/LibreBaskerville-Bold.ttf assets/branding/AppIcon.png
 sh scripts/generate-app-icon.sh
 ./scripts/build-test-app.sh
 ```

@@ -3,6 +3,15 @@
   <channel>
     <title>BYE Updates</title>
     <item>
+      <title>BYE 0.4.0-beta.1</title>
+      <pubDate>Thu, 15 Oct 2026 07:08:12 GMT</pubDate>
+      <sparkle:version>8</sparkle:version>
+      <sparkle:shortVersionString>0.4.0-beta.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description>&lt;ul&gt;&lt;li&gt;&lt;strong&gt;A new look.&lt;/strong&gt; BYE is redesigned around a warm ivory page, black type and buttons, and one yellow highlight. Headlines and scores use Libre Baskerville, and the app has a new wordmark icon.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;More about each class.&lt;/strong&gt; Class cards now show the format (in person, hybrid, online live or online async), the term (full term or 8-week sessions), the campus, units, and open seats with the waitlist, all from PCC’s schedule. Full sections are marked.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Clearer filters.&lt;/strong&gt; Pick class days with one-tap day buttons: BYE shows classes that meet on every day you pick (picking Monday shows all Monday classes; Monday and Tuesday shows classes that meet on both). Fully online classes still show. Turn on “Fully online only” from the search screen or the results sidebar.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Results open on a course overview.&lt;/strong&gt; Instead of jumping straight to one professor, BYE shows the class at a glance (sections, professors, open seats, formats and terms) and lets you pick who to look at.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Reviews open on something useful.&lt;/strong&gt; When none of a professor’s downloaded reviews mention the class you searched, the report shows reviews from all their courses, with a one-tap way to look for reviews of your class.&lt;/li&gt;&lt;li&gt;Rating bars and the progress bar while ratings load are shown in yellow. BYE doesn’t label any professor as the best pick; you compare and decide.&lt;/li&gt;&lt;li&gt;Fixes: new course numbers like STAT C1000 no longer show as "STATC 1000"; hybrid meeting times read clearly ("Online, no set meeting time", "Time TBA · R 218", "room TBA") instead of PCC's raw building codes; review text shows punctuation like — and &amp;amp; instead of codes such as &lt;code&gt;&amp;amp;#8212;&lt;/code&gt;; course suggestions no longer push the Find button off-screen.&lt;/li&gt;&lt;li&gt;AI summaries stay paused, as in beta.5. Everything else from beta.5, including in-app updates, is unchanged.&lt;/li&gt;&lt;/ul&gt;</description>
+      <enclosure url="https://bye-before-you-enroll.pages.dev/updates/BYE-0.4.0-beta.1-AppleSilicon.zip" length="2248851" type="application/octet-stream" sparkle:edSignature="AOt4d9Wh+9KsT9KcjSYv9nH00yTXJqvGxG9mOVuypiXDykBafa2DnjjK8w7al1yr0/pkp9Ybt0Y+1h3IvNOLCg==" />
+    </item>
+    <item>
       <title>BYE 0.3.0-beta.5</title>
       <pubDate>Thu, 15 Oct 2026 02:54:36 GMT</pubDate>
       <sparkle:version>7</sparkle:version>

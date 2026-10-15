@@ -78,6 +78,32 @@ public struct SectionSchedule: Codable, Hashable, Sendable {
     }
 }
 
+/// Enrollment and term facts PCC publishes for a section. Every field is optional because older caches and
+/// rows without these keys still decode.
+public struct SectionDetails: Codable, Hashable, Sendable {
+    public var seatsOpen: Int?
+    public var capacity: Int?
+    public var waitlistCount: Int?
+    public var waitlistCapacity: Int?
+    public var termPart: String
+    public var campus: String
+    public var units: String
+    public init(seatsOpen: Int? = nil, capacity: Int? = nil, waitlistCount: Int? = nil, waitlistCapacity: Int? = nil,
+                termPart: String = "", campus: String = "", units: String = "") {
+        self.seatsOpen = seatsOpen; self.capacity = capacity
+        self.waitlistCount = waitlistCount; self.waitlistCapacity = waitlistCapacity
+        self.termPart = termPart; self.campus = campus; self.units = units
+    }
+    init(row: ScheduleRow) {
+        func count(_ key: String) -> Int? { Int(row[key].trimmingCharacters(in: .whitespaces)) }
+        func text(_ key: String) -> String { row[key].trimmingCharacters(in: .whitespacesAndNewlines) }
+        self.init(seatsOpen: count("seatsAvail").map { max(0, $0) }, capacity: count("maxEnrl"),
+                  waitlistCount: count("waitCount"), waitlistCapacity: count("waitCapacity"),
+                  termPart: text("ptrmDesc"), campus: text("campDesc"), units: text("creditHrLow"))
+    }
+    public var isFull: Bool { seatsOpen == 0 }
+}
+
 public struct Section: Codable, Identifiable, Hashable, Sendable {
     public var id: String { crn }
     public let crn: String
@@ -88,14 +114,24 @@ public struct Section: Codable, Identifiable, Hashable, Sendable {
     public let meetings: [String]
     public let status: String
     public var schedule: SectionSchedule? = nil
+    public var details: SectionDetails? = nil
     public var fullyOnline: Bool { !formats.isEmpty && formats.allSatisfy { $0 == "OD" } }
+    /// Short format label for tags: In person, Hybrid, Online · live or Online · async.
+    public var formatLabel: String {
+        if fullyOnline { return "Online · async" }
+        if formats.contains("HY") { return "Hybrid" }
+        if !formats.isEmpty && formats.allSatisfy({ ["OD", "OL", "OS", "ON"].contains($0) }) { return "Online · live" }
+        return "In person"
+    }
     public var scheduleNotAnnounced: Bool {
         !fullyOnline && (schedule == nil || schedule?.hasUnannouncedMeetings == true || schedule?.days.isEmpty == true)
     }
+    /// True when the section meets on every picked day (it may meet on other days too).
+    /// Fully online sections have no meetings and always match; sections with no announced days never do.
     public func fits(availableDays: Set<Weekday>) -> Bool {
         if availableDays.isEmpty || fullyOnline { return true }
-        guard let schedule, !schedule.hasUnannouncedMeetings else { return false }
-        return !schedule.days.isEmpty && schedule.days.isSubset(of: availableDays)
+        guard let schedule, !schedule.days.isEmpty else { return false }
+        return availableDays.isSubset(of: schedule.days)
     }
     public var delivery: String {
         if fullyOnline { return "Online · no scheduled meetings" }
@@ -126,7 +162,40 @@ public struct Review: Codable, Identifiable, Hashable, Sendable {
         self.rating = rating; self.difficulty = difficulty; self.online = online
     }
     public var excerpt: String {
-        text.count > 500 ? String(text.prefix(500)) + "…" : text
+        // Decode here too: reports cached before 0.4.0 can still hold encoded entities.
+        let visible = Review.visibleText(text)
+        return visible.count > 500 ? String(visible.prefix(500)) + "…" : visible
+    }
+    /// RMP comments can contain HTML character references such as `&#8212;` or `&amp;`; show the characters.
+    public static func visibleText(_ source: String) -> String {
+        guard source.contains("&") else { return source }
+        let named = ["amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": " ", "mdash": "—", "ndash": "–",
+                     "hellip": "…", "rsquo": "’", "lsquo": "‘", "rdquo": "”", "ldquo": "“"]
+        var result = ""
+        var rest = Substring(source)
+        while let amp = rest.firstIndex(of: "&") {
+            result += rest[..<amp]
+            let tail = rest[amp...]
+            if let semi = tail.prefix(12).firstIndex(of: ";") {
+                let name = tail[tail.index(after: amp)..<semi]
+                var decoded: String?
+                if name.hasPrefix("#x") || name.hasPrefix("#X") {
+                    decoded = UInt32(name.dropFirst(2), radix: 16).flatMap(Unicode.Scalar.init).map { String(Character($0)) }
+                } else if name.hasPrefix("#") {
+                    decoded = UInt32(name.dropFirst()).flatMap(Unicode.Scalar.init).map { String(Character($0)) }
+                } else {
+                    decoded = named[name.lowercased()]
+                }
+                if let decoded {
+                    result += decoded
+                    rest = tail[tail.index(after: semi)...]
+                    continue
+                }
+            }
+            result += "&"
+            rest = tail.dropFirst()
+        }
+        return result + rest
     }
     public var postedLabel: String { date.isEmpty ? "Posted date unavailable" : "Posted \(String(date.prefix(10)))" }
 }
@@ -153,6 +222,12 @@ public struct ReviewCoverage: Codable, Hashable, Sendable {
 
 public enum ReviewFilter: Hashable, Sendable {
     case thisCourse, allCourses, source(String)
+    /// The filter a report opens on: this course when any downloaded review is about it, otherwise all courses
+    /// so the student still sees what is there. A profile without reviews keeps this course.
+    public static func preferred(in profile: RMPProfile?, course: Course) -> ReviewFilter {
+        guard let reviews = profile?.reviews, !reviews.isEmpty else { return .thisCourse }
+        return reviews.contains { course.matchesReview($0.course) } ? .thisCourse : .allCourses
+    }
     public func reviews(in profile: RMPProfile, course: Course) -> [Review] {
         let reviews: [Review]
         switch self {
@@ -351,9 +426,24 @@ public enum Ordering {
 }
 
 public enum ScheduleParser {
+    /// Readable place for one meeting. PCC's building field lists every building of the section
+    /// ("Online ASYNCH,R"), and an unassigned room reads "Needs Assignment".
+    static func place(building: String, room: String) -> String {
+        let parts = building.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        let campus = parts.filter { !$0.hasPrefix("Online") }
+        let roomCode = room.trimmingCharacters(in: .whitespaces)
+        let assigned = roomCode.isEmpty || roomCode == "Needs Assignment" ? "" : roomCode
+        if campus.isEmpty {
+            if parts.contains(where: { $0.localizedCaseInsensitiveContains("zoom") }) { return "Online (Zoom)" }
+            return parts.isEmpty ? (assigned.isEmpty ? "" : "Room " + assigned) : "Online"
+        }
+        let buildings = campus.joined(separator: " / ")
+        return assigned.isEmpty ? buildings + " · room TBA" : buildings + " " + assigned
+    }
+
     public static func professors(rows: [ScheduleRow], course: Course) -> [Professor] {
         let matches = rows.filter {
-            (try? Course($0["subjCode"] + $0["courseNumbDisplay"]).matchingKey) == course.matchingKey &&
+            (try? Course($0["subjCode"] + " " + $0["courseNumbDisplay"]).matchingKey) == course.matchingKey &&
             !["R", "X"].contains($0["fwSectOpenInd"]) && !$0["crn"].isEmpty
         }
         let meetingsByCRN = Dictionary(grouping: matches, by: { $0["crn"] })
@@ -382,10 +472,19 @@ public enum ScheduleParser {
                         return "\(hour % 12 == 0 ? 12 : hour % 12):\(String(format: "%02d", minute)) \(hour < 12 ? "AM" : "PM")"
                     }
                     let times = [row["beginTime"], row["endTime"]].filter { !$0.isEmpty }.map(clock).joined(separator: " – ")
-                    return [days, times, row["bldgDesc"], row["roomCode"]].filter { !$0.isEmpty }.joined(separator: " ")
+                    let when = [days, times].filter { !$0.isEmpty }.joined(separator: " ")
+                    let place = ScheduleParser.place(building: row["bldgDesc"], room: row["roomCode"])
+                    if when.isEmpty {
+                        // A no-time row with no room is the online part of a hybrid class; with a room, the time is unannounced.
+                        let roomAssigned = !["", "Needs Assignment"].contains(row["roomCode"].trimmingCharacters(in: .whitespaces))
+                        if !roomAssigned && row["bldgDesc"].contains("Online") { return "Online, no set meeting time" }
+                        return place.isEmpty ? "" : "Time TBA · " + place
+                    }
+                    return [when, place].filter { !$0.isEmpty }.joined(separator: " · ")
                 }.filter { !$0.isEmpty }).sorted()
                 return Section(crn: crn, title: first["courseTitle"], start: first["ptrmStartDate"], end: first["ptrmEndDate"],
-                               formats: formats, meetings: descriptions, status: first["fwSectOpenInd"], schedule: schedule)
+                               formats: formats, meetings: descriptions, status: first["fwSectOpenInd"], schedule: schedule,
+                               details: SectionDetails(row: first))
             }.sorted { $0.crn < $1.crn }
             var professor = Professor(id: name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current), name: name, sections: sections)
             professor.subjectCode = course.subject

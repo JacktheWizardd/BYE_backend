@@ -5,7 +5,7 @@ struct ProfileChooser: View {
     @ObservedObject var model: AppModel
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Choose RMP profile").font(.title2.weight(.semibold))
+            Text("Choose RMP profile").font(BYEFont.display(24))
             if let professor = model.chooserProfessor {
                 Text(professor.name).font(.headline)
                 Text([professor.subjectCode, professor.subjectDescription].filter { !$0.isEmpty }.joined(separator: " · "))
@@ -17,7 +17,7 @@ struct ProfileChooser: View {
                 }
                 if let issue = model.chooserIssue {
                     Text(issue).foregroundStyle(Palette.secondary)
-                    Button("Try again") { model.openChooser(id: professor.id) }.disabled(model.isPreviewing(professor.id))
+                    Button("Try again") { model.openChooser(id: professor.id) }.buttonStyle(PillStyle()).disabled(model.isPreviewing(professor.id))
                 }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
@@ -27,14 +27,14 @@ struct ProfileChooser: View {
                                 Text("Department: \(candidate.department.isEmpty ? "Unavailable" : candidate.department)")
                                 Text(candidate.school).foregroundStyle(Palette.secondary)
                                 HStack {
-                                    Link("View on RMP ↗", destination: candidate.url)
+                                    Link("View on RMP ↗", destination: candidate.url).font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.ink)
                                     Spacer()
-                                    Button("Use this profile") { model.chooseProfile(id: professor.id, profileID: candidate.id) }
+                                    Button("Use this profile") { model.chooseProfile(id: professor.id, profileID: candidate.id) }.buttonStyle(PillStyle(primary: true))
                                         .disabled(model.isPreviewing(professor.id))
                                         .accessibilityLabel("Use \(candidate.name), \(candidate.department.isEmpty ? "department unavailable" : candidate.department), profile \(candidate.id)")
                                 }
                             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Palette.surface, in: RoundedRectangle(cornerRadius: 12))
+                                .background(Palette.paper2, in: RoundedRectangle(cornerRadius: 12))
                         }
                     }
                 }
@@ -43,7 +43,7 @@ struct ProfileChooser: View {
                     Link("Check on RMP ↗", destination: professor.searchURL)
                 }
             }
-            HStack { Spacer(); Button("Close") { model.chooserID = nil }.keyboardShortcut(.cancelAction) }
-        }.padding(26).frame(width: 560, height: 560).background(Palette.background)
+            HStack { Spacer(); Button("Close") { model.chooserID = nil }.buttonStyle(PillStyle()).keyboardShortcut(.cancelAction) }
+        }.padding(26).frame(width: 560, height: 560).background(Palette.paper)
     }
 }

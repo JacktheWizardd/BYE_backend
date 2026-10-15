@@ -70,7 +70,7 @@ struct Rating: Decodable {
     func review() throws -> Review? {
         guard !id.isEmpty else { throw RMPAPIError.malformedResponse }
         guard let comment, !comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        return Review(id: id, course: `class` ?? "", text: comment, date: date ?? "",
+        return Review(id: id, course: `class` ?? "", text: Review.visibleText(comment), date: date ?? "",
                       rating: Teacher.score(helpfulRating), difficulty: Teacher.score(difficultyRating), online: isForOnlineClass)
     }
 }

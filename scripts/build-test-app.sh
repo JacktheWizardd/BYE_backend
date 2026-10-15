@@ -20,6 +20,8 @@ fi
 cp Sources/Classwise/Resources/RMPReader.js "$STAGED_APP/Contents/Resources/"
 cp Sources/Classwise/Resources/THIRD_PARTY_NOTICES.txt "$STAGED_APP/Contents/Resources/"
 cp Sources/Classwise/Resources/AppIcon.icns "$STAGED_APP/Contents/Resources/"
+cp Sources/Classwise/Resources/LibreBaskerville-SemiBold.ttf "$STAGED_APP/Contents/Resources/LibreBaskerville-SemiBold.ttf"
+cp Sources/Classwise/Resources/LibreBaskerville-Bold.ttf "$STAGED_APP/Contents/Resources/LibreBaskerville-Bold.ttf"
 # The executable links Sparkle. No SUFeedURL is written, so updates stay off.
 ./scripts/embed-sparkle.sh "$BIN_DIR" "$STAGED_APP"
 cat > "$STAGED_APP/Contents/Info.plist" <<PLIST

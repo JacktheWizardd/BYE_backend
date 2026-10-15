@@ -37,19 +37,11 @@ struct ClasswiseApp: App {
         _model = StateObject(wrappedValue: initial)
         NSApplication.shared.setActivationPolicy(.regular)
         // Swift Package runs from Xcode also need an icon without an app bundle.
-        #if DEBUG
-        let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
-            ?? Bundle.module.url(forResource: "AppIcon", withExtension: "icns")
-        #else
-        // Avoid SwiftPM's absolute developer paths in distributed executables.
-        let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
-            ?? Bundle(url: Bundle.main.bundleURL.appendingPathComponent("Classwise_Classwise.bundle"))?
-                .url(forResource: "AppIcon", withExtension: "icns")
-        #endif
-        if let iconURL,
+        if let iconURL = bundledResource("AppIcon", "icns"),
            let icon = NSImage(contentsOf: iconURL) {
             NSApplication.shared.applicationIconImage = icon
         }
+        BYEFont.registerBundledFonts()
         #if DEBUG
         if let index = CommandLine.arguments.firstIndex(of: "--verify-apple-quality"), CommandLine.arguments.count > index + 1 {
             let output = CommandLine.arguments[index + 1]

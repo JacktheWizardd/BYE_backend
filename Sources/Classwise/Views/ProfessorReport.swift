@@ -13,6 +13,7 @@ struct ProfessorReport: View {
     let canRetry: Bool
     let retry: () -> Void
     @State private var reviewFilter: ReviewFilter = .thisCourse
+    @State private var filterChosenByUser = false
     @State private var reviewSort: ReviewSort = .recent
     @State private var reviewLimit = 3
     private var reviews: [Review] {
@@ -50,16 +51,16 @@ struct ProfessorReport: View {
                     if model.summariesEnabled { summary } else {
                         Text("AI summaries are temporarily unavailable. Read the original student reviews below.")
                             .font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                            .padding(17).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Palette.surface, in: RoundedRectangle(cornerRadius: 12))
+                            .sunkenPanel(padding: 17)
                     }
                     studentReviews
                 } else {
                     VStack(alignment: .leading, spacing: 14) {
                         Text(professor.state == .selectionRequired ? "Choose profile" : professor.state == .unavailable ? "Cannot retrieve RMP info" : professor.state == .searching ? "Finding student feedback…" : "Student feedback hasn’t been checked yet.")
-                            .font(.system(size: 21, weight: .medium))
+                            .font(BYEFont.display(22))
                         Text(professor.issue ?? "PCC sections are available above. Ratings and reviews will appear here when retrieved.")
                             .foregroundStyle(Palette.secondary).font(.system(size: 14)).lineSpacing(4)
+                        if professor.state == .unavailable { Tag(text: "Unavailable", kind: .signal) }
                         if professor.state == .selectionRequired {
                             Button("Choose profile") { model.openChooser(id: professor.id) }.buttonStyle(PillStyle(primary: true))
                         }
@@ -68,7 +69,7 @@ struct ProfessorReport: View {
                                 .buttonStyle(PillStyle()).disabled(model.isPreviewing(professor.id))
                         }
                         Link("Check on RMP ↗", destination: professor.searchURL).buttonStyle(PillStyle())
-                    }.padding(24).frame(maxWidth: .infinity, alignment: .leading).background(Palette.surface, in: RoundedRectangle(cornerRadius: 18))
+                    }.sunkenPanel()
                 }
                 HStack(spacing: 12) {
                     Link("Rate My Professors ↗", destination: professor.sourceURL).buttonStyle(PillStyle())
@@ -80,21 +81,23 @@ struct ProfessorReport: View {
             }.padding(.horizontal, 38).padding(.vertical, 34).frame(maxWidth: 850, alignment: .leading).frame(maxWidth: .infinity)
         }
         .accessibilityLabel("Professor report")
-        .onChange(of: professor.profile?.id) { _, _ in reviewLimit = 3; reviewFilter = .thisCourse; reviewSort = .recent }
-        .onChange(of: professor.id) { _, _ in reviewLimit = 3; reviewFilter = .thisCourse; reviewSort = .recent }
-        .onChange(of: course) { _, _ in reviewLimit = 3; reviewFilter = .thisCourse; reviewSort = .recent }
+        .onChange(of: professor.profile?.id) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
+        .onChange(of: professor.id) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
+        .onChange(of: course) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
         .onChange(of: reviewFilter) { _, _ in reviewLimit = 3 }
+        .onChange(of: professor.profile?.reviews.count) { _, _ in if !filterChosenByUser { applyPreferredFilter() } }
+        .onAppear { applyPreferredFilter() }
         .onChange(of: reviewSort) { _, _ in reviewLimit = 3 }
     }
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(title: "Professor profile")
-            Text(professor.profile?.name ?? professor.name).font(.system(size: 38, weight: .semibold)).tracking(-1.2)
+            Text(professor.profile?.name ?? professor.name).font(BYEFont.display(38))
             if let profile = professor.profile {
                 Text([profile.department, profile.school].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.system(size: 14)).foregroundStyle(Palette.secondary)
                 Button("Change profile") { model.openChooser(id: professor.id) }
-                    .buttonStyle(.link).disabled(model.isPreviewing(professor.id))
+                    .buttonStyle(TextLinkStyle()).disabled(model.isPreviewing(professor.id))
                 if let issue = professor.issue { Text(issue).font(.system(size: 12)).foregroundStyle(Palette.secondary) }
                 if profile.name != professor.name { Text("Listed at PCC as \(professor.name)").font(.system(size: 11)).foregroundStyle(Palette.secondary) }
             } else {
@@ -108,12 +111,12 @@ struct ProfessorReport: View {
                 #if BYE_MODEL_EVAL
                 Text("LOCAL MODEL · MEASUREMENT").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary)
                 #else
-                Text("APPLE AI · ON YOUR MAC").font(.system(size: 9, weight: .medium)).tracking(1).foregroundStyle(Palette.secondary)
+                Tag(text: "Experimental", kind: .signal)
                 #endif
             }
             if let summary = professor.summary {
                 Text(summary.overview).font(.system(size: 15)).lineSpacing(6)
-                Text("\(summary.analyzedCount) of \(professor.profile?.reviews.count ?? 0) downloaded reviews analyzed · \(summary.exactCourseCount) for \(course.display) · \(summary.analyzedCount - summary.exactCourseCount) for other or unspecified courses")
+                Text("Apple AI · on your Mac · \(summary.analyzedCount) of \(professor.profile?.reviews.count ?? 0) downloaded reviews analyzed · \(summary.exactCourseCount) for \(course.display) · \(summary.analyzedCount - summary.exactCourseCount) for other or unspecified courses")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 themes("Common positives", points: summary.positives)
                 themes("Common concerns", points: summary.concerns)
@@ -133,10 +136,15 @@ struct ProfessorReport: View {
                         .buttonStyle(PillStyle()).disabled(retrying || (professor.profile?.reviews.isEmpty ?? true))
                     if professor.summaryIssue != nil { Button("Apple Intelligence settings") {
                         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Siri-Settings.extension")!)
-                    }.buttonStyle(.link) }
+                    }.buttonStyle(TextLinkStyle()) }
                 }
             }
-        }.padding(25).frame(maxWidth: .infinity, alignment: .leading).background(Palette.surface, in: RoundedRectangle(cornerRadius: 18))
+        }.sunkenPanel(padding: 25)
+    }
+    /// Opens on this course when a downloaded review is about it, otherwise on all courses.
+    private func applyPreferredFilter() {
+        reviewFilter = .preferred(in: professor.profile, course: course)
+        filterChosenByUser = false
     }
     private var summaryStatus: String {
         if let issue = professor.summaryIssue { return issue }
@@ -169,7 +177,7 @@ struct ProfessorReport: View {
                 }
             }
             HStack {
-                Picker("Review course", selection: $reviewFilter) {
+                Picker("Review course", selection: Binding(get: { reviewFilter }, set: { reviewFilter = $0; filterChosenByUser = true })) {
                     Text("This course · \(course.display)").tag(ReviewFilter.thisCourse)
                     Text("All courses").tag(ReviewFilter.allCourses)
                     ForEach(courseChoices, id: \.label) { item in
@@ -183,7 +191,16 @@ struct ProfessorReport: View {
             }
             Text("Showing \(reviews.count) downloaded reviews for this filter (up to 50). Changing the filter uses saved reviews.")
                 .font(.system(size: 11)).foregroundStyle(Palette.secondary)
-            if reviewFilter == .thisCourse && exactCount == 0 {
+            if reviewFilter == .allCourses && exactCount == 0 && !filterChosenByUser {
+                HStack(spacing: 12) {
+                    Text("No reviews mention \(course.display) yet, so all courses are shown.")
+                        .font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                    Button("Find \(course.display) reviews") {
+                        reviewFilter = .thisCourse; filterChosenByUser = true
+                        model.findMoreReviews(id: professor.id, filter: .thisCourse)
+                    }.buttonStyle(TextLinkStyle()).disabled(model.busy || model.loadingDetailsID != nil)
+                }
+            } else if reviewFilter == .thisCourse && exactCount == 0 {
                 Text("No downloaded reviews exactly match \(course.display). More may be available on RMP under this or another course label.")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary)
             }
@@ -213,32 +230,9 @@ struct ProfessorReport: View {
         }
     }
     private var sections: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             Eyebrow(title: "PCC class sections")
-            ForEach(professor.sections) { section in
-                VStack(alignment: .leading, spacing: 7) {
-                    HStack(alignment: .top) {
-                        Text("CRN \(section.crn)").font(.system(size: 14, weight: .semibold))
-                        Spacer()
-                        if section.fullyOnline {
-                            VStack(alignment: .trailing, spacing: 5) {
-                                Text("Fully online").font(.system(size: 12, weight: .semibold)).foregroundStyle(.red)
-                                    .padding(.horizontal, 9).padding(.vertical, 5)
-                                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.red.opacity(0.6)))
-                                Text("No scheduled meetings").font(.system(size: 11)).foregroundStyle(Palette.secondary)
-                            }
-                        } else {
-                            Text(section.delivery).font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                        }
-                    }
-                    Text(section.title).font(.system(size: 12))
-                    Text(section.dateLabel).font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                    ForEach(section.meetings, id: \.self) { Text($0).font(.system(size: 12)).foregroundStyle(Palette.secondary) }
-                    if section.scheduleNotAnnounced {
-                        Text("Schedule not announced").font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.secondary)
-                    }
-                }.padding(17).background(Palette.surface, in: RoundedRectangle(cornerRadius: 12))
-            }
+            ForEach(professor.sections) { ClassCard(section: $0) }
             if let scheduleURL { Link("PCC schedule ↗", destination: scheduleURL).buttonStyle(PillStyle()) }
         }
     }

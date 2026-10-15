@@ -24,28 +24,30 @@ final class ScheduleAvailabilityTests: XCTestCase {
         }
     }
 
-    func testEveryMeetingDayMustBeAvailableAndEmptySelectionAllowsAnyDay() throws {
+    func testPickedDaysMustAllBeMeetingDaysAndEmptySelectionAllowsAnyDay() throws {
         let section = try XCTUnwrap(sections([["monDay": "M", "wedDay": "W", "friDay": "F"]]).first)
         XCTAssertTrue(section.fits(availableDays: []))
-        XCTAssertFalse(section.fits(availableDays: [.monday]))
-        XCTAssertFalse(section.fits(availableDays: [.monday, .wednesday]))
-        XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday, .friday]))
-        XCTAssertTrue(section.fits(availableDays: Set(Weekday.allCases)))
-    }
-
-    func testMondayWednesdayFitsWithinWiderAvailability() throws {
-        let section = try XCTUnwrap(sections([["monDay": "M", "wedDay": "W"]]).first)
+        XCTAssertTrue(section.fits(availableDays: [.monday]), "A Monday pick shows every class that meets on Monday")
         XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday]))
-        XCTAssertTrue(section.fits(availableDays: [.monday, .tuesday, .wednesday]))
-        XCTAssertTrue(section.fits(availableDays: [.monday, .tuesday, .wednesday, .thursday]))
-        XCTAssertFalse(section.fits(availableDays: [.monday, .tuesday, .thursday, .friday]))
-        XCTAssertFalse(section.fits(availableDays: [.monday]))
+        XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday, .friday]))
+        XCTAssertFalse(section.fits(availableDays: [.monday, .tuesday]), "Every picked day must be a meeting day")
+        XCTAssertFalse(section.fits(availableDays: Set(Weekday.allCases)))
     }
 
-    func testMondayFridayIsHiddenWhenFridayIsUnavailable() throws {
+    func testMondayWednesdayClassMatchesItsOwnDaysOnly() throws {
+        let section = try XCTUnwrap(sections([["monDay": "M", "wedDay": "W"]]).first)
+        XCTAssertTrue(section.fits(availableDays: [.monday]))
+        XCTAssertTrue(section.fits(availableDays: [.wednesday]))
+        XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday]))
+        XCTAssertFalse(section.fits(availableDays: [.monday, .tuesday]))
+        XCTAssertFalse(section.fits(availableDays: [.monday, .tuesday, .wednesday]))
+        XCTAssertFalse(section.fits(availableDays: [.friday]))
+    }
+
+    func testMondayFridayClassIsHiddenWhenAPickedDayIsMissing() throws {
         let section = try XCTUnwrap(sections([["monDay": "M", "friDay": "F"]]).first)
         XCTAssertFalse(section.fits(availableDays: [.monday, .wednesday]))
-        XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday, .friday]))
+        XCTAssertTrue(section.fits(availableDays: [.monday, .friday]))
     }
 
     func testLectureAndLabDaysAreCombinedAcrossRowsAndDuplicates() throws {
@@ -53,9 +55,9 @@ final class ScheduleAvailabilityTests: XCTestCase {
         let section = try XCTUnwrap(sections([lecture, lecture, ["schdCode": "B", "friDay": "F", "beginTime": "1000", "endTime": "1200"]]).first)
         XCTAssertEqual(section.schedule?.days, [.monday, .wednesday, .friday])
         XCTAssertEqual(section.meetings.count, 2)
-        XCTAssertFalse(section.fits(availableDays: [.monday, .wednesday]))
+        XCTAssertTrue(section.fits(availableDays: [.friday]), "Lab days count as meeting days")
         XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday, .friday]))
-        XCTAssertTrue(section.fits(availableDays: [.monday, .tuesday, .wednesday, .friday]))
+        XCTAssertFalse(section.fits(availableDays: [.monday, .tuesday, .wednesday, .friday]))
     }
 
     func testAsynchronousSectionsAlwaysFitAndHaveNoUnannouncedSchedule() throws {
@@ -77,9 +79,9 @@ final class ScheduleAvailabilityTests: XCTestCase {
         for section in results {
             XCTAssertEqual(section.schedule?.days, [.monday, .wednesday, .friday])
             XCTAssertEqual(section.meetings.count, 2)
-            XCTAssertFalse(section.fits(availableDays: [.monday, .wednesday]))
-            XCTAssertFalse(section.fits(availableDays: [.friday]))
+            XCTAssertTrue(section.fits(availableDays: [.friday]), "The lab row's Friday belongs to both instructors' section")
             XCTAssertTrue(section.fits(availableDays: [.monday, .wednesday, .friday]))
+            XCTAssertFalse(section.fits(availableDays: [.thursday]))
         }
     }
 
@@ -89,8 +91,8 @@ final class ScheduleAvailabilityTests: XCTestCase {
             XCTAssertFalse(section.fullyOnline)
             XCTAssertFalse(section.fits(availableDays: [.monday, .wednesday]))
             XCTAssertTrue(section.fits(availableDays: [.tuesday, .thursday]))
-            XCTAssertFalse(section.fits(availableDays: [.tuesday]))
-            XCTAssertTrue(section.fits(availableDays: [.tuesday, .thursday, .saturday]))
+            XCTAssertTrue(section.fits(availableDays: [.tuesday]))
+            XCTAssertFalse(section.fits(availableDays: [.tuesday, .thursday, .saturday]))
         }
         let mixed = try XCTUnwrap(sections([["schdCode": "OD"], ["schdCode": "HY", "satDay": "S"]]).first)
         XCTAssertFalse(mixed.fullyOnline)
@@ -98,10 +100,10 @@ final class ScheduleAvailabilityTests: XCTestCase {
         XCTAssertFalse(mixed.scheduleNotAnnounced)
         XCTAssertFalse(mixed.fits(availableDays: [.monday]))
         XCTAssertTrue(mixed.fits(availableDays: [.saturday]))
-        XCTAssertTrue(mixed.fits(availableDays: [.saturday, .sunday]))
+        XCTAssertFalse(mixed.fits(availableDays: [.saturday, .sunday]))
     }
 
-    func testUnknownAndPartlyUnknownDaysAreHiddenWhileFiltering() throws {
+    func testUnknownDaysAreHiddenAndPartlyKnownDaysStillMatch() throws {
         let unknown = try XCTUnwrap(sections([["monDay": " ", "beginTime": "TBA"]]).first)
         XCTAssertTrue(unknown.scheduleNotAnnounced)
         XCTAssertTrue(unknown.fits(availableDays: []))
@@ -110,7 +112,7 @@ final class ScheduleAvailabilityTests: XCTestCase {
         XCTAssertEqual(partial.schedule?.days, [.monday])
         XCTAssertTrue(partial.scheduleNotAnnounced)
         XCTAssertTrue(partial.fits(availableDays: []))
-        XCTAssertFalse(partial.fits(availableDays: [.monday]))
+        XCTAssertTrue(partial.fits(availableDays: [.monday]), "It is known to meet on Monday")
         XCTAssertFalse(partial.fits(availableDays: [.monday, .wednesday]))
         XCTAssertFalse(partial.fits(availableDays: [.tuesday]))
         let empty = Section(crn: "empty", title: "Fictional", start: "", end: "", formats: ["L"], meetings: [], status: "O",
@@ -135,5 +137,57 @@ final class ScheduleAvailabilityTests: XCTestCase {
         XCTAssertTrue(old.fits(availableDays: [.monday, .wednesday]), "Legacy asynchronous sections keep their exception")
         let current = try XCTUnwrap(sections([["sunDay": "U"]]).first)
         XCTAssertEqual(try JSONDecoder().decode(Section.self, from: JSONEncoder().encode(current)), current)
+        XCTAssertNil(try JSONDecoder().decode(Section.self, from: data).details, "Older caches have no enrollment details")
+    }
+
+    func testEnrollmentTermAndUnitsAreReadFromTheSchedule() throws {
+        let section = try XCTUnwrap(sections([["monDay": "M", "wedDay": "W", "seatsAvail": "18", "maxEnrl": "30",
+            "waitCount": "0", "waitCapacity": "7", "ptrmDesc": "8 Week Second Session", "campDesc": "Colorado Campus",
+            "creditHrLow": "5"]]).first)
+        let details = try XCTUnwrap(section.details)
+        XCTAssertEqual(details.seatsOpen, 18)
+        XCTAssertEqual(details.capacity, 30)
+        XCTAssertEqual(details.waitlistCount, 0)
+        XCTAssertEqual(details.waitlistCapacity, 7)
+        XCTAssertEqual(details.termPart, "8 Week Second Session")
+        XCTAssertEqual(details.campus, "Colorado Campus")
+        XCTAssertEqual(details.units, "5")
+        XCTAssertFalse(details.isFull)
+        XCTAssertEqual(try JSONDecoder().decode(Section.self, from: JSONEncoder().encode(section)), section)
+    }
+
+    func testMissingOrUnreadableSeatCountsStayUnknown() throws {
+        let section = try XCTUnwrap(sections([["monDay": "M", "seatsAvail": "", "maxEnrl": "n/a"]]).first)
+        XCTAssertNil(section.details?.seatsOpen)
+        XCTAssertNil(section.details?.capacity)
+        XCTAssertEqual(section.details?.termPart, "")
+        let full = try XCTUnwrap(sections([["monDay": "M", "seatsAvail": "-2", "maxEnrl": "30"]]).first)
+        XCTAssertEqual(full.details?.seatsOpen, 0, "Over-enrolled sections show as full, not negative")
+        XCTAssertTrue(full.details?.isFull == true)
+    }
+
+    func testMeetingTextIsReadableForHybridAndUnassignedRooms() throws {
+        let hybrid = try XCTUnwrap(sections([
+            ["schdCode": "HY", "tueDay": "T", "beginTime": "0700", "endTime": "0930", "bldgDesc": "Online ASYNCH,R", "roomCode": "521"],
+            ["schdCode": "HY", "bldgDesc": "Online ASYNCH,R", "roomCode": "Needs Assignment"]
+        ]).first)
+        XCTAssertEqual(Set(hybrid.meetings), ["Tue 7:00 AM – 9:30 AM · R 521", "Online, no set meeting time"])
+        let tba = try XCTUnwrap(sections([["schdCode": "HY", "bldgDesc": "Online ASYNCH,R", "roomCode": "218"]]).first)
+        XCTAssertEqual(tba.meetings, ["Time TBA · R 218"])
+        let unassigned = try XCTUnwrap(sections([["monDay": "M", "beginTime": "0900", "endTime": "1000", "bldgDesc": "C", "roomCode": "Needs Assignment"]]).first)
+        XCTAssertEqual(unassigned.meetings, ["Mon 9:00 AM – 10:00 AM · C · room TBA"])
+        let zoom = try XCTUnwrap(sections([["schdCode": "OS", "wedDay": "W", "beginTime": "1800", "endTime": "1900", "bldgDesc": "Online ASYNCH,Online ZOOM", "roomCode": "Needs Assignment"]]).first)
+        XCTAssertEqual(zoom.meetings, ["Wed 6:00 PM – 7:00 PM · Online (Zoom)"])
+    }
+
+    func testFormatLabelsCoverEachDeliveryMode() throws {
+        func label(_ codes: [String]) -> String {
+            Section(crn: "1", title: "Fictional", start: "", end: "", formats: codes, meetings: [], status: "O").formatLabel
+        }
+        XCTAssertEqual(label(["L"]), "In person")
+        XCTAssertEqual(label(["HY"]), "Hybrid")
+        XCTAssertEqual(label(["OS"]), "Online · live")
+        XCTAssertEqual(label(["OD"]), "Online · async")
+        XCTAssertEqual(label([]), "In person")
     }
 }

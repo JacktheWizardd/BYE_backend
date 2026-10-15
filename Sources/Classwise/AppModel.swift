@@ -243,8 +243,9 @@ final class AppModel: ObservableObject {
         return PCCClient.scheduleURL(term: searchedTerm, course: course)
     }
     func reconcileSelection() {
-        // Incoming ratings may reorder the top five. Keep the report the student opened.
-        if !filtered.contains(where: { $0.id == selectedID }) { selectedID = displayed.first?.id }
+        // Incoming ratings may reorder the top five. Keep the report the student opened;
+        // if filters hide it, return to the course overview rather than opening someone else.
+        if !filtered.contains(where: { $0.id == selectedID }) { selectedID = nil }
     }
     func loadTerms() async {
         guard terms.isEmpty, !loadingTerms else { return }
@@ -299,7 +300,8 @@ final class AppModel: ObservableObject {
                 course = parsed
                 input = parsed.display
                 let found = ScheduleParser.professors(rows: rows, course: parsed)
-                professors = found; showingResults = true; selectedID = found.first?.id
+                // No professor opens on its own: the student picks, so BYE never spotlights one.
+                professors = found; showingResults = true; selectedID = nil
                 checkedCount = 0
                 var missing: [Int] = []
                 // All cached scores appear before any website or local-model work.

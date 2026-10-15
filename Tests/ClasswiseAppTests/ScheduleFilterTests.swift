@@ -41,9 +41,9 @@ final class ScheduleFilterTests: XCTestCase {
         XCTAssertEqual(model.selected?.sections.map(\.crn), ["A1", "A3"])
         XCTAssertEqual(model.professors.flatMap(\.sections), original.flatMap(\.sections))
         model.availableDays = [.monday, .tuesday, .wednesday, .thursday]
-        XCTAssertEqual(model.sectionCount, 3, "Wider availability keeps classes that meet within it")
+        XCTAssertEqual(model.sectionCount, 1, "More picked days keeps only classes meeting on all of them, plus fully online")
         XCTAssertEqual(model.filtered.count, 1)
-        XCTAssertEqual(model.selected?.sections.map(\.crn), ["A1", "A2", "A3"])
+        XCTAssertEqual(model.selected?.sections.map(\.crn), ["A3"])
         model.availableDays = [.tuesday]
         XCTAssertEqual(model.sectionCount, 2)
         XCTAssertEqual(model.filtered.count, 1)
@@ -58,8 +58,8 @@ final class ScheduleFilterTests: XCTestCase {
         let (model, directory, counter) = try fixture()
         defer { model.cancel(); try? FileManager.default.removeItem(at: directory) }
         model.availableDays = [.monday]
-        XCTAssertEqual(model.selected?.sections.map(\.crn), ["A3"])
-        XCTAssertFalse(model.filtered.contains { $0.id == "delta instructor" })
+        XCTAssertEqual(model.selected?.sections.map(\.crn), ["A1", "A3"])
+        XCTAssertTrue(model.filtered.contains { $0.id == "delta instructor" }, "A known Monday meeting matches even with a TBA lab")
         model.onlineOnly = true
         XCTAssertEqual(model.sectionCount, 1)
         XCTAssertEqual(model.filtered.count, 1)
@@ -70,6 +70,9 @@ final class ScheduleFilterTests: XCTestCase {
         XCTAssertEqual(model.sectionCount, 2)
         XCTAssertTrue(model.filtered.contains { $0.name == "Gamma Instructor" })
         model.availableDays = [.saturday]
+        XCTAssertEqual(model.sectionCount, 2, "A Saturday/Sunday class meets on Saturday")
+        XCTAssertTrue(model.filtered.contains { $0.name == "Gamma Instructor" })
+        model.availableDays = [.saturday, .monday]
         XCTAssertEqual(model.sectionCount, 1)
         XCTAssertFalse(model.filtered.contains { $0.name == "Gamma Instructor" })
         model.availableDays.removeAll()
@@ -79,19 +82,19 @@ final class ScheduleFilterTests: XCTestCase {
         XCTAssertEqual(counter.calls, 0)
     }
 
-    func testSelectionStaysWhenVisibleAndFallsBackOrClearsWhenHidden() throws {
+    func testSelectionStaysWhenVisibleAndReturnsToOverviewWhenHidden() throws {
         let (model, directory, _) = try fixture()
         defer { model.cancel(); try? FileManager.default.removeItem(at: directory) }
         model.availableDays = [.monday, .wednesday]
-        XCTAssertEqual(model.selectedID, "alpha instructor")
+        XCTAssertEqual(model.selectedID, "alpha instructor", "A visible choice is kept")
         model.availableDays = []
         model.selectedID = "beta instructor"
         model.availableDays = [.monday]
-        XCTAssertEqual(model.selectedID, "alpha instructor")
+        XCTAssertNil(model.selectedID, "Hiding the open professor returns to the overview, never to someone else")
         model.availableDays = []
         model.selectedID = "delta instructor"
         model.onlineOnly = true
-        XCTAssertEqual(model.selectedID, "alpha instructor")
+        XCTAssertNil(model.selectedID)
         model.professors = model.professors.filter { $0.name == "Beta Instructor" }
         model.reconcileSelection()
         XCTAssertTrue(model.filtered.isEmpty)
@@ -99,14 +102,28 @@ final class ScheduleFilterTests: XCTestCase {
         XCTAssertNil(model.selectedID)
         model.onlineOnly = false
         model.availableDays = []
-        XCTAssertEqual(model.selectedID, "beta instructor")
+        XCTAssertNil(model.selectedID, "No professor opens on its own when results reappear")
+        XCTAssertEqual(model.filtered.map(\.name), ["Beta Instructor"])
+        model.selectedID = "beta instructor"
         model.availableDays = [.monday, .wednesday]
         XCTAssertTrue(model.filtered.isEmpty, "Days that miss a class meeting must produce an empty result")
         XCTAssertEqual(model.sectionCount, 0)
         XCTAssertNil(model.selectedID)
         model.availableDays.removeAll()
         XCTAssertEqual(model.sectionCount, 1)
-        XCTAssertEqual(model.selectedID, "beta instructor")
+        XCTAssertNil(model.selectedID)
+    }
+
+    func testNoProfessorIsSelectedUntilTheStudentPicks() throws {
+        let (model, directory, _) = try fixture()
+        defer { model.cancel(); try? FileManager.default.removeItem(at: directory) }
+        model.selectedID = nil
+        model.reconcileSelection()
+        XCTAssertNil(model.selectedID)
+        XCTAssertNil(model.selected)
+        model.sort = .difficulty
+        model.reconcileSelection()
+        XCTAssertNil(model.selected, "Sorting never opens a professor")
     }
 
     func testHiddenSelectionIsReconciledEvenWhenTopFiveIDsDoNotChange() throws {
@@ -121,7 +138,7 @@ final class ScheduleFilterTests: XCTestCase {
         let before = model.displayed.map(\.id)
         model.availableDays = [.monday]
         XCTAssertEqual(model.displayed.map(\.id), before)
-        XCTAssertEqual(model.selectedID, "p0")
+        XCTAssertNil(model.selectedID, "The hidden report closes instead of switching to the first card")
     }
 
     func testSharedDaysSurviveChangeSearchStartAndRefresh() throws {
