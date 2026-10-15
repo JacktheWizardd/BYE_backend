@@ -47,7 +47,12 @@ struct ProfessorReport: View {
                         Spacer()
                         if let percent = profile.wouldTakeAgain { Text("\(Int(percent.rounded()))% would take again") }
                     }.font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                    summary
+                    if model.summariesEnabled { summary } else {
+                        Text("AI summaries are temporarily unavailable. Read the original student reviews below.")
+                            .font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                            .padding(17).frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Palette.surface, in: RoundedRectangle(cornerRadius: 12))
+                    }
                     studentReviews
                 } else {
                     VStack(alignment: .leading, spacing: 14) {
@@ -156,11 +161,11 @@ struct ProfessorReport: View {
             if !professor.reviewsComplete {
                 HStack(alignment: .top, spacing: 8) {
                     if loadingDetails { ProgressView().controlSize(.small) }
-                    Text(professor.reviewIssue ?? (checkingRatings ? "Quick preview · Up to three reviews. More feedback loads after everyone’s ratings are checked." : loadingDetails ? "Quick preview · Loading more reviews for this professor…" : detailCancelled ? "Quick preview · Loading stopped. You can resume the report below." : "Quick preview · More feedback loads when you open this report."))
+                    Text(professor.reviewIssue ?? (checkingRatings ? "Quick preview · Up to three reviews. More feedback loads after everyone’s ratings are checked." : loadingDetails ? "Quick preview · Loading more reviews for this professor…" : detailCancelled ? "Quick preview · Loading stopped. You can resume loading below." : "Quick preview · More feedback loads when you open this report."))
                         .font(.system(size: 11)).foregroundStyle(Palette.secondary).lineSpacing(4)
                 }
                 if canRetry && !loadingDetails && (professor.reviewIssue != nil || detailCancelled) {
-                    Button(professor.reviewIssue != nil ? "Retry report" : "Load more reviews", action: retry).buttonStyle(PillStyle())
+                    Button(professor.reviewIssue != nil ? "Retry reviews" : "Load more reviews") { model.retryReviews(id: professor.id) }.buttonStyle(PillStyle())
                 }
             }
             HStack {

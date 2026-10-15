@@ -1,0 +1,28 @@
+{
+  "verifiedAt": "2026-10-12T22:34:30.538084+00:00",
+  "version": "0.3.0-beta.4",
+  "build": "6",
+  "appName": "BYE Beta",
+  "change": "Repackaged with profile-picture icon, rounded corners, transparent margins, and release-safe resource loading.",
+  "installer": "BYE-0.3.0-beta.4-AppleSilicon.dmg",
+  "installerBytes": 2145864,
+  "installerSHA256": "0cca93d4be4d0990b63b206ee5670b4da2fd5c96f08676e031f8451f13451b12",
+  "executableSHA256": "8165d8785ff96365663d386cec1e8a8a00d178562a74a2eaf9192493e376118c",
+  "iconSHA256": "ac5d0d777e9063820282c18d14dbbf8faef1211121c08d0c8caae722f17fe84b",
+  "checks": {
+    "releaseBuild": true,
+    "appStrictSignature": true,
+    "dmgSignature": true,
+    "dmgIntegrity": true,
+    "checksumFile": true,
+    "mountedFilesMatchExport": true,
+    "mountedPrivacyGate": true,
+    "roundedIconMatchesSource": true,
+    "versionAndBuildUnchanged": true,
+    "installationTextAndApplicationsLink": true,
+    "exportedAppLaunch": true,
+    "testAppRebuiltAndRelaunched": true
+  },
+  "validationScope": "Packaging and icon checks rerun. Earlier app behavior and 173-test validation are recorded in beta4-export-2026-10-12.json; those suites were not rerun for this icon patch.",
+  "publishedToGitHub": false
+}

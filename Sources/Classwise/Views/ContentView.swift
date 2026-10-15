@@ -116,7 +116,7 @@ struct ContentView: View {
                 Button("Stop loading") { model.cancelDetails() }.buttonStyle(.link).font(.system(size: 12))
             } else {
                 Circle().fill(Palette.accent).frame(width: 5, height: 5)
-                Text("PCC schedule · Rate My Professors · AI summaries run on your Mac")
+                Text(model.summariesEnabled ? "PCC schedule · Rate My Professors · AI summaries run on your Mac" : "PCC schedule · Rate My Professors")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary)
             }
             Spacer()

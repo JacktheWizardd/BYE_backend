@@ -11,12 +11,12 @@ import tempfile
 root = pathlib.Path(__file__).resolve().parent.parent
 phase = sys.argv[1] if len(sys.argv) >= 2 else "manual"
 app_name = sys.argv[2] if len(sys.argv) >= 3 else "BYE.app"
-if app_name not in {"BYE.app", "BYE Apple AI Beta.app"}:
+if app_name not in {"BYE.app", "BYE Apple AI Beta.app", "BYE Beta.app"}:
     raise SystemExit("Unknown app name")
 if phase not in {"before-build", "after-build", "manual"}:
     raise SystemExit("Expected before-build, after-build, or manual")
-history = root / "app-history"
-history.mkdir(exist_ok=True)
+history = root / "archive" / "app-history"
+history.mkdir(parents=True, exist_ok=True)
 stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S")
 destination = pathlib.Path(tempfile.mkdtemp(prefix=f"{stamp}-{phase}-", dir=history))
 files = []

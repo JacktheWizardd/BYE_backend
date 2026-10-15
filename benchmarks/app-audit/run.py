@@ -23,6 +23,8 @@ def stage():
     binary=ROOT/'.build/arm64-apple-macosx/release/Classwise'
     (APP/'Contents/MacOS').mkdir(parents=True,exist_ok=True);(APP/'Contents/Resources').mkdir(exist_ok=True)
     shutil.copy2(binary,APP/'Contents/MacOS/Classwise')
+    # The executable links Sparkle; the measurement plist has no feed, so it stays inert.
+    command(['./scripts/embed-sparkle.sh',str(binary.parent),str(APP)],BASE/'embed.log')
     for name in ['RMPReader.js','THIRD_PARTY_NOTICES.txt']:
         shutil.copy2(ROOT/'Sources/Classwise/Resources'/name,APP/'Contents/Resources'/name)
     plist={'CFBundleName':'BYE Measurement','CFBundleDisplayName':'BYE Measurement',

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-14",
+  "subject": "Sparkle in-app updates for BYE Beta 0.3.0-beta.5 (build 7)",
+  "sparkle_version": "2.10.0",
+  "tests": {
+    "swift": "177 passed, 0 failures",
+    "python_scripts": "16 passed"
+  },
+  "release_app_checks": {
+    "codesign_verify_deep_strict": "passed (ad-hoc)",
+    "distribution_privacy_gate": "passed, including embedded Sparkle.framework",
+    "info_plist": {
+      "SUFeedURL": "https://bye-website.jack-truong2k1.workers.dev/updates/appcast.xml",
+      "SUEnableAutomaticChecks": true,
+      "SUAutomaticallyUpdate": true,
+      "SUScheduledCheckInterval": 86400,
+      "SUEnableSystemProfiling": false
+    },
+    "executable_arch": "arm64",
+    "rpath": "@executable_path/../Frameworks present"
+  },
+  "local_end_to_end": {
+    "isolation": "Copies of the release app with bundle identifier local.classwise.mac.update-test and a 127.0.0.1 feed; test preferences and caches removed afterward. No GitHub release or appcast was published.",
+    "steps": [
+      {
+        "action": "launch build 7",
+        "result": "Sparkle fetched the appcast and downloaded the build 8 zip without user action"
+      },
+      {
+        "action": "quit",
+        "result": "build 8 installed in place; strict signature verification passed"
+      },
+      {
+        "action": "serve build 9 zip with one byte flipped after EdDSA signing",
+        "result": "downloaded but not installed; app remained build 8"
+      },
+      {
+        "action": "restore the original bytes",
+        "result": "build 9 downloaded and installed on quit"
+      },
+      {
+        "action": "relaunch build 9",
+        "result": "launched normally"
+      }
+    ]
+  },
+  "not_verified": [
+    "Live website feed and download (pending Access bypass and website deploy)",
+    "First install from a browser-quarantined DMG followed by an in-app update",
+    "Developer ID signing, notarization and stapling",
+    "Another Mac"
+  ],
+  "hosting_change": {
+    "reason": "Both GitHub repositories are private, so raw.githubusercontent.com and release downloads return 404 without sign-in.",
+    "feed": "https://bye-website.jack-truong2k1.workers.dev/updates/appcast.xml",
+    "site_status_2026_10_14": "Every path redirects (302) to Cloudflare Access sign-in; an Access Bypass rule for /updates/ is required before installed apps can read the feed.",
+    "local_retest": "Isolated build 7 updated to build 8 from a localhost feed after the change."
+  }
+}

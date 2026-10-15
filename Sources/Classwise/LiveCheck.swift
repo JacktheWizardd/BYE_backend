@@ -36,7 +36,7 @@ enum LiveCheck {
             var opened = professor; opened.profile = full; opened.state = .ready
             opened.reviewsComplete = true; opened.checkedAt = Date()
             let cache = ReportCache(directory: directory)
-            let report = AppModel(summaryProvider: warm, cache: cache, choices: ProfileChoiceStore(directory: directory))
+            let report = AppModel(summaryProvider: warm, cache: cache, choices: ProfileChoiceStore(directory: directory), summariesEnabled: true)
             defer { report.cancel() }
             report.course = course; report.professors = [opened]; report.selectedID = opened.id; report.showingResults = true
             let openedAt = Date()
@@ -131,7 +131,7 @@ enum LiveCheck {
         var results: [String: Any] = ["startedAt": start.description, "course": "MATH 005A", "semester": "Fall 2026"]
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("BYE-Speed-\(UUID())")
         defer { try? FileManager.default.removeItem(at: directory) }
-        let model = AppModel(cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory))
+        let model = AppModel(cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory), summariesEnabled: true)
         results["retrieval"] = "URLSession API"; results["storage"] = "Temporary cache/preferences, removed afterward"
         await model.loadTerms()
         guard let term = model.terms.first(where: { $0.termName == "Fall 2026" }) else {
@@ -293,7 +293,7 @@ enum LiveCheck {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("BYE-Live-\(UUID())")
         defer { try? FileManager.default.removeItem(at: directory) }
         let cache = ReportCache(directory: directory), store = ProfileChoiceStore(directory: directory)
-        let model = AppModel(cache: cache, choices: store)
+        let model = AppModel(cache: cache, choices: store, summariesEnabled: true)
         defer { model.cancel() }
         model.course = course; model.showingResults = true; model.professors = [professor]
         model.retryProfessor(id: professor.id)
@@ -305,7 +305,7 @@ enum LiveCheck {
         try await waitNative { !model.busy }
         guard let first = model.professors[0].profile else { throw AppError.message("Live choice failed verification.") }
         let saved = ProfileChoiceStore(directory: directory).choice(name: professor.name, subject: professor.subjectCode) == first.id
-        let restart = AppModel(cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory))
+        let restart = AppModel(cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory), summariesEnabled: true)
         defer { restart.cancel() }
         restart.course = course; restart.professors = [professor]; restart.showingResults = true
         restart.retryProfessor(id: professor.id)
@@ -344,7 +344,7 @@ enum LiveCheck {
         let cacheReused = reused?.profile.id == first.id && reused?.profile.reviews == filtered.reviews
         // Exercise an actually unavailable local summary endpoint without stopping
         // any running Ollama service or changing system settings.
-        let report = AppModel(ollama: OllamaClient(endpoint: URL(string: "http://127.0.0.1:1/api/chat")!), cache: cache, choices: store)
+        let report = AppModel(ollama: OllamaClient(endpoint: URL(string: "http://127.0.0.1:1/api/chat")!), cache: cache, choices: store, summariesEnabled: true)
         defer { report.cancel() }
         var opened = professor; opened.profile = filtered; opened.state = .ready
         opened.reviewsComplete = true; opened.checkedAt = Date()

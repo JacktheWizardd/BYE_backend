@@ -1,18 +1,27 @@
-BYE Apple AI Beta — @BETA_VERSION@
+BYE Beta — @BETA_VERSION@
 
-1. Open the DMG.
-2. Drag BYE Apple AI Beta into Applications.
-3. Eject the DMG and open BYE Apple AI Beta from Applications.
+1. Quit any running BYE beta and open the DMG.
+2. Drag BYE Beta into Applications.
+3. Eject the DMG and open BYE Beta from Applications.
 
-This beta installs beside the previous BYE app. Its saved profiles, choices and
-summaries are stored separately in ~/Library/Application Support/BYEAppleAIBeta.
-The package excludes pre-existing caches and preferences.
+Upgrading from BYE Apple AI Beta: confirm the new BYE Beta works, then remove
+the old app from Applications to avoid opening the previous version. Existing
+beta data is reused from ~/Library/Application Support/BYEAppleAIBeta.
+Removing the old app bundle does not remove that saved data. The original
+BYE app remains separate. The installer excludes caches and preferences.
 
-Requirements: Apple Silicon Mac; macOS 14+ for ratings/reviews. Apple summaries
-require macOS 26.4+, Apple Intelligence enabled, and the system model ready.
-No Ollama, API key or separate AI application is needed. macOS may need to
-download Apple's model once. Summaries run on device; PCC/RMP retrieval needs
-internet. This beta has no cloud AI or automatic Ollama fallback.
+Updates: BYE Beta now updates itself. It checks the BYE website about once a day,
+downloads new versions in the background, and installs them when you quit.
+Choose BYE Beta > Check for Updates... to check now, or BYE Beta > Settings...
+to turn automatic checks or installs off. Updates are verified with BYE's
+release signature. The website's host (Cloudflare) sees your public IP address and app version; no
+system profile is sent. This is the last version to install by hand.
+
+Requirements: Apple Silicon Mac; macOS 14 or later; internet for PCC/RMP data.
+AI summaries are temporarily unavailable while a better solution is evaluated.
+No AI model is initialized or prewarmed. Cached summaries are hidden; existing
+summary files are retained. Ratings and original student reviews remain available.
+Apple Intelligence, Ollama, an account, and an API key are not required.
 
 This is a locally signed early-tester beta, not an Apple-notarized public release.
 If macOS blocks opening a copy you received, follow Apple's instructions for
@@ -21,23 +30,17 @@ the copy you trust; do not disable Gatekeeper globally. Managed Macs may not
 permit this approval.
 https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac
 
-Testing: search a PCC course/semester, open a professor, check the AI summary
-against the original reviews, then quit/reopen to test cached results.
-The summary states how many downloaded reviews it analyzed; it may use a
-bounded recent sample to fit Apple's model. Ratings are professor-wide.
-Multiple eligible profiles require your explicit choice. A model error never
-replaces source ratings or reviews with invented data.
+Testing: search a PCC course/semester, choose available weekdays, open a
+professor, sort/filter original reviews, and quit/reopen to test cached results.
+Classes must meet only on selected days; fully asynchronous online sections
+also qualify. Clear days to include all schedules, including unannounced meetings.
+Ratings are professor-wide. Multiple eligible profiles require your choice.
 
-Known limits: summary latency varies. First-use model loading, review retrieval
-and longer input can increase waiting.
-The RMP API is unofficial and may change or reject requests. Apple summaries are experimental. Conservative source checks can omit valid
-themes or show that no theme could be verified. Retry summary reuses downloaded
-reviews. AI paraphrases can still be wrong; original source links remain available. Windows and Intel
-distribution are not included in this beta.
+Known limits: the RMP API is unofficial and may change or reject requests.
+Review retrieval requires internet; downloaded text may not include every rating.
+Windows and Intel distribution are not included in this installer.
 
 Credits/license notices: inside the app at
 Contents/Resources/THIRD_PARTY_NOTICES.txt.
 
-Updating: quit the existing Apple AI beta, drag the new beta into Applications,
-and replace only BYE Apple AI Beta when prompted. Its local data is retained.
 To reopen a closed window, click the app in the Dock or open it from Applications.

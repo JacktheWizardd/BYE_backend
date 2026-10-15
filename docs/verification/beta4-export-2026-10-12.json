@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-12",
+  "version": "0.3.0-beta.4",
+  "build": "6",
+  "appName": "BYE Beta",
+  "architecture": "arm64",
+  "minimumMacOS": "14.0",
+  "bundleIdentifier": "local.classwise.mac.apple-ai-beta",
+  "sourceBaseCommit": "a8b6b26502a46a828f47b4e4f833c2b4303256e6",
+  "sourceIncludesUncommittedChanges": true,
+  "summaryPolicy": "Disabled in normal app and test-app launches; no provider construction, prewarm, generation, summary retry, or cached-summary display. Existing summaries retained.",
+  "artifacts": {
+    "installer": "BYE-0.3.0-beta.4-AppleSilicon.dmg",
+    "installerBytes": 1179968,
+    "installerSHA256": "0f94f2d5f06167785a0f0e6afe87a6815aff84ed11f794e36790d9c32a71a7d8",
+    "executableSHA256": "6d74d9c0d9fb6c53181e08d377669d38fedfb5a03e035b2e9c168b77ea620f30"
+  },
+  "checks": {
+    "swiftTests": {
+      "passed": 173,
+      "failed": 0,
+      "webkitRequiredUnsandboxedRunner": true
+    },
+    "pythonDistributionPrivacyTests": {
+      "passed": 5,
+      "failed": 0
+    },
+    "releaseBuild": true,
+    "auditBuild": true,
+    "modelEvaluationDebugBuild": true,
+    "appStrictSignature": true,
+    "dmgSignature": true,
+    "dmgIntegrity": true,
+    "sha256File": true,
+    "appAndMountedImagePrivacyGate": true,
+    "mountedAppMatchesExportedFiles": true,
+    "bundledNoticesMatchSource": true,
+    "installerVersionBuildAndApplicationsLink": true,
+    "localAppLaunchAndWindowReopen": true,
+    "summaryPauseNoticeAndOriginalReviews": true,
+    "weekdayFilterEmptyStateAndClear": true,
+    "sixReviewSortOptions": true
+  },
+  "limits": [
+    "Locally signed; not Apple-notarized.",
+    "Another-Mac installation and GitHub browser-download/quarantine prompts were not tested.",
+    "No GitHub release, upload, tag, commit, or push was performed.",
+    "Research builds were compiled only; the stopped model experiment was not resumed."
+  ]
+}

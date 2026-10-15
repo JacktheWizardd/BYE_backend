@@ -21,3 +21,11 @@ apps/cross-platform/models/*.gguf
 apps/cross-platform/models/*.part
 apps/cross-platform/test-results/
 apps/cross-platform/.cache/
+
+# Local archived builds and private experiment records.
+/archive/
+/.local-docs
+/docs/verification/bye-local*-2026-10-11
+
+# Exported Sparkle EdDSA private keys must never be committed.
+*.edkey

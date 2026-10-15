@@ -5,6 +5,12 @@ import ClasswiseCore
 struct ClasswiseApp: App {
     @NSApplicationDelegateAdaptor(BYEApplicationDelegate.self) private var applicationDelegate
     @StateObject private var model: AppModel
+    #if BYE_AUDIT || BYE_MODEL_EVAL
+    // Measurement builds never contact the update feed.
+    @StateObject private var updater = AppUpdater(info: nil)
+    #else
+    @StateObject private var updater = AppUpdater()
+    #endif
     init() {
         #if BYE_MODEL_EVAL
         let initial = ModelEvaluation.makeModel()
@@ -20,9 +26,9 @@ struct ClasswiseApp: App {
         #else
         var initial = AppModel()
         #endif
-        #if DEBUG && !BYE_AUDIT
+        #if DEBUG && !BYE_AUDIT && !BYE_MODEL_EVAL
         // Explicit acceptance mode keeps visual checks out of user preferences
-        // while retaining the real Apple summary provider.
+        // while retaining this release’s disabled-summary policy.
         if let index = CommandLine.arguments.firstIndex(of: "--verification-storage"), CommandLine.arguments.count > index + 1 {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
             initial = AppModel(cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory))
@@ -30,6 +36,20 @@ struct ClasswiseApp: App {
         #endif
         _model = StateObject(wrappedValue: initial)
         NSApplication.shared.setActivationPolicy(.regular)
+        // Swift Package runs from Xcode also need an icon without an app bundle.
+        #if DEBUG
+        let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
+            ?? Bundle.module.url(forResource: "AppIcon", withExtension: "icns")
+        #else
+        // Avoid SwiftPM's absolute developer paths in distributed executables.
+        let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
+            ?? Bundle(url: Bundle.main.bundleURL.appendingPathComponent("Classwise_Classwise.bundle"))?
+                .url(forResource: "AppIcon", withExtension: "icns")
+        #endif
+        if let iconURL,
+           let icon = NSImage(contentsOf: iconURL) {
+            NSApplication.shared.applicationIconImage = icon
+        }
         #if DEBUG
         if let index = CommandLine.arguments.firstIndex(of: "--verify-apple-quality"), CommandLine.arguments.count > index + 1 {
             let output = CommandLine.arguments[index + 1]
@@ -76,10 +96,19 @@ struct ClasswiseApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1180, height: 800)
         .commands {
+            CommandGroup(after: .appInfo) {
+                if updater.isEnabled {
+                    Button("Check for Updates…") { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates)
+                }
+            }
             CommandGroup(replacing: .newItem) {
                 Button("New search") { model.changeSearch(); applicationDelegate.reopenMainWindow() }.keyboardShortcut("n")
                 Button("Refresh results") { model.refresh() }.keyboardShortcut("r").disabled(!model.showingResults || model.busy)
             }
+        }
+        Settings {
+            UpdateSettingsView(updater: updater)
+                .preferredColorScheme(.light)
         }
     }
 }

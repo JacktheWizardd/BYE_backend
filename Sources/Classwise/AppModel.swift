@@ -37,8 +37,9 @@ final class AppModel: ObservableObject {
     var auditSummariesEnabled = true
     #endif
     private let pcc: PCCClient
-    private let summaryProvider: any SummaryProvider
-    private var summaryCacheProvider: String? { summaryProvider is OllamaClient ? nil : summaryProvider.cacheIdentity }
+    let summariesEnabled: Bool
+    private let summaryProvider: (any SummaryProvider)?
+    private var summaryCacheProvider: String? { summaryProvider is OllamaClient ? nil : summaryProvider?.cacheIdentity }
     private var prewarmTask: Task<Void, Never>?
     @Published var chooserID: String?
     @Published var chooserIssue: String?
@@ -76,9 +77,10 @@ final class AppModel: ObservableObject {
     #endif
 
     init(pcc: PCCClient = PCCClient(), ollama: OllamaClient? = nil, summaryProvider: (any SummaryProvider)? = nil, cache: ReportCache? = nil,
-         choices: ProfileChoiceStore? = nil,
+         choices: ProfileChoiceStore? = nil, summariesEnabled: Bool = false,
          makeReader: @escaping @MainActor () -> any ProfileReader = { RMPAPIReader() }) {
-        self.pcc = pcc; self.summaryProvider = summaryProvider ?? ollama ?? AppleSummaries.make()
+        self.pcc = pcc; self.summariesEnabled = summariesEnabled
+        self.summaryProvider = summariesEnabled ? (summaryProvider ?? ollama ?? AppleSummaries.make()) : nil
         self.cache = cache ?? ReportCache(directory: BetaStorage.directory.appendingPathComponent("Reports"))
         self.choices = choices ?? ProfileChoiceStore(directory: BetaStorage.directory); self.makeReader = makeReader
     }
@@ -99,7 +101,7 @@ final class AppModel: ObservableObject {
         guard !isPreviewing(id), let index = professors.firstIndex(where: { $0.id == id }),
               professors[index].candidates.contains(where: { $0.id == profileID }) else { return }
         if let old = professors[index].profile, let course {
-            cache.invalidate(name: professors[index].name, course: course, subject: professors[index].subjectCode, profileID: old.id, summaryProvider: summaryCacheProvider)
+            cache.invalidate(name: professors[index].name, course: course, subject: professors[index].subjectCode, profileID: old.id, summaryProvider: summaryCacheProvider, includeSummary: summariesEnabled)
         }
         courseReviewIssues = courseReviewIssues.filter { !$0.key.hasPrefix(id + "|") }
         professors[index].generation = UUID()
@@ -276,9 +278,9 @@ final class AppModel: ObservableObject {
         cancel()
         runID = UUID(); let run = runID
         #if BYE_AUDIT
-        if auditSummariesEnabled { prewarmTask = Task { [summaryProvider] in await summaryProvider.prewarm() } }
+        if auditSummariesEnabled, let summaryProvider { prewarmTask = Task { [summaryProvider] in await summaryProvider.prewarm() } }
         #else
-        prewarmTask = Task { [summaryProvider] in await summaryProvider.prewarm() }
+        if let summaryProvider { prewarmTask = Task { await summaryProvider.prewarm() } }
         #endif
         course = parsed; searchedTerm = term; error = nil; busy = true; progress = "Finding classes at PCC…"
         professors = []; selectedID = nil; showAll = false; showingResults = false; attemptedDetails = []; attemptedSummaries = []; courseReviewIssues = [:]
@@ -302,7 +304,7 @@ final class AppModel: ObservableObject {
                 var missing: [Int] = []
                 // All cached scores appear before any website or local-model work.
                 for index in professors.indices {
-                    if !force, let cached = cache.load(name: professors[index].name, course: parsed, subject: professors[index].subjectCode, preferredProfileID: choices.choice(name: professors[index].name, subject: professors[index].subjectCode), summaryProvider: summaryCacheProvider) {
+                    if !force, let cached = cache.load(name: professors[index].name, course: parsed, subject: professors[index].subjectCode, preferredProfileID: choices.choice(name: professors[index].name, subject: professors[index].subjectCode), summaryProvider: summaryCacheProvider, includeSummary: summariesEnabled) {
                         professors[index].profile = cached.profile; professors[index].summary = cached.summary
                         professors[index].checkedAt = cached.checkedAt; professors[index].state = .ready
                         professors[index].reviewsComplete = cached.reviewsComplete ?? true
@@ -334,7 +336,7 @@ final class AppModel: ObservableObject {
         cache.save(CachedReport(profile: profile, summary: professors[index].summary,
                                 checkedAt: professors[index].checkedAt ?? Date(),
                                 reviewsComplete: professors[index].reviewsComplete),
-                   name: professors[index].name, course: course, subject: professors[index].subjectCode, summaryProvider: summaryCacheProvider)
+                   name: professors[index].name, course: course, subject: professors[index].subjectCode, summaryProvider: summaryCacheProvider, includeSummary: summariesEnabled)
     }
     /// Website and model work have separate single-worker queues. Only opened
     /// reports are requested; the latest selection replaces pending work.
@@ -441,6 +443,7 @@ final class AppModel: ObservableObject {
         if selectedID == id { queueSummary(id: id) }
     }
     private func queueSummary(id: String) {
+        guard summariesEnabled, let summaryProvider else { return }
         #if BYE_AUDIT
         guard auditSummariesEnabled else { return }
         #endif
@@ -484,11 +487,17 @@ final class AppModel: ObservableObject {
         }
     }
     func retrySummary(id: String) {
+        guard summariesEnabled else { return }
         guard !busy, !loadingDetails, let index = professors.firstIndex(where: { $0.id == id }) else { return }
         professors[index].summary = nil
         professors[index].summaryIssue = nil; professors[index].reviewIssue = nil
         if let course { saveReport(index: index, course: course) }
         attemptedDetails.remove(id); attemptedSummaries.remove(id); selectedID = id; requestSelectedReport()
+    }
+    func retryReviews(id: String) {
+        guard !busy, !loadingDetails, let index = professors.firstIndex(where: { $0.id == id }) else { return }
+        professors[index].reviewIssue = nil
+        attemptedDetails.remove(id); selectedID = id; requestSelectedReport()
     }
     func cancelDetails() {
         if let id = loadingDetailsID { attemptedDetails.remove(id) }

@@ -5,10 +5,13 @@ let package = Package(
     name: "Classwise",
     platforms: [.macOS(.v14)],
     products: [.executable(name: "Classwise", targets: ["Classwise"]), .library(name: "BYEAPI", targets: ["BYEAPI"])],
+    dependencies: [.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0")],
     targets: [
         .target(name: "ClasswiseCore"),
         .target(name: "BYEAPI", dependencies: ["ClasswiseCore"], exclude: ["README.md"]),
-        .executableTarget(name: "Classwise", dependencies: ["ClasswiseCore", "BYEAPI"], resources: [.process("Resources")]),
+        .executableTarget(name: "Classwise", dependencies: ["ClasswiseCore", "BYEAPI", .product(name: "Sparkle", package: "Sparkle")], resources: [.process("Resources")],
+                          // Packaged apps embed Sparkle.framework in Contents/Frameworks.
+                          linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]),
         .testTarget(name: "BYEAPITests", dependencies: ["BYEAPI", "ClasswiseCore"]),
         .testTarget(name: "ClasswiseCoreTests", dependencies: ["ClasswiseCore"], resources: [.process("Fixtures")]),
         .testTarget(name: "ClasswiseAppTests", dependencies: ["Classwise", "ClasswiseCore", "BYEAPI"])

@@ -19,6 +19,9 @@ fi
 # The packaged reader loads directly from the app's resources.
 cp Sources/Classwise/Resources/RMPReader.js "$STAGED_APP/Contents/Resources/"
 cp Sources/Classwise/Resources/THIRD_PARTY_NOTICES.txt "$STAGED_APP/Contents/Resources/"
+cp Sources/Classwise/Resources/AppIcon.icns "$STAGED_APP/Contents/Resources/"
+# The executable links Sparkle. No SUFeedURL is written, so updates stay off.
+./scripts/embed-sparkle.sh "$BIN_DIR" "$STAGED_APP"
 cat > "$STAGED_APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -27,6 +30,7 @@ cat > "$STAGED_APP/Contents/Info.plist" <<PLIST
 <key>CFBundleDisplayName</key><string>BYE Test</string>
 <key>CFBundleIdentifier</key><string>local.classwise.mac.test</string>
 <key>CFBundleExecutable</key><string>Classwise</string>
+<key>CFBundleIconFile</key><string>AppIcon.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>$BETA_SHORT_VERSION</string>
 <key>CFBundleVersion</key><string>$BETA_BUILD</string>

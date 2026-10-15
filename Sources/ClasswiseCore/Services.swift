@@ -193,12 +193,13 @@ public final class ReportCache {
     }
     private func fresh(_ date: Date, now: Date) -> Bool { (0..<86400).contains(now.timeIntervalSince(date)) }
     public func load(name: String, course: Course, subject: String? = nil,
-                     preferredProfileID: String? = nil, summaryProvider: String? = nil, now: Date = Date()) -> CachedReport? {
+                     preferredProfileID: String? = nil, summaryProvider: String? = nil, includeSummary: Bool = true, now: Date = Date()) -> CachedReport? {
         let subject = subject ?? course.subject
         let indexed = read(context(name: name, subject: subject), as: String.self)
         guard let id = preferredProfileID ?? indexed,
               let raw = read(rawKey(id), as: Raw.self), raw.profile.id == id,
               fresh(raw.checkedAt, now: now), IdentityMatcher.matches(name: name, profile: raw.profile) else { return nil }
+        guard includeSummary else { return CachedReport(profile: raw.profile, summary: nil, checkedAt: raw.checkedAt, reviewsComplete: raw.reviewsComplete) }
         let saved = read(summaryKey(id, course: course, subject: subject, provider: summaryProvider), as: SummaryEntry.self)
         let evidence = SummaryBuilder.selectedReviews(raw.profile.reviews, course: course)
         let summary = saved.flatMap { saved -> ReviewSummary? in
@@ -213,14 +214,14 @@ public final class ReportCache {
         }
         return CachedReport(profile: raw.profile, summary: summary, checkedAt: raw.checkedAt, reviewsComplete: raw.reviewsComplete)
     }
-    public func invalidate(name: String, course: Course, subject: String, profileID: String? = nil, summaryProvider: String? = nil) {
+    public func invalidate(name: String, course: Course, subject: String, profileID: String? = nil, summaryProvider: String? = nil, includeSummary: Bool = true) {
         try? FileManager.default.removeItem(at: url(context(name: name, subject: subject)))
         if let id = profileID {
             try? FileManager.default.removeItem(at: url(rawKey(id)))
-            try? FileManager.default.removeItem(at: url(summaryKey(id, course: course, subject: subject, provider: summaryProvider)))
+            if includeSummary { try? FileManager.default.removeItem(at: url(summaryKey(id, course: course, subject: subject, provider: summaryProvider))) }
         }
     }
-    public func save(_ entry: CachedReport, name: String, course: Course, subject: String? = nil, summaryProvider: String? = nil) {
+    public func save(_ entry: CachedReport, name: String, course: Course, subject: String? = nil, summaryProvider: String? = nil, includeSummary: Bool = true) {
         let subject = subject ?? course.subject
         guard IdentityMatcher.matches(name: name, profile: entry.profile) else {
             invalidate(name: name, course: course, subject: subject)
@@ -231,6 +232,7 @@ public final class ReportCache {
             let raw = Raw(profile: entry.profile, checkedAt: entry.checkedAt, reviewsComplete: entry.reviewsComplete ?? false)
             try JSONEncoder().encode(raw).write(to: url(rawKey(entry.profile.id)), options: .atomic)
             try JSONEncoder().encode(entry.profile.id).write(to: url(context(name: name, subject: subject)), options: .atomic)
+            guard includeSummary else { return }
             let key = summaryKey(entry.profile.id, course: course, subject: subject, provider: summaryProvider)
             if let summary = entry.summary {
                 let evidence = summary.evidence ?? SummaryBuilder.selectedReviews(entry.profile.reviews, course: course)

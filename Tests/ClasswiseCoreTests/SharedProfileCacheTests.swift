@@ -7,6 +7,30 @@ final class SharedProfileCacheTests: XCTestCase {
                    department: "Mathematics", rating: 4, difficulty: 2, ratingCount: 100, wouldTakeAgain: 90,
                    reviews: (0..<2).map { Review(id: "r\($0)", course: "MATH005A", text: "Original \($0)", date: "2026-01-01", rating: 4, difficulty: 2, online: nil) })
     }
+    func testRawOnlyCacheSuppressesAndPreservesExistingSummariesAcrossRestart() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let course = try Course("MATH005A"), profile = profile()
+        let summary = try SummaryBuilder.validate(Data("{\"positives\":[],\"concerns\":[]}".utf8), reviews: profile.reviews, course: course)
+        let cache = ReportCache(directory: dir)
+        cache.save(CachedReport(profile: profile, summary: summary, checkedAt: Date()), name: profile.name, course: course)
+        let files = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
+        let summaryFiles = files.filter { Data(base64Encoded: $0.deletingPathExtension().lastPathComponent.replacingOccurrences(of: "_", with: "/").replacingOccurrences(of: "-", with: "+")).flatMap { String(data: $0, encoding: .utf8) }?.contains("|summary|") == true }
+        XCTAssertEqual(summaryFiles.count, 1)
+        let bytes = try Data(contentsOf: XCTUnwrap(summaryFiles.first))
+        let hidden = cache.load(name: profile.name, course: course, includeSummary: false)
+        XCTAssertEqual(hidden?.profile, profile)
+        XCTAssertNil(hidden?.summary)
+        cache.save(CachedReport(profile: profile, summary: nil, checkedAt: Date()), name: profile.name, course: course, includeSummary: false)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(summaryFiles.first)), bytes)
+        let restarted = ReportCache(directory: dir)
+        XCTAssertNil(restarted.load(name: profile.name, course: course, includeSummary: false)?.summary)
+        XCTAssertEqual(restarted.load(name: profile.name, course: course)?.summary, summary)
+        restarted.invalidate(name: profile.name, course: course, subject: course.subject, profileID: profile.id, includeSummary: false)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(summaryFiles.first)), bytes)
+        XCTAssertNil(restarted.load(name: profile.name, course: course, includeSummary: false))
+    }
+
     func testRawProfileReusedAcrossCoursesButSummaryDoesNotCrossCourse() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: dir) }

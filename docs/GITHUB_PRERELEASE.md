@@ -1,42 +1,43 @@
-# BYE Apple AI Beta 0.3.0-beta.3
+# BYE Beta 0.3.0-beta.5
 
-An early macOS beta for finding PCC classes and comparing professor ratings and reviews, with experimental Apple on-device summaries.
+Find PCC classes that fit your available days and compare professor ratings and original student reviews.
 
-**Download `BYE-0.3.0-beta.3-AppleSilicon.dmg` from this release's Assets.** The automatically generated source-code ZIP files are for developers, not the installer.
+**Download `BYE-0.3.0-beta.5-AppleSilicon.dmg` from this release’s Assets.** The `BYE-0.3.0-beta.5-AppleSilicon.zip` file is the in-app update package; you do not need to download it. The source-code ZIP and tar.gz files are for developers, not installers. The `.sha256` assets contain SHA-256 checksums.
 
-## Install
+## What changed
 
-1. Open the DMG and drag **BYE Apple AI Beta** into **Applications**.
-2. Eject the DMG, then open the app from Applications.
-3. This beta is locally signed and **not Apple-notarized**. If macOS blocks it, only if you trust this download, follow [Apple's instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac) to approve it in System Settings → Privacy & Security. Managed Macs may not permit approval.
+- **BYE now updates itself.** It checks for a new version about once a day, downloads it in the background, and installs it the next time you quit. Use **BYE Beta → Check for Updates…** to check now, or change this in **BYE Beta → Settings…**. Updates are verified with BYE’s release signature before installation. This is the last version you need to install by hand.
+- Choose available weekdays on the search screen or results sidebar. Classes must fit entirely within those days; fully asynchronous online sections remain eligible. Clear days to include every schedule, including unannounced meetings.
+- Required meeting days are combined across lecture/lab rows and co-instructors.
+- Sort reviews by latest, oldest, highest/lowest rating, or highest/lowest difficulty.
+- “Find more for this class” retrieves equivalent course labels reported by the professor’s RMP profile, with a combined 50-rating limit. Overall professor scores remain separate.
+- Class sections appear near the top of professor reports.
+- **AI summaries are temporarily disabled while a better solution is evaluated.** Cached summaries are hidden and no summary model is initialized or prewarmed. Original reviews, ratings, filters, and retrieval retries remain available.
+- The installed app is now named **BYE Beta**. Beta.5 includes all beta.4 changes.
 
-To update, quit the existing Apple AI beta before replacing it in Applications. Saved beta data is retained. The original BYE app remains separate. No terminal commands or additional AI application are required.
+## Install or update
 
-## Requirements
+1. Quit any running BYE beta.
+2. Open the DMG and drag **BYE Beta** into **Applications**.
+3. Eject the DMG and open BYE Beta from Applications.
+4. If upgrading from **BYE Apple AI Beta**, confirm BYE Beta works, then remove the old app to avoid launching the previous version. Existing beta data is reused; deleting the old app bundle does not delete that data. The original BYE app remains separate.
 
-- Apple Silicon Mac (M-series); macOS 14 or later for ratings and reviews.
-- Apple summaries: macOS 26.4 or later, Apple Intelligence enabled, and its system model ready. macOS supplies the model and may download it initially; model weights are not bundled in this DMG.
-- Internet for PCC/RMP data. No Ollama, account or API key is required by BYE.
+Future versions install automatically through the app; keep BYE Beta in Applications so it can replace itself.
 
-## Fixes
+This beta is locally signed and **not Apple-notarized**. If macOS blocks it and you trust this download, follow [Apple’s instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac) to approve it in System Settings → Privacy & Security. Managed Macs may not permit approval.
 
-- Removed identifying local build paths from the distributed app.
+## Requirements and privacy
 
-- Type `math 5a`, `math5a` or `MATH 005A` to find the official PCC course.
-- Equivalent leading-zero review labels now count toward This course and summary evidence. Different subjects and course suffixes stay distinct.
-- Clicking the app after closing its window restores the current search/report. Minimized windows come forward without duplicates.
-- Search-screen footer simplified to “One simple search.”
+- Apple Silicon Mac (M-series), macOS 14 or later.
+- Internet for PCC/RMP data.
+- Update checks contact the BYE website about once a day; its host, Cloudflare, sees your public IP address and app version. No system profile or other information is sent. Turn off automatic checks in Settings. Apple Intelligence, Ollama, an account, and an API key are not required.
+- No AI model weights are bundled. Saved reviews, choices, and older summaries remain local; older summaries are not displayed or regenerated by this release.
+- RMP uses an unofficial endpoint and may fail or change. Requests avoid RMP webpage trackers, persistent cookies, and login state. RMP still sees your public IP and requested queries/profiles. External source links open separately in your browser.
 
-## What to expect
+Credits and license notices are included at `BYE Beta.app/Contents/Resources/THIRD_PARTY_NOTICES.txt`.
 
-Apple summaries are experimental. They can fail, omit valid themes, or show no verified recurring theme. Retry summary is available; ratings and source reviews remain usable. Check any summary against the original reviews. Generation speed varies; a 2–3 second useful-summary experience is not guaranteed.
+## Feedback
 
-RMP retrieval uses an unofficial endpoint and may fail or change. BYE reduces request exposure by avoiding RMP webpage trackers, persistent cookies and login state. RMP still sees your public IP and requested queries/profiles; this is not anonymity. Summary generation runs locally with no automatic cloud/Ollama fallback. External source links open separately in your browser.
+Please include your app version, macOS version, Mac chip, course/semester, what happened, and what you expected. Try weekday filtering, review sorting, close/reopen, and quit/relaunch with cached results. Remove unrelated personal information from screenshots.
 
-Credits and license notices are included at `BYE Apple AI Beta.app/Contents/Resources/THIRD_PARTY_NOTICES.txt`.
-
-## Feedback for this beta
-
-Please report your macOS version and Mac chip, the course/semester, what happened, and what you expected. Useful checks: install from the browser download, search `math 5a`, close and reopen the window, try a report/summary, and quit/relaunch to check cached results. Avoid attaching private files or unrelated personal information.
-
-Local install checks do not verify security prompts on another Mac or an actual GitHub browser download. Those remain early-tester checks until results are recorded.
+Another-Mac installation and GitHub browser-download security prompts require separate tester verification.

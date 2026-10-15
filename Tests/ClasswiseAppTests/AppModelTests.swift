@@ -22,7 +22,54 @@ final class AppModelTests: XCTestCase {
         try await waitUntil("retry completes") { fixture.model.professors[0].summary != nil && !fixture.model.loadingDetails }
     }
     @MainActor
-    private func fixture(makeReader: @escaping @MainActor () -> any ProfileReader = { RMPBrowser() }, summaryProvider: (any SummaryProvider)? = nil) throws -> AppFixture {
+    func testDisabledSummariesSkipGenerationRetryAndPrewarm() async throws {
+        let provider = DisabledSummarySpy()
+        let fixture = try fixture(summaryProvider: provider, summariesEnabled: false)
+        defer { fixture.close() }
+        let model = fixture.model
+        XCTAssertFalse(model.summariesEnabled)
+        model.requestSelectedReport()
+        model.retrySummary(id: "a")
+        model.selectedID = "b"; model.requestSelectedReport()
+        let term = Term(termCode: "202670", termName: "FICTIONAL test term", termDisplayControl: "Y")
+        model.terms = [term]; model.termID = term.id; model.input = "MATH005A"
+        model.start()
+        try await waitUntil("disabled-mode search finishes") { !model.busy && model.showingResults }
+        let calls = await provider.calls
+        XCTAssertEqual(calls, 0)
+        XCTAssertTrue(fixture.server.tags.isEmpty)
+        XCTAssertNil(model.summaryLoadingID)
+        XCTAssertTrue(model.retryingIDs.isEmpty)
+        XCTAssertFalse(AppModel(cache: ReportCache(directory: fixture.directory), choices: ProfileChoiceStore(directory: fixture.directory)).summariesEnabled)
+    }
+
+    @MainActor
+    func testDisabledSummariesStillExpandRetryAndCacheReviews() async throws {
+        let reader = DisabledReviewReader()
+        let provider = DisabledSummarySpy()
+        let fixture = try fixture(makeReader: { reader }, summaryProvider: provider, summariesEnabled: false)
+        defer { fixture.close() }
+        let model = fixture.model
+        model.professors[0].reviewsComplete = false
+        model.requestSelectedReport()
+        try await waitUntil("review error") { model.professors[0].reviewIssue != nil && !model.loadingDetails }
+        XCTAssertEqual(model.professors[0].profile?.reviews.count, 2)
+        model.retryReviews(id: "a")
+        try await waitUntil("review retry completes") { model.professors[0].reviewsComplete && !model.loadingDetails }
+        XCTAssertEqual(reader.calls, 2)
+        XCTAssertNil(model.professors[0].reviewIssue)
+        XCTAssertEqual(model.professors[0].profile?.reviews.count, 3)
+        XCTAssertNil(model.professors[0].summary)
+        XCTAssertNil(model.summaryLoadingID)
+        let calls = await provider.calls
+        XCTAssertEqual(calls, 0)
+        let saved = ReportCache(directory: fixture.directory).load(name: model.professors[0].name, course: model.course!, subject: model.professors[0].subjectCode, includeSummary: false)
+        XCTAssertEqual(saved?.profile.reviews.count, 3)
+        XCTAssertEqual(saved?.reviewsComplete, true)
+    }
+
+    @MainActor
+    private func fixture(makeReader: @escaping @MainActor () -> any ProfileReader = { RMPBrowser() }, summaryProvider: (any SummaryProvider)? = nil, summariesEnabled: Bool = true) throws -> AppFixture {
         let server = AppTestServer()
         AppTestProtocol.server = server
         let configuration = URLSessionConfiguration.ephemeral
@@ -31,7 +78,7 @@ final class AppModelTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("BYE-AppTests-\(UUID())")
         let model = AppModel(pcc: PCCClient(session: session),
                              ollama: OllamaClient(model: "fictional-test-model", session: session), summaryProvider: summaryProvider,
-                             cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory), makeReader: makeReader)
+                             cache: ReportCache(directory: directory), choices: ProfileChoiceStore(directory: directory), summariesEnabled: summariesEnabled, makeReader: makeReader)
         model.course = try Course("MATH 005A")
         model.professors = ["a", "b", "c"].map { id in
             let reviews = (1...2).map { number in
@@ -416,5 +463,31 @@ private struct SuccessfulAppleFixture: SummaryProvider {
         var summary = try SummaryBuilder.validate(data, reviews: selected, course: course)
         summary.providerIdentity = cacheIdentity; summary.evidence = selected
         return summary
+    }
+}
+
+private actor DisabledSummarySpy: SummaryProvider {
+    nonisolated let cacheIdentity = "disabled-summary-spy"
+    private(set) var calls = 0
+    func prewarm() async { calls += 1 }
+    func summarize(reviews: [Review], course: Course) async throws -> ReviewSummary {
+        calls += 1
+        throw URLError(.unsupportedURL)
+    }
+}
+
+@MainActor
+private final class DisabledReviewReader: ProfileReader {
+    var calls = 0
+    func stop() { }
+    func candidates(_ professor: Professor, discoverAll: Bool) async throws -> [RMPProfile] { [] }
+    func preview(_ professor: Professor, profileID: String) async throws -> RMPProfile { throw URLError(.unsupportedURL) }
+    func expand(_ professor: Professor, profile: RMPProfile, onProfile: @MainActor (RMPProfile) -> Void) async throws -> RMPProfile {
+        calls += 1
+        if calls == 1 { throw URLError(.timedOut) }
+        var full = profile
+        full.reviews.append(Review(id: "expanded", course: "MATH005A", text: "Fictional additional review", date: "2026-01-02", rating: 4, difficulty: 2, online: true))
+        onProfile(full)
+        return full
     }
 }

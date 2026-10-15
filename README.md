@@ -58,28 +58,19 @@ Read student feedback directly within the application.
 
 Overall professor scores remain separate from course-specific reviews.
 
-### Experimental AI review summaries
+### AI summaries temporarily paused
 
-BYE can analyze available student feedback and highlight recurring positives and concerns.
+The locally prepared Mac **v0.3.0-beta.4** disables AI summaries while a better solution is evaluated. It shows a short notice and keeps ratings, original reviews, sorting, weekday filters, and retrieval retries available. No summary model is initialized or prewarmed; cached summaries are hidden and their files are retained.
 
-- Summaries are based on retrieved student reviews.
-- The number of reviews analyzed is displayed.
-- Unsupported themes may be excluded.
-- Original reviews remain accessible for verification.
+Apple Intelligence, Ollama, and an API key are not required for this Mac build. Earlier published Mac betas retain their original experimental Apple summary behavior. Windows/Electron `0.1.0-beta.2` also has summaries disabled.
 
-**AI availability and processing depend on the operating system.**
-
-On supported Macs, BYE uses Apple's on-device Foundation Models framework. No separate Ollama installation or API key is required.
-
-AI summaries are temporarily disabled in Windows/Electron version `0.1.0-beta.2`, whose ZIP omits inactive model weights. Ratings and original reviews remain available; the summary implementation, development model files and local caches are retained. Native Mac AI and existing published releases retain their original behavior.
-
-AI summaries are experimental and should not replace reading the original reviews.
+See the [prepared beta.4 release notes](docs/GITHUB_PRERELEASE.md). The latest public download remains linked above until beta.4 is published.
 
 ### Faster searches and recovery
 
 - Reuse locally cached professor information.
 - Load available results progressively.
-- Retry failed searches and summaries.
+- Retry failed searches and review retrieval.
 - Choose between ambiguous professor profiles.
 - Change previously selected profiles.
 - Refresh information when necessary.
@@ -96,17 +87,19 @@ Choose the instructions for your operating system.
 
 - Apple Silicon Mac (M-series).
 - macOS 14 or newer for ratings and reviews.
-- macOS 26.4 or newer with Apple Intelligence enabled for AI summaries.
+- Apple Intelligence is not required for the prepared beta.4 build; older Apple AI betas require macOS 26.4+ for their experimental summaries.
 - Internet connection for class schedules and professor data.
 
 **Steps**
 
-1. Open the [BYE v0.3.0-beta.2 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.2).
+1. Open the [BYE v0.3.0-beta.3 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.3).
 2. Expand **Assets**.
-3. Download `BYE-0.3.0-beta.2-AppleSilicon.dmg`.
+3. Download `BYE-0.3.0-beta.3-AppleSilicon.dmg`.
 4. Open the downloaded DMG.
 5. Drag **BYE Apple AI Beta** into the Applications folder.
 6. Eject the DMG and launch the application.
+
+For the locally prepared beta.4, use `BYE-0.3.0-beta.4-AppleSilicon.dmg` and install **BYE Beta**. Quit the old beta first; after confirming the new app works, remove **BYE Apple AI Beta** to avoid opening the previous version. Saved beta data is reused. See the [beta.4 installation and update notes](docs/GITHUB_PRERELEASE.md#install-or-update).
 
 **macOS security notice**
 
@@ -120,7 +113,9 @@ Only approve software from sources you trust.
 
 **Updating**
 
-Quit the existing application before replacing it with a newer version.
+Starting with v0.3.0-beta.5, BYE updates itself. It checks for a new version about once a day, downloads it in the background, and installs it when you quit. Choose **BYE Beta → Check for Updates…** to check now, or **BYE Beta → Settings…** to turn automatic checks or installation off. Each update is verified against BYE's release signature before it is installed.
+
+Earlier betas (beta.4 and older) cannot update themselves: install beta.5 from its DMG once, and later versions arrive automatically.
 
 ### Windows — ZIP package
 
@@ -159,10 +154,11 @@ BYE is designed to minimize unnecessary data collection.
 - Remembered professor profile selections are stored locally.
 - Rate My Professors data is retrieved through direct requests rather than loading webpage advertisements, scripts, or analytics.
 - No RMP account credentials are required.
+- On macOS (beta.5 and later), update checks contact the BYE website about once a day. Its host, Cloudflare, sees your public IP address and app version; no system profile or other information is sent. Automatic checks can be turned off in Settings.
 
 **macOS AI privacy**
 
-On supported Macs, Apple's AI summary generation runs on-device. Summary prompts are not sent to a cloud AI service.
+The prepared Mac beta.4 does not generate AI summaries or initialize a summary model. Older Mac betas use Apple’s on-device summary generation; summary prompts are not sent to a cloud AI service.
 
 Windows AI processing should be evaluated according to the implementation used by the Windows build.
 
