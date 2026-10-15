@@ -1,6 +1,6 @@
-# Testing and verification
+# Testing BYE — a practical reference
 
-Use these commands for **local engineering checks**, not as proof that a build has been published. The historical record of results, constraints, and unverified behavior is in [Project Status](PROJECT_STATUS.md) and `docs/verification/`.
+BYE already contains tests and verification scripts, including some added during AI-assisted development. This page is a **reference for learning and using them**, not a claim that every check is run manually on every change. Start with the tests relevant to what you changed. Running a local test does not mean a build has been published. Historical evidence and limits are in [Project Status](PROJECT_STATUS.md) and `docs/verification/`.
 
 ## Native macOS
 
@@ -14,7 +14,7 @@ From the repository root with Xcode/macOS SDK configured:
 
 The wrapper configures the project's SwiftPM toolchain/caches and XCTest handling. The last command prepares `test/BYE Test.app`; **manually launch and inspect** it if the change affects UI or network interactions. It does not publish an app, and the generated bundle is ignored.
 
-Focus regressions on:
+When changing these features, examples of things to check include:
 
 - Course aliases, official catalog resolution, term and section matching.
 - Meeting-day filters, course sections, and UI/window lifecycle.
@@ -68,8 +68,8 @@ Historical local summarization trials, benchmark input boundaries, test fixtures
 
 A test that completed does not establish summary quality. Distinguish offline/synthetic tests, live data checks, and end-user verification.
 
-## Recording evidence in a pull request
+## A simple habit to learn
 
-Include the changed platform/component, exact commands run, result, environment/toolchain, relevant failure logs with private details redacted, and what was **not tested**. For network, privacy, and release changes, note the source, date, conditions, and any unverified assumptions.
+After a meaningful change, write down **what you changed, what you tested, what passed or failed, and what you did not test**. A short note is enough for a small student-project change; release/security work needs more complete evidence. If Codex runs a test, check its result instead of assuming it passed.
 
 Do not commit raw student reviews, private user caches, credentials, model weights, machine-specific paths, or full unredacted logs. Use synthetic fixtures and existing privacy checks.
