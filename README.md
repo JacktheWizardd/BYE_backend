@@ -14,17 +14,20 @@ Currently designed for **Pasadena City College (PCC)**, BYE is available in beta
 
 ## Download
 
-**Latest public beta: v0.3.0-beta.3**
+**Latest public beta: v0.3.0-beta.4**
 
 Download BYE from the official GitHub Releases page:
 
-**[Download BYE for macOS or Windows](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/latest)**
+**[Download BYE for macOS](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/latest)**
 
 Since the current public release is a prerelease, you can also access it directly:
 
-[BYE v0.3.0-beta.3](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.3)
+[BYE v0.3.0-beta.4](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.4)
 
 No programming experience is required to use the packaged application.
+
+Currently there is no plan for windows development but you can access it here:
+[BYE V0.3.0-beta.3](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases#release-v0.3.0-beta.3)
 
 ## Features
 
@@ -92,9 +95,15 @@ Choose the instructions for your operating system.
 
 **Steps**
 
+<<<<<<< HEAD
 1. Open the [BYE v0.3.0-beta.3 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.3).
 2. Expand **Assets**.
 3. Download `BYE-0.3.0-beta.3-AppleSilicon.dmg`.
+=======
+1. Open the [BYE v0.3.0-beta.4 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.4).
+2. Expand **Assets**.
+3. Download `BYE-0.3.0-beta.4-AppleSilicon.dmg`.
+>>>>>>> 5fc567fce570ba43cb10cc857e260363473f98c9
 4. Open the downloaded DMG.
 5. Drag **BYE Apple AI Beta** into the Applications folder.
 6. Eject the DMG and launch the application.
@@ -127,7 +136,7 @@ Earlier betas (beta.4 and older) cannot update themselves: install beta.5 from i
 
 **Steps**
 
-1. Open the [BYE v0.3.0-beta.2 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.2).
+1. Open the [BYE v0.3.0-beta.3 release](https://github.com/JacktheWizardd/BYE_Before_You_Enroll/releases/tag/v0.3.0-beta.3).
 2. Expand **Assets**.
 3. Download the Windows ZIP package.
 4. Right-click the downloaded file and select **Extract All**.
