@@ -5,8 +5,8 @@
 UPDATE_KEY_ACCOUNT=bye-before-you-enroll
 UPDATE_PUBLIC_ED_KEY=CpVpvUEH+nVuA7BEZ1IJqGfSDPF8DyYL8FAx+DEF78o=
 # Updates are served from the public /updates/ folder of the BYE website
-# (a Cloudflare Worker). Both GitHub repositories stay private.
-UPDATE_SITE=${BYE_UPDATE_SITE:-https://bye-website.jack-truong2k1.workers.dev}
+# (Cloudflare Pages). Both GitHub repositories stay private.
+UPDATE_SITE=${BYE_UPDATE_SITE:-https://bye-before-you-enroll.pages.dev}
 # Verification builds may point at a localhost feed with BYE_UPDATE_FEED_URL.
 UPDATE_FEED_URL=${BYE_UPDATE_FEED_URL:-$UPDATE_SITE/updates/appcast.xml}
 UPDATE_DOWNLOAD_PREFIX=${BYE_UPDATE_DOWNLOAD_PREFIX:-$UPDATE_SITE/updates}

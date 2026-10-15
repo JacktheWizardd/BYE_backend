@@ -4,12 +4,12 @@
     <title>BYE Updates</title>
     <item>
       <title>BYE 0.3.0-beta.5</title>
-      <pubDate>Thu, 15 Oct 2026 02:26:02 GMT</pubDate>
+      <pubDate>Thu, 15 Oct 2026 02:54:36 GMT</pubDate>
       <sparkle:version>7</sparkle:version>
       <sparkle:shortVersionString>0.3.0-beta.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <description>&lt;ul&gt;&lt;li&gt;&lt;strong&gt;BYE now updates itself.&lt;/strong&gt; It checks for a new version about once a day, downloads it in the background, and installs it the next time you quit. Use &lt;strong&gt;BYE Beta → Check for Updates…&lt;/strong&gt; to check now, or change this in &lt;strong&gt;BYE Beta → Settings…&lt;/strong&gt;. Updates are verified with BYE’s release signature before installation. This is the last version you need to install by hand.&lt;/li&gt;&lt;li&gt;Choose available weekdays on the search screen or results sidebar. Classes must fit entirely within those days; fully asynchronous online sections remain eligible. Clear days to include every schedule, including unannounced meetings.&lt;/li&gt;&lt;li&gt;Required meeting days are combined across lecture/lab rows and co-instructors.&lt;/li&gt;&lt;li&gt;Sort reviews by latest, oldest, highest/lowest rating, or highest/lowest difficulty.&lt;/li&gt;&lt;li&gt;“Find more for this class” retrieves equivalent course labels reported by the professor’s RMP profile, with a combined 50-rating limit. Overall professor scores remain separate.&lt;/li&gt;&lt;li&gt;Class sections appear near the top of professor reports.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;AI summaries are temporarily disabled while a better solution is evaluated.&lt;/strong&gt; Cached summaries are hidden and no summary model is initialized or prewarmed. Original reviews, ratings, filters, and retrieval retries remain available.&lt;/li&gt;&lt;li&gt;The installed app is now named &lt;strong&gt;BYE Beta&lt;/strong&gt;. Beta.5 includes all beta.4 changes.&lt;/li&gt;&lt;/ul&gt;</description>
-      <enclosure url="https://bye-website.jack-truong2k1.workers.dev/updates/BYE-0.3.0-beta.5-AppleSilicon.zip" length="2708492" type="application/octet-stream" sparkle:edSignature="rCcgXF31lTgc47+KVX+r8tT+9ftipda3vYSTn5Q75x+euM7xB5IfRAXg7X60Qjz/eozM+q9knUyKEv7iy//oAg==" />
+      <enclosure url="https://bye-before-you-enroll.pages.dev/updates/BYE-0.3.0-beta.5-AppleSilicon.zip" length="2708485" type="application/octet-stream" sparkle:edSignature="hQnTRGqrct8e5zxoQHSInMbKIEgEsiTBmNt6IIYAur1N5lJxsHDDlTEk16+nGP6QvAfyK2FK89K6P7UZ7K6QDQ==" />
     </item>
   </channel>
 </rss>

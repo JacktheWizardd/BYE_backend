@@ -1,8 +1,10 @@
 # Releasing a Mac update
 
 BYE uses [Sparkle 2](https://sparkle-project.org) for in-app updates. Both GitHub repositories are
-private, so installed copies read `https://bye-website.jack-truong2k1.workers.dev/updates/appcast.xml`
-from the BYE website (a Cloudflare Worker) and download the update zip from the same folder.
+private, so installed copies read `https://bye-before-you-enroll.pages.dev/updates/appcast.xml`
+from the BYE website (Cloudflare Pages, deployed from the website repo's `public/` folder) and
+download the update zip from the same folder. The feed address is built into every release, so it
+must keep working once people install a build.
 Every update zip must be signed with BYE's EdDSA key or installed copies refuse it.
 
 ## One-time setup
@@ -28,14 +30,12 @@ Every update zip must be signed with BYE's EdDSA key or installed copies refuse 
 
   Without these variables builds stay ad-hoc signed. Changing the signing identity later is safe
   because the EdDSA key stays the same.
-- **Public `/updates/` folder.** The website is behind Cloudflare Access, which installed apps
-  cannot sign in to. In the Cloudflare dashboard, open **Zero Trust → Access → Applications → Add an
-  application → Self-hosted**, set the domain to `bye-website.jack-truong2k1.workers.dev` with path
-  `updates`, and give it a policy with action **Bypass** and include **Everyone**. The rest of the
-  site stays behind sign-in. Check it without signing in:
+- **Keep `/updates/` public.** Installed apps cannot sign in, so `/updates/` must load without
+  Cloudflare Access or any other sign-in. If you ever protect the site, add an Access application
+  for path `updates` with a **Bypass** policy for **Everyone**. Check it without signing in:
 
   ```sh
-  curl -I https://bye-website.jack-truong2k1.workers.dev/updates/appcast.xml
+  curl -I https://bye-before-you-enroll.pages.dev/updates/appcast.xml
   ```
 
   It must answer `200`, not a `302` redirect to `cloudflareaccess.com`.
@@ -64,8 +64,8 @@ Every update zip must be signed with BYE's EdDSA key or installed copies refuse 
    It copies the zip and `appcast.xml` into the site's `updates/` folder and the DMG into its
    downloads folder, and adds a 5-minute cache rule for the appcast to `_headers`. It checks the
    appcast, sizes and checksums first, and never commits or deploys.
-5. In the website repository, point the download button at the new DMG, review the diff, then commit
-   and deploy. The zip and the appcast go live in the same deploy, so installed copies never see an
+5. In the website repository, change the DMG name in `public/_redirects` and the version line in
+   `index.html`, review the diff, then commit and push (pushing to `main` deploys). The zip and the appcast go live in the same deploy, so installed copies never see an
    appcast that names a missing zip. They find the update at their next daily check, or immediately
    through Check for Updates….
 6. Commit the source repository's `appcast.xml` and version bump as the release record.

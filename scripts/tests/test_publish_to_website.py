@@ -14,7 +14,7 @@ def load(name, file):
 
 publisher = load("publisher", "publish-to-website.py")
 appcast = load("appcast_for_publish", "make-appcast.py")
-SITE = "https://bye-website.jack-truong2k1.workers.dev/updates/"
+SITE = "https://bye-before-you-enroll.pages.dev/updates/"
 
 
 class PublishTests(unittest.TestCase):

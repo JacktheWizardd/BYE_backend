@@ -10,7 +10,7 @@
     "codesign_verify_deep_strict": "passed (ad-hoc)",
     "distribution_privacy_gate": "passed, including embedded Sparkle.framework",
     "info_plist": {
-      "SUFeedURL": "https://bye-website.jack-truong2k1.workers.dev/updates/appcast.xml",
+      "SUFeedURL": "https://bye-before-you-enroll.pages.dev/updates/appcast.xml",
       "SUEnableAutomaticChecks": true,
       "SUAutomaticallyUpdate": true,
       "SUScheduledCheckInterval": 86400,
@@ -45,7 +45,7 @@
     ]
   },
   "not_verified": [
-    "Live website feed and download (pending Access bypass and website deploy)",
+    "A real installed-copy update from the live site (requires publishing beta.6)",
     "First install from a browser-quarantined DMG followed by an in-app update",
     "Developer ID signing, notarization and stapling",
     "Another Mac"
@@ -53,7 +53,15 @@
   "hosting_change": {
     "reason": "Both GitHub repositories are private, so raw.githubusercontent.com and release downloads return 404 without sign-in.",
     "feed": "https://bye-website.jack-truong2k1.workers.dev/updates/appcast.xml",
-    "site_status_2026_10_14": "Every path redirects (302) to Cloudflare Access sign-in; an Access Bypass rule for /updates/ is required before installed apps can read the feed.",
-    "local_retest": "Isolated build 7 updated to build 8 from a localhost feed after the change."
+    "site_status_2026_10_14": "Cloudflare Access turned off for the production workers.dev URL; site and /updates/ answer 200 without sign-in.",
+    "local_retest": "Isolated build 7 updated to build 8 from a localhost feed after the change.",
+    "moved_to": "https://bye-before-you-enroll.pages.dev/updates/appcast.xml (Cloudflare Pages) before any build was distributed; beta.5 rebuilt with this feed."
+  },
+  "live_check_2026_10_14": {
+    "appcast": "200, application/xml, Cache-Control public max-age=300, identical to repo appcast.xml",
+    "update_zip": "200, 2708492 bytes, SHA-256 matches, EdDSA signature valid",
+    "download": "/download 302 to the beta.5 DMG; DMG identical to dist build",
+    "home_page": "shows Version 0.3.0-beta.5",
+    "note": "Results above are from the workers.dev Worker; see live_check_pages for the Pages site."
   }
 }

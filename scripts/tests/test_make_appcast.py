@@ -7,7 +7,7 @@ spec = importlib.util.spec_from_file_location("appcast", Path(__file__).parents[
 appcast = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(appcast)
 S = appcast.S
-URL = "https://bye-website.jack-truong2k1.workers.dev/updates/BYE-{0}-AppleSilicon.zip"
+URL = "https://bye-before-you-enroll.pages.dev/updates/BYE-{0}-AppleSilicon.zip"
 NOTES = "# BYE\n\n## What changed\n\n- Added **updates** & `zip` <safe>.\n- Second item.\n\n## Install\n\n- Not a change.\n"
 
 
