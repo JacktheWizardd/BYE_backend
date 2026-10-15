@@ -37,6 +37,7 @@ final class CourseShorthandTests: XCTestCase {
         XCTAssertEqual(CourseSuggestions.match(rows: rows, query: "stat c1000").map(\.course.display), ["STAT C1000"], "Not \"STATC 1000\"")
         XCTAssertEqual(try CourseSuggestions.resolve(try Course("statc1000"), rows: rows).display, "STAT C1000")
         XCTAssertEqual(ScheduleParser.professors(rows: rows, course: try Course("STAT C1000")).count, 1)
+        XCTAssertEqual(ScheduleParser.professors(rows: rows, course: try Course("statc1000")).count, 1, "Typed without a space still matches")
     }
     func testSuggestionsSupportPartialShorthandWithoutHiddenRows() throws {
         XCTAssertEqual(CourseSuggestions.match(rows: try rows(), query: "math 5").map(\.course.display), ["MATH 005A", "MATH 005B"])

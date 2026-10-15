@@ -14,10 +14,11 @@ public struct Course: Hashable, Codable, Sendable {
         return subject + prefix + (significant.isEmpty ? "0" : String(significant)) + remainder.dropFirst(digits.count)
     }
 
+    private static let courseRegex = try! NSRegularExpression(pattern: "^([A-Z]{2,8})\\s*([A-Z]?\\d{1,4}[A-Z]?)$")
+
     public init(_ input: String) throws {
         let cleaned = input.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        let regex = try NSRegularExpression(pattern: "^([A-Z]{2,8})\\s*([A-Z]?\\d{1,4}[A-Z]?)$")
-        guard let match = regex.firstMatch(in: cleaned, range: NSRange(cleaned.startIndex..., in: cleaned)),
+        guard let match = Course.courseRegex.firstMatch(in: cleaned, range: NSRange(cleaned.startIndex..., in: cleaned)),
               let s = Range(match.range(at: 1), in: cleaned), let n = Range(match.range(at: 2), in: cleaned)
         else { throw AppError.message("Enter a subject and course number, such as ETH 014 or POLS C1000.") }
         subject = String(cleaned[s]); number = String(cleaned[n])
@@ -139,11 +140,24 @@ public struct Section: Codable, Identifiable, Hashable, Sendable {
         if formats.allSatisfy({ ["OD", "OL", "OS", "ON"].contains($0) }) { return "Online · scheduled meetings" }
         return "In person"
     }
+    private static let startEndParser: DateFormatter = {
+        let parser = DateFormatter()
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        parser.timeZone = TimeZone(secondsFromGMT: 0)
+        parser.dateFormat = "yyyy-MM-dd"
+        return parser
+    }()
+    private static let startEndDisplay: DateFormatter = {
+        let display = DateFormatter()
+        display.locale = Locale(identifier: "en_US")
+        display.timeZone = TimeZone(secondsFromGMT: 0)
+        display.dateFormat = "MMM d, yyyy"
+        return display
+    }()
+
     public var dateLabel: String {
-        let parser = DateFormatter(); parser.locale = Locale(identifier: "en_US_POSIX"); parser.timeZone = TimeZone(secondsFromGMT: 0); parser.dateFormat = "yyyy-MM-dd"
-        let display = DateFormatter(); display.locale = Locale(identifier: "en_US"); display.timeZone = TimeZone(secondsFromGMT: 0); display.dateFormat = "MMM d, yyyy"
         func label(_ source: String) -> String {
-            parser.date(from: String(source.prefix(10))).map { display.string(from: $0) } ?? "Date unavailable"
+            Section.startEndParser.date(from: String(source.prefix(10))).map { Section.startEndDisplay.string(from: $0) } ?? "Date unavailable"
         }
         return "\(label(start)) – \(label(end))"
     }
@@ -442,9 +456,13 @@ public enum ScheduleParser {
     }
 
     public static func professors(rows: [ScheduleRow], course: Course) -> [Professor] {
-        let matches = rows.filter {
-            (try? Course($0["subjCode"] + " " + $0["courseNumbDisplay"]).matchingKey) == course.matchingKey &&
-            !["R", "X"].contains($0["fwSectOpenInd"]) && !$0["crn"].isEmpty
+        let matches = rows.filter { row in
+            guard !["R", "X"].contains(row["fwSectOpenInd"]) && !row["crn"].isEmpty else { return false }
+            let subj = row["subjCode"].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            // Cheap pre-check before parsing. A prefix test, because a code typed without a space
+            // ("STATC1000") parses with subject STATC while PCC lists subject STAT.
+            if !subj.isEmpty && !course.matchingKey.hasPrefix(subj) { return false }
+            return (try? Course(row["subjCode"] + " " + row["courseNumbDisplay"]).matchingKey) == course.matchingKey
         }
         let meetingsByCRN = Dictionary(grouping: matches, by: { $0["crn"] })
         // Retain explicitly listed co-instructors, with every required meeting for their CRN.

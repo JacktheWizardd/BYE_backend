@@ -31,7 +31,7 @@ final class RMPClientTests: XCTestCase {
         XCTAssertNil(config.urlCredentialStorage); XCTAssertNil(config.urlCache)
         XCTAssertEqual(config.httpMaximumConnectionsPerHost, 2)
         XCTAssertEqual(config.timeoutIntervalForRequest, 15)
-        XCTAssertEqual(config.httpAdditionalHeaders?["User-Agent"] as? String, "BYE/0.2")
+        XCTAssertEqual(config.httpAdditionalHeaders?["User-Agent"] as? String, "BYE/0.3")
     }
     func testMinimalProfileRequestKeepsSourceValuesAndDoesNotSendCourseByDefault() async throws {
         let server = APIServer { _, _ in Reply(data: try self.profileData(), headers: ["Set-Cookie": "tracking=123; Path=/; Secure"]) }

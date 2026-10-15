@@ -53,7 +53,10 @@ public enum CourseSuggestions {
     public static func catalog(rows: [ScheduleRow]) -> [CourseSuggestion] {
         var unique: [String: CourseSuggestion] = [:]
         for row in rows where !["R", "X"].contains(row["fwSectOpenInd"]) && !row["crn"].isEmpty {
-            guard let course = try? Course(row["subjCode"] + " " + row["courseNumbDisplay"]) else { continue }
+            let subj = row["subjCode"].trimmingCharacters(in: .whitespacesAndNewlines)
+            let numb = row["courseNumbDisplay"].trimmingCharacters(in: .whitespacesAndNewlines)
+            // Keep the space so codes like STAT C1000 parse as subject STAT, number C1000.
+            guard !subj.isEmpty, !numb.isEmpty, let course = try? Course(subj + " " + numb) else { continue }
             let title = row["courseTitle"].trimmingCharacters(in: .whitespacesAndNewlines)
             if let existing = unique[course.key], !existing.title.isEmpty,
                title.isEmpty || existing.title.localizedStandardCompare(title) != .orderedDescending { continue }

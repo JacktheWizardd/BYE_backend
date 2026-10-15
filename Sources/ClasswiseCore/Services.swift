@@ -6,8 +6,17 @@ public final class PCCClient {
     public init(session: URLSession = .shared) { self.session = session }
     private func fetch<T: Decodable>(_ path: String) async throws -> T {
         let url = URL(string: "https://prod-apiweb.pasadena.edu/api/" + path)!
-        var request = URLRequest(url: url); request.timeoutInterval = 35
-        let (data, response) = try await session.data(for: request)
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 35
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("BYE/0.3", forHTTPHeaderField: "User-Agent")
+        let data: Data, response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            if (error as? URLError)?.code == .cancelled { throw CancellationError() }
+            throw AppError.message("PCC’s schedule is unavailable right now. Please try again.")
+        }
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw AppError.message("PCC’s schedule is unavailable right now. Please try again.")
         }
