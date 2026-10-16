@@ -36,3 +36,6 @@ apps/cross-platform/.cache/
 # Web demo build outputs.
 apps/web/node_modules/
 apps/web/dist/
+
+# Supabase seed SQL, regenerated each semester by scripts/pcc_seed.py.
+/pcc_seed.sql

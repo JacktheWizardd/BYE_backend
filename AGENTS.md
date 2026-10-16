@@ -23,3 +23,8 @@ Claude Code and Codex may both be working in this checkout at the same time. The
 - The user opens the visible `test` folder to test development builds. Use this stable app location when sharing the latest build.
 - Relaunch the updated test app after finishing Mac development so the user can test immediately. Close an older running BYE development instance first.
 - Keep generated test apps out of Git. This workflow is local testing; publishing requires a separate user request.
+
+# Area guides
+
+- The browser app migrated to `../BYE_website/apps/web/`; read that repository’s `AGENTS.md` and `apps/web/AGENTS.md`. The old `apps/web/README.md` is a migration pointer; its older area guide is historical.
+- The website lives in a separate repository (`../BYE_website`) with its own `AGENTS.md`.

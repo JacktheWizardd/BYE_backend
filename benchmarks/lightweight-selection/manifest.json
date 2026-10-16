@@ -1,0 +1,36 @@
+{
+  "models": [
+    {
+      "id": "qwen3-1.7b",
+      "repository": "Qwen/Qwen3-1.7B-GGUF",
+      "revision": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+      "filename": "Qwen3-1.7B-Q8_0.gguf",
+      "bytes": 1834426016,
+      "sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+      "native_repository": "Qwen/Qwen3-1.7B",
+      "native_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e"
+    },
+    {
+      "id": "lfm2.5-1.2b",
+      "repository": "LiquidAI/LFM2.5-1.2B-Instruct-GGUF",
+      "revision": "8ed288026e23958ad9dfa92d53ed773a8eee7125",
+      "filename": "LFM2.5-1.2B-Instruct-Q8_0.gguf",
+      "bytes": 1246253888,
+      "sha256": "f6b981dcb86917fa463f78a362320bd5e2dc45445df147287eedb85e5a30d26a",
+      "native_repository": "LiquidAI/LFM2.5-1.2B-Instruct",
+      "native_revision": "0f604ada3f766f9f257460c4c9f0b5d6f69d431b"
+    },
+    {
+      "id": "qwen3.5-0.8b",
+      "repository": "unsloth/Qwen3.5-0.8B-GGUF",
+      "revision": "6ab461498e2023f6e3c1baea90a8f0fe38ab64d0",
+      "filename": "Qwen3.5-0.8B-Q8_0.gguf",
+      "bytes": 811843840,
+      "sha256": "0ad885ffd4bb022fc4f0d33a3308fa108ef8613159d3b3a67e23abca056b7a6c",
+      "native_repository": "Qwen/Qwen3.5-0.8B",
+      "native_revision": "2fc06364715b967f1860aea9cf38778875588b17"
+    }
+  ],
+  "quantization": "Q8_0",
+  "purpose": "Untuned baseline; training uses native publisher weights"
+}

@@ -1,26 +1,12 @@
-# BYE web demo
+# Browser app moved
 
-A browser version of BYE that runs entirely on **bundled sample data**. Every instructor, rating and review is fictional. It makes no PCC or Rate My Professors requests and needs no server: the build is static files.
+The canonical browser source, tests, fonts, domain code and backend now live in
+`../../../BYE_website/apps/web` and its repository root.
 
-## Run
+Run development/build/test commands from `BYE_website`; see its `docs/WEB_BETA.md`.
+This location is retained only as a migration pointer. The preexisting AGENTS.md
+and CLAUDE.md are historical guides preserved because Claude's board still claims
+the guide; the website guide supersedes their old source paths.
 
-Use Node 24 LTS (or Node 22.16+).
-
-```sh
-cd apps/web
-npm install
-npm run dev        # http://localhost:5173
-npm run typecheck
-npm test
-npm run build      # static output in dist/, relative paths, so it can be served from any folder such as /demo/
-```
-
-## How it fits together
-
-- `src/demo-bridge.ts` implements the same `Bridge` contract (`command` + `subscribe`) as the Electron app's preload bridge. It follows the Electron `Engine` flow: schedule → professors → profile preview → full reviews, including the ambiguous-profile chooser and the stop behavior. A live implementation can replace it later without changing the UI.
-- Course parsing, suggestions, section grouping, identity matching, delivery labels and sorting/filtering are imported unchanged from `apps/cross-platform/src/shared` via the `@shared` alias. There is no second copy.
-- `src/demo-data.ts` holds rows shaped like PCC's schedule feed, plus fictional profiles. A test checks that no instructor name from the saved real PCC fixture is reused.
-- `src/schedule.ts` ports the Mac app's class-days rule and format labels (`Section.fits` / `formatLabel` in `Sources/ClasswiseCore/Models.swift`). Seat counts in `demoSeats` are invented.
-- The layout is mobile first and follows the "Mobile web" page of the BYE prototype canvas. Each screen (search → professors → report) is a browser history entry, so the phone's back gesture moves between screens instead of leaving the site. From 760px up, the professor list and report sit side by side.
-- `src/styles.css` uses the current redesign tokens (light only). Libre Baskerville comes from `Sources/Classwise/Resources`, and Schibsted Grotesk and JetBrains Mono come from bundled `@fontsource` packages, so no font CDN is needed.
-- AI summaries are not part of the demo.
+The Mac and Electron applications are unchanged. Do not recreate browser source
+here or copy another generated demo from this location.
