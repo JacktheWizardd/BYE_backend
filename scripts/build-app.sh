@@ -45,6 +45,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <key>CFBundleVersion</key><string>$BETA_BUILD</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
+<key>BYEWebsiteURL</key><string>$UPDATE_SITE</string>
 <key>SUFeedURL</key><string>$UPDATE_FEED_URL</string>
 <key>SUPublicEDKey</key><string>$UPDATE_PUBLIC_ED_KEY</string>
 <key>SUEnableAutomaticChecks</key><true/>

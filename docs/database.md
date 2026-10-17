@@ -1,6 +1,8 @@
-# Database plans (proposed)
+# Database overview
 
-**Status: design only.** BYE currently retrieves PCC schedule information and RMP professor information directly; neither of the Supabase initiatives below should be described as an implemented production database.
+**Status as of October 16, 2026:** The Supabase review database is live and its core submission, reporting, privacy, and cleanup behavior has been tested. The student-facing login and review form, real email delivery, and Mac app integration remain pending. The separate hosted schedule cache is still proposed; the app continues to retrieve PCC schedules and RMP professor information directly.
+
+Start with [Review database explained](review-database-explained.md) for the plain-language guide. Use [Supabase status and plan](supabase-plan.md) for the migrations, technical decisions, and verification record.
 
 The project has **two distinct Supabase-related initiatives**. They solve different problems and should retain separate schemas, access rules, and implementation plans even if they eventually share infrastructure.
 
@@ -8,17 +10,19 @@ The project has **two distinct Supabase-related initiatives**. They solve differ
 
 **Goal:** Collect original ratings and review text submitted voluntarily by students, reducing long-term product dependence on RMP for user-generated feedback.
 
-Proposed capabilities:
+Implemented database behavior:
 
-- Optional, student-originated submissions associated with a college and professor.
-- Structured rating fields plus optional review text, course/context, and submission timestamps.
-- Moderation/reporting, abuse prevention, edit/deletion handling, and duplicate controls.
-- A public-read projection of approved content, distinct from private submission/moderation records.
-- Clear attribution, data retention, privacy notice, and user deletion workflow.
+- Lists of 1,425 professors and 1,531 courses loaded from PCC schedule data.
+- Confirmed `@go.pasadena.edu` users submit quality/difficulty ratings, optional review text, and seven optional structured answers through `submit_review`.
+- One review per user, professor, and course; one report per user and visible review.
+- Three distinct reports automatically hide a review, its answers, and its contribution to comparison counts.
+- Public queries expose permitted review fields and counts. Reviewer IDs and report records are private to privileged administrators.
 
-Suggested entities for design discussion (not migrations): `schools`, `professors`, `courses`, `student_reviews`, `review_reports`, and `moderation_actions`. Agree on stable school/professor identity keys and the rating scale before implementing tables.
+The live tables are `professors`, `courses`, `reviews`, `review_dimensions`, `dimensions`, and `reports`. SQL is saved in [`schema.sql`](../supabase/schema.sql), [`002_write_side.sql`](../supabase/002_write_side.sql), and [`003_helper_permissions.sql`](../supabase/003_helper_permissions.sql). The [manual checks](../supabase/002_write_side_checks.sql) document the test procedure.
 
-**Security requirements to design first:** least-privilege roles, Supabase Row Level Security (RLS), review submission restrictions, service-role keys only on trusted server processes, server-side validation, spam controls, and moderation before publication. Do not assume a private repository makes a public submission endpoint safe.
+**Student experience planned:** Enter a PCC email and verify a one-time code. No student password or profile-management screens are required. Supabase maintains the user identity behind the scenes. Email access does not prove current enrollment or attendance in a particular class.
+
+**Remaining work:** Configure/test email-code delivery and confirmation settings; build the review form and app integration; define retention/deletion handling, moderation review, and additional abuse prevention. Visible reviews are currently published immediately and hidden after three reports; pre-publication moderation and automatic personal-information filtering are not implemented. The expected authenticated `submit_review` Security Advisor warning was reviewed; the two maintenance-helper warnings were fixed.
 
 **Data boundary:** BYE reviews are not copies of RMP reviews. Do not bulk import or republish third-party review text without appropriate rights.
 
@@ -59,13 +63,12 @@ The cache needs a documented source, refresh interval/TTL, data freshness timest
 
 Do not mix review submissions with fetched school schedule records, even when some foreign keys (school/course/professor) overlap. Identity mappings should be explicit and auditable.
 
-## Suggested implementation order
+## Remaining implementation order
 
-1. Confirm both sets of requirements, ownership, data sources, and permissions.
-2. Draft separate schemas, RLS/access policies, and API contracts.
-3. Create isolated development/test environments with synthetic records.
-4. Implement migrations, ingestion/submission validation, and automated tests.
-5. Add observability, cleanup/deletion policy, and incident handling.
-6. Integrate one feature at a time behind clear flags, then verify before declaring it shipped.
+1. Finish review email-code configuration and real delivery testing, then build the student-facing review form.
+2. Integrate review counts into the Mac app after choosing the client approach and implementing the Swift comparison statistics.
+3. Define the remaining review moderation, retention/deletion, and operational workflows.
+4. Confirm requirements and source permissions for the separate schedule service before implementing its schema or refresh jobs.
+5. Verify each student-facing feature before declaring it shipped.
 
-Record actual Supabase project references and credentials only in approved configuration/secret stores, not as copy-pasted developer documentation. The exact schema, hosting architecture, operational cost, and rollout sequence remain open decisions.
+Record actual Supabase project references and credentials only in approved configuration/secret stores, not as copy-pasted developer documentation. The schedule-cache schema, hosting architecture, operational cost, and rollout sequence remain open decisions. Review-database decisions and pending work are tracked in the [Supabase plan](supabase-plan.md).

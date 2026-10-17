@@ -73,6 +73,9 @@ struct ProfessorReport: View {
                 }
                 HStack(spacing: 12) {
                     Link("Rate My Professors ↗", destination: professor.sourceURL).buttonStyle(PillStyle())
+                    if let url = ReviewLink.url(professor: professor.name, course: course) {
+                        Link("Write a review ↗", destination: url).buttonStyle(PillStyle())
+                    }
                 }
                 if let date = professor.checkedAt {
                     Text("RMP checked \(date.formatted(date: .abbreviated, time: .shortened)). Refresh to check again.")
@@ -235,5 +238,28 @@ struct ProfessorReport: View {
             ForEach(professor.sections) { ClassCard(section: $0) }
             if let scheduleURL { Link("PCC schedule ↗", destination: scheduleURL).buttonStyle(PillStyle()) }
         }
+    }
+}
+
+/// Opens the BYE website's review form, prefilled by name. The website resolves
+/// the names to database IDs and only fills them in on an unambiguous match.
+enum ReviewLink {
+    static let defaultSite = "https://bye-before-you-enroll.pages.dev"
+
+    /// Distribution builds carry `BYEWebsiteURL` from scripts/build-app.sh;
+    /// test builds fall back to the default site.
+    static func site(info: [String: Any]? = Bundle.main.infoDictionary) -> String {
+        let value = (info?["BYEWebsiteURL"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
+        return value.isEmpty ? defaultSite : value
+    }
+
+    static func url(professor: String, course: Course, site: String = site()) -> URL? {
+        let name = professor.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, var components = URLComponents(string: site) else { return nil }
+        components.path = components.path.replacingOccurrences(of: "/+$", with: "", options: .regularExpression) + "/reviews/"
+        components.queryItems = [URLQueryItem(name: "professor", value: name), URLQueryItem(name: "course", value: course.display)]
+        // URLComponents leaves "+" alone, but form decoding on the website reads it as a space.
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        return components.url
     }
 }

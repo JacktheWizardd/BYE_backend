@@ -10,7 +10,8 @@ BYE is a student-focused course-planning application, currently centered on Pasa
 - **Separate Windows-oriented prototype:** Electron, React, and TypeScript in `apps/cross-platform/`. Its own package version is **0.1.0-beta.2**; this is not the native Mac app.
 - **Implemented:** PCC course/section search, schedule filters, professor profile selection, RMP ratings and original review retrieval, sorting, local caches, and failure/retry handling.
 - **Temporarily disabled:** AI-generated review summaries in the current prepared Mac beta and the separate Windows beta. Existing experimental code and records remain in the repository.
-- **Proposed, not integrated:** Supabase student-submitted reviews, a hosted/cache-backed school schedule API, and educational-plan/transfer requirement evaluation.
+- **Review database:** Supabase schema, PCC professor/course lists, restricted submissions, reporting, and automatic hiding are live and tested. Student login, email delivery, the review form, and app integration remain pending.
+- **Proposed, not integrated:** A hosted/cache-backed school schedule API and educational-plan/transfer requirement evaluation.
 
 For an up-to-date engineering handoff and verified-versus-unverified behavior, read [Project Status](docs/PROJECT_STATUS.md). Do not treat this README as a release announcement.
 
@@ -59,7 +60,9 @@ See the [cross-platform README](apps/cross-platform/README.md) before building o
 
 - [Architecture](docs/architecture.md) — application boundaries, data flow, storage, and external services.
 - [Development](docs/development.md) — setup, local workflow, branches, and configuration hygiene.
-- [Database plans](docs/database.md) — **two proposed, separate Supabase initiatives** and their data boundaries.
+- [Database overview](docs/database.md) — the live review database, proposed schedule cache, and their data boundaries.
+- [Review database explained](docs/review-database-explained.md) — a plain-language guide to student verification, reviews, privacy, reporting, and completed tests.
+- [Supabase status and plan](docs/supabase-plan.md) — SQL migrations, implementation decisions, verification results, and remaining work.
 - [API and integrations](docs/api.md) — current direct integrations versus the proposed hosted schedule API.
 - [Testing](docs/testing.md) — commands, offline versus live checks, and evidence requirements.
 

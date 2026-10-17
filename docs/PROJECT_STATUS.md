@@ -1,6 +1,14 @@
 # BYE development handoff
 
-Updated October 15, 2026.
+Updated October 16, 2026.
+
+## Review database foundation verified October 16
+
+The Supabase review database is live with 1,425 PCC professor entries and 1,531 course entries. Jack verified PCC submissions, duplicate and invalid-answer rejection, reviewer-ID privacy, public fields/counts, non-PCC submission/report rejection, one report per user, visibility after two reports, hiding after three, and cleanup of the temporary users and their test data. Codex ran 51 isolated PostgreSQL checks with mocked Supabase auth and four checks for the helper permission fix; concurrent reporting and real email delivery were not tested.
+
+Jack applied the approved helper permission fix and refreshed Security Advisor. Only the intentional authenticated `submit_review` warning remains. Email-code delivery/settings, the student-facing login and review form, Swift comparison statistics, and Mac app integration are still pending. No native app changes or commits were made during this database work.
+
+See [Review database explained](review-database-explained.md) for the plain-language guide and [Supabase status and plan](supabase-plan.md) for migrations, test details, and next steps. The hosted schedule-cache service remains a separate proposal.
 
 ## Redesign (0.4.0-beta.1, in progress)
 
