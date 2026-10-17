@@ -97,7 +97,7 @@ The manual checks now use permitted review columns, target the saved test UUID, 
 - **Auto-hide trigger.** After an insert on `reports`, if the review has 3 or more reports, set `reviews.is_hidden = true`. Use a `security definer` function with an empty `search_path`.
 - **Auth settings** (dashboard, not SQL):
   - Configure the email template for one-time codes (`{{ .Token }}`), keep email confirmation enabled, and verify real delivery. Jack reported saving Resend SMTP and both code templates, then completed a real website submission. The email-confirmation setting still needs explicit review.
-  - Configure a delivery provider for student emails: Supabase’s default email service only sends to project-team addresses. See [Supabase SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp).
+  - Configure a delivery provider for student emails: Supabase’s default email service only sends to project-team addresses. See [Supabase SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp). **Done October 17, 2026:** custom SMTP now uses Brevo (`smtp-relay.brevo.com:587`, sender `BYE` <byebeforeyouenroll@gmail.com>, free plan 300 emails/day; SMTP key expires 2027-10-17 or after 90 days without sending). Jack received a production code through it. Details: [Review launch record](review-launch-record.md).
   - Block sign-ups from non-PCC domains if Supabase offers a hook for it. The domain check in `submit_review` is the real guarantee either way.
 - **Test:** use the role dropdown and a test PCC account.
   - A submission works, and a second one for the same professor and course is rejected.

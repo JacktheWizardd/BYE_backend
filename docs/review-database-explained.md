@@ -83,8 +83,8 @@ We also removed app users' access to a maintenance helper called rls_auto_enable
 
 ## What remains before students can use it
 
-- Jack configured Resend SMTP and {{ .Token }} email templates for the owner test. Review that email confirmation stays enabled. Delivery to other students requires a verified sender domain.
-- Deploy and test the approved hosted preview; the local real-inbox submission already worked. The experience has no BYE passwords or profile-management screens.
+- Sign-in codes now reach any PCC student: Supabase sends them through Brevo (a free email service, 300 a day) from BYE's Gmail address. The {{ .Token }} code templates are unchanged. Review that email confirmation stays enabled. The Brevo key must be renewed by October 2027, or sooner after 90 days without emails.
+- The production review page is live at bye-before-you-enroll.pages.dev/reviews/, and the Mac app's "Write a review" button opens it. The experience has no BYE passwords or profile-management screens.
 - Connect the Mac app to the database counts. Choose URLSession or supabase-swift before adding a dependency. Jack will write the professor-comparison statistics in Swift.
 
 The database foundation is working. Hosted testing and broader student access are the next stage. No changes to the native Mac app or commits were made in this database session. Secret database credentials must stay out of the app and repository.

@@ -63,6 +63,7 @@ See the [cross-platform README](apps/cross-platform/README.md) before building o
 - [Database overview](docs/database.md) — the live review database, proposed schedule cache, and their data boundaries.
 - [Review database explained](docs/review-database-explained.md) — a plain-language guide to student verification, reviews, privacy, reporting, and completed tests.
 - [Supabase status and plan](docs/supabase-plan.md) — SQL migrations, implementation decisions, verification results, and remaining work.
+- [Review launch record](docs/review-launch-record.md) — how student reviews went live: the review page, the Mac button, email-code delivery (Brevo), website hosting fix, and troubleshooting.
 - [API and integrations](docs/api.md) — current direct integrations versus the proposed hosted schedule API.
 - [Testing](docs/testing.md) — commands, offline versus live checks, and evidence requirements.
 

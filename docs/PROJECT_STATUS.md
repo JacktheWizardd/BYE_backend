@@ -8,7 +8,7 @@ The Supabase review database is live with 1,425 PCC professor entries and 1,531 
 
 Jack applied the approved helper permission fix and refreshed Security Advisor. Only the intentional authenticated `submit_review` warning remains. Email-code delivery/settings, the student-facing login and review form, Swift comparison statistics, and Mac app integration are still pending. No native app changes or commits were made during this database work.
 
-See [Review database explained](review-database-explained.md) for the plain-language guide and [Supabase status and plan](supabase-plan.md) for migrations, test details, and next steps. The hosted schedule-cache service remains a separate proposal.
+Student reviews are live at bye-before-you-enroll.pages.dev/reviews/ for PCC students; see the [Review launch record](review-launch-record.md). See [Review database explained](review-database-explained.md) for the plain-language guide and [Supabase status and plan](supabase-plan.md) for migrations, test details, and next steps. The hosted schedule-cache service remains a separate proposal.
 
 ## Redesign (0.4.0-beta.1, in progress)
 
