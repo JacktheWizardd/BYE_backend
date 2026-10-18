@@ -28,6 +28,7 @@ does not mean the clients have been connected.
 - [Review database explained](review-database-explained.md)
 - [Supabase decisions and history](supabase-plan.md)
 - [Review launch record](review-launch-record.md)
+- [Website redesign record](website-redesign-record.md)
 
 ## Releases and historical records
 

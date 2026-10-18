@@ -1,6 +1,10 @@
 # BYE development handoff
 
-Updated October 17, 2026. Earlier dated entries remain historical records.
+Updated October 18, 2026. Earlier dated entries remain historical records.
+
+## Website redesign — October 17–18, 2026
+
+The website (separate `../BYE_website` repository) was redesigned mobile first in the BYE design system. It has an interactive, scroll-pinned home page, a matching review page, and a web demo that is clearly labeled as sample data, because testers had mistaken it for the real app. A feedback section emails byebeforeyouenroll@gmail.com. Review-page course search now ranks course codes before title matches. A plan for bringing the same look and motion to the Mac and Windows apps is in the website repository's `docs/APP_REDESIGN_PLAN.md` (not started). No app code or release files changed. See the [website redesign record](website-redesign-record.md).
 
 ## Standalone PCC schedule backend delivered October 17
 
@@ -29,7 +33,7 @@ Student reviews are live at bye-before-you-enroll.pages.dev/reviews/ for PCC stu
 
 **0.4.0-beta.1 (build 8)** is packaged locally in ignored `dist/` (DMG, signed update zip, checksums) and recorded in `appcast.xml`; it is not published to the website yet. The Mac app adopts the new BYE design system: ivory/linen/stone grounds, Jet Black type and buttons, warm grey secondary text, and yellow only for the wordmark swipe, rating bars and the progress meter. It is light mode only. BYE deliberately does not single out a "best" or recommended professor (a "Top pick" label was tried and removed). For the same reason no professor opens automatically: results start on a neutral course overview (`CourseOverview` in ContentView.swift), and a filter that hides the open professor returns there. Libre Baskerville (SemiBold and Bold, under the OFL, listed in the third-party notices) is bundled for headlines and scores and registered at launch. The theme and shared components live in `Sources/Classwise/Views/Components.swift`. The app icon is the wordmark on ivory (`assets/branding/AppIcon.png`, reproducible with `scripts/render-wordmark-icon.swift`).
 
-Class cards add data PCC's `classSchedule` feed already sent but BYE ignored: `seatsAvail`, `maxEnrl`, `waitCount`, `waitCapacity`, `ptrmDesc` (term part), `campDesc` and `creditHrLow`. These are parsed into the optional `Section.details` (`SectionDetails`); older caches decode with `details == nil`. The format label (In person, Hybrid, Online · live, Online · async) is derived from the existing schedule codes, and filtering behaviour is unchanged. Design references are the design-system and prototype artifacts linked in the commit notes. The class-day filter changes meaning in 0.4.0: a section matches when it meets on every picked day (it may meet on other days too). Before 0.4.0 it had to meet only within the picked days. Fully online sections still always match, and sections with no announced days still never match (`Section.fits(availableDays:)`). The website redesign is not started.
+Class cards add data PCC's `classSchedule` feed already sent but BYE ignored: `seatsAvail`, `maxEnrl`, `waitCount`, `waitCapacity`, `ptrmDesc` (term part), `campDesc` and `creditHrLow`. These are parsed into the optional `Section.details` (`SectionDetails`); older caches decode with `details == nil`. The format label (In person, Hybrid, Online · live, Online · async) is derived from the existing schedule codes, and filtering behaviour is unchanged. Design references are the design-system and prototype artifacts linked in the commit notes. The class-day filter changes meaning in 0.4.0: a section matches when it meets on every picked day (it may meet on other days too). Before 0.4.0 it had to meet only within the picked days. Fully online sections still always match, and sections with no announced days still never match (`Section.fits(availableDays:)`). The website redesign shipped October 17–18; see the [website redesign record](website-redesign-record.md).
 
 ## Current application
 
