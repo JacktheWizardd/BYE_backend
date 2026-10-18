@@ -108,6 +108,10 @@ Leading-zero shorthand is implemented for searches and downloaded review matchin
 
 No commit or upload was performed.
 
+## Windows app 0.4.0-beta.1 — October 18, 2026
+
+`apps/cross-platform` is now version 0.4.0-beta.1 and matches the Mac 0.4.0-beta.1 design and features: neutral course overview (no professor opens automatically), class details with seats and waitlist, class-day and fully online filters, six review sorts, preferred review filter and the "Write a review" link. In-app updates remain Mac-only. Offline UI acceptance passed in a Linux container; Windows performance, packaging and live checks are pending. See `apps/cross-platform/VERIFICATION.md`.
+
 ## Separate Windows cross-platform beta — October 10, 2026
 
 `apps/cross-platform` now contains an independent Electron/React/TypeScript 0.1.0-beta.1 application with direct PCC/RMP requests, explicit profile selection, separate job queues, persistent evidence-aware caches and bundled CPU Qwen3-4B inference. Swift application files remain unchanged. Windows ZIP packaging includes the model and licenses; see `apps/cross-platform/VERIFICATION.md` for measured results and limitations. The initial packaged startup failure was corrected by preserving required inference metadata and deferring native AI imports. The Windows beta remains unsigned and requires clean-machine acceptance before being described as release-ready. No Mac package of this separate application is claimed.
