@@ -11,7 +11,8 @@ BYE is a student-focused course-planning application, currently centered on Pasa
 - **Implemented:** PCC course/section search, schedule filters, professor profile selection, RMP ratings and original review retrieval, sorting, local caches, and failure/retry handling.
 - **Temporarily disabled:** AI-generated review summaries in the current prepared Mac beta and the separate Windows beta. Existing experimental code and records remain in the repository.
 - **Review database:** Supabase schema, PCC professor/course lists, restricted submissions, reporting, and automatic hiding are live and tested. Student login, email delivery, the review form, and app integration remain pending.
-- **Proposed, not integrated:** A hosted/cache-backed school schedule API and educational-plan/transfer requirement evaluation.
+- **Standalone schedule backend deployed:** Private Fall 2026 PCC data and an independent Supabase API with shared availability synchronization. Windows, Mac and website API integration remain pending. See the [API documentation](services/schedule-api/docs/README.md).
+- **Longer-term proposal:** Educational-plan/transfer requirement evaluation.
 
 For an up-to-date engineering handoff and verified-versus-unverified behavior, read [Project Status](docs/PROJECT_STATUS.md). Do not treat this README as a release announcement.
 
@@ -51,6 +52,7 @@ See the [cross-platform README](apps/cross-platform/README.md) before building o
 | `Sources/BYEAPI/` | Typed native RMP client and transport |
 | `Tests/` | Swift unit and integration tests |
 | `apps/cross-platform/` | Separate Electron/React/TypeScript app, scripts, and tests |
+| `services/schedule-api/` | Independent schedule API, synchronization worker, contract, migrations, tests and docs |
 | `scripts/` | Mac build, verification, packaging, and update tooling |
 | `test/` | Local Mac test-app entry point; generated app is not committed |
 | `benchmarks/` | Performance and summarization evaluation fixtures/tooling |
@@ -58,13 +60,16 @@ See the [cross-platform README](apps/cross-platform/README.md) before building o
 
 ## Developer guides
 
+- [Documentation index](docs/README.md) — project guides and the standalone API documentation folder.
+- [Standalone schedule API](services/schedule-api/docs/README.md) — architecture, keys, setup, deployment, verification and commit preparation.
+
 - [Architecture](docs/architecture.md) — application boundaries, data flow, storage, and external services.
 - [Development](docs/development.md) — setup, local workflow, branches, and configuration hygiene.
 - [Database overview](docs/database.md) — the live review database, proposed schedule cache, and their data boundaries.
 - [Review database explained](docs/review-database-explained.md) — a plain-language guide to student verification, reviews, privacy, reporting, and completed tests.
 - [Supabase status and plan](docs/supabase-plan.md) — SQL migrations, implementation decisions, verification results, and remaining work.
 - [Review launch record](docs/review-launch-record.md) — how student reviews went live: the review page, the Mac button, email-code delivery (Brevo), website hosting fix, and troubleshooting.
-- [API and integrations](docs/api.md) — current direct integrations versus the proposed hosted schedule API.
+- [API and integrations](docs/api.md) — direct client integrations and the independently deployed schedule API.
 - [Testing](docs/testing.md) — commands, offline versus live checks, and evidence requirements.
 
 Existing reference material:

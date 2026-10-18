@@ -1,6 +1,21 @@
 # BYE development handoff
 
-Updated October 16, 2026.
+Updated October 17, 2026. Earlier dated entries remain historical records.
+
+## Standalone PCC schedule backend delivered October 17
+
+The Fall 2026 private database pilot and standalone Supabase schedule API are
+deployed and verified. Daily baseline checks, demand-driven availability refresh,
+private publication, rollback and bounded retention are implemented. Existing
+Windows, Mac and website clients are not connected to this API yet. The API
+accepts one configured public key; a key-generation/rotation manager is future work.
+
+Start with the [API documentation folder](../services/schedule-api/docs/README.md),
+its [verification report](../services/schedule-api/docs/verification.md), and the
+[PCC pilot report](pcc-schedule-pilot.md). Recorded backend verification includes
+11 unit/contract/transport tests, 15 database scenarios and eight hosted scenarios.
+The [commit guide](../services/schedule-api/docs/commit-guide.md) separates this
+work from existing Windows bug fixes and provides Summary/Description text.
 
 ## Review database foundation verified October 16
 

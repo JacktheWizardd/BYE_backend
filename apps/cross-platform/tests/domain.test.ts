@@ -6,6 +6,18 @@ import { buildSummary, corroborated, selectEvidence } from '../src/main/summary-
 import type { Profile, Review, Row } from '../src/shared/types'
 export const profile = (id = '1', overrides: Partial<Profile> = {}): Profile => ({ id, firstName: 'John', lastName: 'Harris', schoolID: 2649, school: 'Pasadena City College', department: 'History', reviews: [], courseCounts: [], coverage: {}, ...overrides })
 const review = (id: string, text: string, label = 'ETH014'): Review => ({ id, text, course: label, date: '2026-05-01' })
+
+test('MATH suffix suggestions and searches preserve the official course and sections', async () => {
+  const rows: Row[] = JSON.parse(await readFile(new URL('./fixtures/math-courses.json', import.meta.url), 'utf8'))
+  for (const input of ['MATH 005A', 'math 005a', 'math 5a', 'MATH5A']) {
+    assert.equal(suggestions(input, rows)[0].course.display, 'MATH 005A')
+    const resolved = resolve(input, rows)
+    assert.equal(resolved.key, 'MATH005A')
+    assert.equal(professors(rows, resolved).flatMap(p => p.sections).length, 4)
+    assert.equal(sameCourse(resolved, 'MATH005B'), false)
+  }
+  assert.deepEqual(suggestions('MATH 005', rows).map(s => s.course.number), ['005A', '005B'])
+})
 test('course shorthand preserves subject, prefix, suffix and original label', () => {
   for (const input of ['math 5a', 'MATH05A', 'MATH 005A']) assert.equal(course(input).matchingKey, 'MATH5A')
   assert.equal(course('POLS C1000').matchingKey, 'POLSC1000')

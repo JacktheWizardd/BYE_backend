@@ -1,0 +1,7 @@
+project_id = "bye-schedule-api"
+
+[functions.bye-schedule-api]
+verify_jwt = false
+
+[functions.bye-schedule-sync]
+verify_jwt = false

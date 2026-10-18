@@ -24,6 +24,16 @@ Claude Code and Codex may both be working in this checkout at the same time. The
 - Relaunch the updated test app after finishing Mac development so the user can test immediately. Close an older running BYE development instance first.
 - Keep generated test apps out of Git. This workflow is local testing; publishing requires a separate user request.
 
+# Commit handoff preference
+
+- Whenever double-checking changes or preparing/completing a commit, always
+  provide a ready-to-paste **Summary** and **Description** for GitHub Desktop.
+- Base both on the actual reviewed changes. Include verification results and
+  material remaining limitations in the description; distinguish checks run now
+  from earlier recorded verification.
+- State whether changes were committed or remain uncommitted. Preparing a
+  handoff does not by itself request a Git commit or push.
+
 # Area guides
 
 - The browser app migrated to `../BYE_website/apps/web/`; read that repository’s `AGENTS.md` and `apps/web/AGENTS.md`. The old `apps/web/README.md` is a migration pointer; its older area guide is historical.

@@ -1,5 +1,11 @@
 # Database overview
 
+**October 17 update:** The private Fall 2026 schedule pilot and standalone API
+are now deployed; client integration remains pending. See the
+[pilot report](pcc-schedule-pilot.md) and [API documentation](../services/schedule-api/docs/README.md).
+The October 16 overview and proposal details below are historical context for
+the two separate data initiatives, not the current schedule-backend status.
+
 **Status as of October 16, 2026:** The Supabase review database is live and its core submission, reporting, privacy, and cleanup behavior has been tested. The student-facing login and review form, real email delivery, and Mac app integration remain pending. The separate hosted schedule cache is still proposed; the app continues to retrieve PCC schedules and RMP professor information directly.
 
 Start with [Review database explained](review-database-explained.md) for the plain-language guide. Use [Supabase status and plan](supabase-plan.md) for the migrations, technical decisions, and verification record.

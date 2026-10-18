@@ -1,0 +1,7 @@
+[
+  { "subjCode": "MATH", "courseNumbDisplay": "005A", "courseTitle": "Calculus I", "crn": "math-a-1", "pfaName": "Alex Example", "schdCode": "LE", "monDay": "M" },
+  { "subjCode": "MATH", "courseNumbDisplay": "005A", "courseTitle": "Calculus I", "crn": "math-a-2", "pfaName": "Blair Sample", "schdCode": "OD" },
+  { "subjCode": "MATH", "courseNumbDisplay": "005A", "courseTitle": "Calculus I", "crn": "math-a-3", "pfaName": "Casey Missing", "schdCode": "LE", "tueDay": "T" },
+  { "subjCode": "MATH", "courseNumbDisplay": "005A", "courseTitle": "Calculus I", "crn": "math-a-4", "pfaName": "Dana Identity", "schdCode": "LE", "wedDay": "W" },
+  { "subjCode": "MATH", "courseNumbDisplay": "005B", "courseTitle": "Calculus II", "crn": "math-b-1", "pfaName": "Alex Example", "schdCode": "LE", "friDay": "F" }
+]

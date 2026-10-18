@@ -77,23 +77,27 @@ function ScoreCard({ value, title, helper }: { value?: number; title: string; he
 function SearchScreen(props: { terms: Term[]; termLoading: boolean; termCode: string; setTermCode: (code: string) => void; query: string; setQuery: (q: string) => void; days: Weekday[]; setDays: (d: Weekday[]) => void; onlineOnly: boolean; setOnlineOnly: (on: boolean) => void; pending: boolean; progress: string; error: string; search: (text?: string) => void; cancel: () => void; retryTerms: () => void }) {
   const { terms, termLoading, termCode, setTermCode, query, setQuery, pending, error, search } = props
   const [focused, setFocused] = useState(false), [items, setItems] = useState<Suggestion[]>([]), [index, setIndex] = useState(-1)
+  const [suggesting, setSuggesting] = useState(true), [resultContext, setResultContext] = useState('')
   const sequence = useRef(0), input = useRef<HTMLInputElement>(null)
+  const context = JSON.stringify([termCode, query])
+  const dismissSuggestions = () => { sequence.current++; setSuggesting(false); setItems([]); setIndex(-1) }
   useEffect(() => { input.current?.focus() }, [])
   useEffect(() => {
     const id = ++sequence.current
-    if (!termCode || !query.trim() || !focused) { setItems([]); return }
+    setItems([]); setIndex(-1)
+    if (!termCode || !query.trim() || !focused || !suggesting) return
     const timer = setTimeout(() => {
-      window.bye.command({ kind: 'suggest', term: termCode, query }).then(result => { if (sequence.current === id) { setItems(result as Suggestion[]); setIndex(-1) } }).catch(() => { if (sequence.current === id) setItems([]) })
+      window.bye.command({ kind: 'suggest', term: termCode, query }).then(result => { if (sequence.current === id) { setItems(result as Suggestion[]); setResultContext(context); setIndex(-1) } }).catch(() => { if (sequence.current === id) setItems([]) })
     }, 180)
-    return () => clearTimeout(timer)
-  }, [query, termCode, focused])
-  // Open only while typing: closed when the field is empty, unfocused, or already holds an exact course code.
-  const open = focused && items.length > 0 && !items.some(s => s.course.display.toLowerCase() === query.trim().toLowerCase())
-  const choose = (s: Suggestion) => { setQuery(s.course.display); setItems([]); input.current?.focus() }
+    return () => { clearTimeout(timer); sequence.current++ }
+  }, [query, termCode, focused, suggesting])
+  // Exact codes remain visible while typing; only explicit dismissal closes the list.
+  const open = focused && suggesting && resultContext === context && items.length > 0
+  const choose = (s: Suggestion) => { dismissSuggestions(); setQuery(s.course.display); input.current?.focus() }
   return <div className="screen search-screen">
     <header className="search-top"><Brand /><span className="college">Pasadena City College</span></header>
     <main className="search-main">
-      <form className="search-form" onSubmit={e => { e.preventDefault(); if (open && index >= 0 && items[index]) choose(items[index]); else if (!pending) search() }}>
+      <form className="search-form" onSubmit={e => { e.preventDefault(); if (open && index >= 0 && items[index]) choose(items[index]); else if (!pending) { dismissSuggestions(); search() } }}>
         <Eyebrow>A little clarity before you enroll</Eyebrow>
         <h1 className="hero">Find your<br /><span className="swipe">professor.</span></h1>
         <p className="lead muted">Your class. Your semester. A clearer choice.</p>
@@ -102,10 +106,10 @@ function SearchScreen(props: { terms: Term[]; termLoading: boolean; termCode: st
             <label htmlFor="course" className="field-label">Class</label>
             <input ref={input} id="course" role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls="course-options" aria-activedescendant={open && index >= 0 ? `suggestion-${index}` : undefined}
               aria-description="For example, ETH 014 or POLS C1000" placeholder="Enter your course" value={query} autoComplete="off" spellCheck={false}
-              onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onChange={e => setQuery(e.target.value)} onKeyDown={e => {
+              onFocus={() => { setFocused(true); setSuggesting(true) }} onBlur={() => { setFocused(false); dismissSuggestions() }} onChange={e => { sequence.current++; setItems([]); setIndex(-1); setSuggesting(true); setQuery(e.target.value) }} onKeyDown={e => {
                 if (e.key === 'ArrowDown' && open) { e.preventDefault(); setIndex(i => Math.min(i + 1, items.length - 1)) }
                 if (e.key === 'ArrowUp' && open) { e.preventDefault(); setIndex(i => Math.max(i - 1, 0)) }
-                if (e.key === 'Escape') setItems([])
+                if (e.key === 'Escape') { e.preventDefault(); dismissSuggestions() }
               }} />
             {open && <ul className="suggestions" id="course-options" role="listbox" aria-label="Matching PCC courses">{items.map((s, i) =>
               <li id={`suggestion-${i}`} key={s.course.key} role="option" aria-selected={index === i} className={index === i ? 'active' : ''} onMouseDown={e => { e.preventDefault(); choose(s) }}>
@@ -146,7 +150,7 @@ function ProfessorCard({ p, selected, select, run }: { p: Professor; selected: b
             <span>Difficulty {score(profile.difficulty)} · {profile.wouldTakeAgain === undefined ? 'take-again rate unavailable' : `${Math.round(profile.wouldTakeAgain)}% would take again`}</span>
             <span>{profile.ratingCount === undefined ? 'Rating count unavailable' : `${profile.ratingCount} ratings`} · {sections}</span>
           </> : <>
-            <span>{p.state === 'choose' ? 'Two or more RMP profiles · Choose profile' : p.state === 'unavailable' ? 'Cannot retrieve RMP info' : p.state === 'loading' ? 'Checking RMP…' : 'Not checked yet'}</span>
+            <span>{p.state === 'choose' ? (p.candidates.length > 1 ? 'Two or more RMP profiles · Choose profile' : 'Profile needs confirmation · Choose profile') : p.state === 'unavailable' ? 'Cannot retrieve RMP info' : p.state === 'loading' ? 'Checking RMP…' : 'Not checked yet'}</span>
             <span>{sections}</span>
           </>}
         </span>
@@ -296,16 +300,17 @@ function Chooser({ p, run }: { p?: Professor; run: Run }) {
       <span className="muted">{[p.subject, p.subjectDescription].filter(Boolean).join(' · ')}</span>
       <p className="muted">Profiles stay separate. Choose the profile you want to use for this PCC instructor and subject.</p>
       {p.issue && <div className="stack tight"><p className="muted">{p.issue}</p><div><button className="pill" onClick={() => run({ kind: 'discover', professorId: p.id })}>Try again</button></div></div>}
+      {p.discoveryLoading && <p className="muted" role="status">Finding matching profiles…</p>}
       <div className="candidates">{p.candidates.map(c => <div className="panel candidate" key={c.id}>
         <strong>{c.firstName} {c.lastName}</strong>
         <span>Department: {c.department || 'Unavailable'}</span>
         <span className="muted">{c.school}</span>
         <div className="row">
           <button className="text-link plain" onClick={() => run({ kind: 'source', target: 'rmp', professorId: p.id, candidateId: c.id })}>View on RMP ↗</button>
-          <button className="pill primary" aria-label={`Use this profile`} aria-description={`${c.firstName} ${c.lastName}, ${c.department || 'department unavailable'}, profile ${c.id}`} onClick={() => run({ kind: 'select', professorId: p.id, profileId: c.id })}>Use this profile</button>
+          <button className="pill primary" disabled={p.discoveryLoading} aria-label={`Use this profile`} aria-description={`${c.firstName} ${c.lastName}, ${c.department || 'department unavailable'}, profile ${c.id}`} onClick={() => run({ kind: 'select', professorId: p.id, profileId: c.id })}>Use this profile</button>
         </div>
       </div>)}</div>
-      {!p.candidates.length && !p.issue && <p className="muted">No eligible profile is available. Retry this professor or check the source.</p>}
+      {!p.discoveryLoading && !p.candidates.length && !p.issue && <div className="stack tight"><p className="muted">No eligible profile is available. Retry this professor or check the source.</p><div className="row"><button className="pill" onClick={() => run({ kind: 'discover', professorId: p.id })}>Try again</button><button className="text-link" onClick={() => run({ kind: 'source', target: 'rmp', professorId: p.id })}>Check on RMP ↗</button></div></div>}
     </>}
     <div className="row end"><button className="pill" onClick={close}>Close</button></div>
   </dialog>

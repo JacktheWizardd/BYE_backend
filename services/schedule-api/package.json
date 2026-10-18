@@ -1,0 +1,22 @@
+{
+  "name": "bye-schedule-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.3" },
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:db": "node tests/database.mjs",
+    "benchmark": "deno run --allow-read --allow-env scripts/benchmark.ts",
+    "check": "deno check src/api.ts src/sync.ts",
+    "deploy": "node scripts/deploy.mjs",
+    "owner": "node scripts/owner.mjs",
+    "verify:hosted": "node scripts/verify-hosted.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@types/node": "24.10.0",
+    "deno": "2.9.6",
+    "supabase": "2.121.0"
+  }
+}

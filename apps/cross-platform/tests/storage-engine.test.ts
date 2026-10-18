@@ -11,6 +11,7 @@ import { course } from '../src/shared/domain'
 import { buildSummary } from '../src/main/summary-evidence'
 import { AI_SUMMARIES_DISABLED_MESSAGE } from '../src/shared/features'
 import type { Profile, Review, Term } from '../src/shared/types'
+import { fixtureServices } from '../scripts/offline-fixtures'
 const term: Term = { termCode: '202650', termName: 'Summer 2026', termDisplayControl: 'Y' }
 const base = (id = '1'): Profile => ({ id, firstName: 'John', lastName: 'Harris', schoolID: 2649, school: 'Pasadena City College', department: 'History', reviews: [], coverage: {}, courseCounts: [] })
 const review = (id = 'r1'): Review => ({ id, text: 'Clear explanations', course: 'ETH14', date: '2026-01-01' })
@@ -23,6 +24,77 @@ function harness(directory: string, candidates: Profile[] = [base()], summariesE
   const engine = new Engine(pcc, fake as unknown as RMP, store, ai, state => snapshots.push(state), summariesEnabled)
   return { engine, fake, store, snapshots, ai }
 }
+
+test('concurrent mixed MATH profiles and background retries never request dialogs', async t => {
+  const h = harness(await temporary(t)), services = fixtureServices([])
+  Object.assign(h.engine.pcc, services.pcc); Object.assign(h.fake, services.rmp)
+  services.controls.ambiguous = true
+  await h.engine.search('math 5a', term)
+  assert.equal(h.engine.state.professors.find(p => p.name === 'Alex Example')?.state, 'choose')
+  assert.equal(h.engine.state.professors.find(p => p.name === 'Blair Sample')?.state, 'choose')
+  assert.equal(h.engine.state.professors.find(p => p.name === 'Casey Missing')?.state, 'unavailable')
+  assert.equal(h.engine.state.professors.find(p => p.name === 'Dana Identity')?.state, 'choose')
+  assert.ok(h.snapshots.every(s => s.professors.every((p: any) => !p.choosing)))
+  await Promise.all(h.engine.state.professors.map(p => h.engine.retry(p.id)))
+  assert.ok(h.snapshots.every(s => s.professors.every((p: any) => !p.choosing)))
+  services.controls.ambiguous = false
+  await h.engine.search('MATH 005A', term)
+  assert.equal(h.engine.state.professors.find(p => p.name === 'Alex Example')?.state, 'ready')
+  assert.ok(h.engine.state.professors.every(p => !p.choosing))
+})
+
+test('explicit discovery has one owner, deduplicates clicks and stays dismissed after delayed results', async t => {
+  const h = harness(await temporary(t)), services = fixtureServices([])
+  Object.assign(h.engine.pcc, services.pcc); Object.assign(h.fake, services.rmp)
+  await h.engine.search('MATH5A', term)
+  services.controls.candidateDelay = 60
+  const calls = services.calls.candidates
+  const first = h.engine.discover('alex example')
+  const repeated = h.engine.discover('alex example')
+  assert.equal(first, repeated)
+  assert.equal(h.engine.state.professors[0].discoveryLoading, true)
+  const second = h.engine.discover('blair sample')
+  assert.deepEqual(h.engine.state.professors.filter(p => p.choosing).map(p => p.id), ['blair sample'])
+  h.engine.dismiss('blair sample')
+  await Promise.all([first, second])
+  assert.equal(services.calls.candidates - calls, 2)
+  assert.ok(h.engine.state.professors.every(p => !p.choosing && !p.discoveryLoading))
+  await h.engine.discover('casey missing')
+  assert.equal(h.engine.state.professors.find(p => p.id === 'casey missing')?.candidates.length, 0)
+  h.fake.candidates = async () => { throw new Error('Fixture discovery failure') }
+  await h.engine.discover('alex example')
+  assert.equal(h.engine.state.professors[0].issue, 'Fixture discovery failure')
+  assert.equal(h.engine.state.professors[0].discoveryLoading, false)
+  assert.throws(() => h.engine.select('alex example', '9999'), /current candidate list/)
+})
+
+test('identity failures during selection and review loading never reopen a dialog', async t => {
+  const h = harness(await temporary(t))
+  await h.engine.search('ETH14', term)
+  const p = h.engine.state.professors[0]
+  h.fake.page = async () => { throw new IdentityError() }
+  await h.engine.expand(p.id)
+  assert.equal(p.state, 'choose'); assert.ok(!p.choosing)
+  await h.engine.discover(p.id)
+  await h.engine.select(p.id, '1')
+  assert.equal(p.state, 'choose'); assert.ok(!p.choosing)
+  await h.engine.discover(p.id)
+  h.engine.stop()
+  assert.ok(!p.choosing && !p.discoveryLoading)
+})
+
+test('new searches cancel an explicitly opened discovery without publishing its results', async t => {
+  const h = harness(await temporary(t))
+  await h.engine.search('ETH14', term)
+  let release!: () => void
+  h.fake.candidates = async () => { await new Promise<void>(resolve => { release = resolve }); return [base('2')] }
+  const discovery = h.engine.discover(h.engine.state.professors[0].id)
+  await h.engine.search('MATH5A', term)
+  release(); await discovery
+  assert.equal(h.engine.state.course?.key, 'MATH5A')
+  assert.equal(h.engine.state.professors.length, 0)
+  assert.ok(!h.snapshots.at(-1).professors.some((p: any) => p.choosing))
+})
 test('cache lifetime, clock rollback, subject isolation and evidence/provider invalidation', async t => {
   const directory = await temporary(t); let now = 10000; const s = new Store(directory, () => now), c = course('ETH14')
   await s.setChoice('Dr John Harris', 'ETH', '1'); assert.equal(await new Store(directory).choice('John Harris', 'ETH'), '1'); assert.equal(await s.choice('John Harris', 'MATH'), undefined)

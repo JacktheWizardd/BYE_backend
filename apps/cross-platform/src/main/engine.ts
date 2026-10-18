@@ -53,7 +53,7 @@ export class Engine {
       if (p.state === 'pending' || p.state === 'loading') { p.state = p.profile ? 'ready' : 'unavailable'; p.issue = 'Stopped. Try again to retrieve this profile.' }
       if (p.detailLoading) p.reviewIssue = 'Stopped. Retrieved reviews are still available.'
       if (p.summaryLoading) p.summaryIssue = 'Stopped. Retry summary when ready.'
-      p.detailLoading = false; p.summaryLoading = false
+      p.detailLoading = false; p.summaryLoading = false; p.discoveryLoading = false; p.choosing = false
     }
     this.emit()
   }
@@ -109,14 +109,14 @@ export class Engine {
             if (!(e instanceof IdentityError)) throw e
             await this.store.setChoice(p.name, p.subject, undefined, () => !signal.aborted); await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal)
             options = (await this.rmp.candidates(p.name, signal, true).catch(() => { check(signal); return [] })).filter(x => x.id !== choice)
-            check(signal); p.profile = undefined; p.summary = undefined; p.candidates = options; p.state = 'choose'; p.choosing = true; this.emit(); return
+            check(signal); p.profile = undefined; p.summary = undefined; p.candidates = options; p.state = 'choose'; this.emit(); return
           }
         }
         options = await this.rmp.candidates(p.name, signal); check(signal); p.candidates = options
-        if (options.length > 1) { p.profile = undefined; p.summary = undefined; await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.state = 'choose'; p.choosing = true; this.emit(); return }
+        if (options.length > 1) { p.profile = undefined; p.summary = undefined; await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.state = 'choose'; this.emit(); return }
         if (!options.length) throw new Error('No matching PCC profile could be confirmed. Try again or check RMP.')
         try { p.profile = await this.preview(p, options[0].id, signal) }
-        catch (e) { check(signal); if (e instanceof IdentityError) { p.profile = undefined; p.summary = undefined; await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.candidates = options.filter(x => x.id !== options[0].id); p.state = 'choose'; p.choosing = true; this.emit(); return } throw e }
+        catch (e) { check(signal); if (e instanceof IdentityError) { p.profile = undefined; p.summary = undefined; await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.candidates = options.filter(x => x.id !== options[0].id); p.state = 'choose'; this.emit(); return } throw e }
         check(signal); p.state = 'ready'; p.summary = undefined; await this.save(p, signal); this.emit()
       })
     } catch (e) { if (!signal.aborted) { p.state = 'unavailable'; p.issue = message(e); this.emit() } }
@@ -126,15 +126,20 @@ export class Engine {
     const p = this.professor(id)
     if (p.state === 'loading') return Promise.resolve()
     const signal = this.context(p, true)
-    p.detailLoading = false; p.summaryLoading = false
+    p.detailLoading = false; p.summaryLoading = false; p.discoveryLoading = false
     return this.launch(`retry-${this.state.operationId}-${id}`, () => this.lookup(p, true, signal))
   }
   discover(id: string) {
     const p = this.professor(id), signal = this.context(p)
-    p.choosing = true; p.issue = undefined; this.emit()
-    return this.launch(`discover-${this.state.operationId}-${id}`, async () => {
-      try { const candidates = await this.previews.run(signal, () => this.rmp.candidates(p.name, signal, true)); check(signal); p.candidates = candidates; this.emit() }
-      catch (e) { if (!signal.aborted) { p.issue = message(e); this.emit() } }
+    // Only an explicit command owns the dialog; background work never opens it.
+    for (const other of this.state.professors) other.choosing = other.id === id
+    const key = `discover-${this.state.operationId}-${id}`
+    if (this.jobs.has(key)) { this.emit(); return this.jobs.get(key)! }
+    p.issue = undefined; p.candidates = []; p.discoveryLoading = true; this.emit()
+    return this.launch(key, async () => {
+      try { const candidates = await this.previews.run(signal, () => this.rmp.candidates(p.name, signal, true)); check(signal); p.candidates = candidates }
+      catch (e) { if (!signal.aborted) p.issue = message(e) }
+      finally { if (!signal.aborted) { p.discoveryLoading = false; this.emit() } }
     })
   }
   dismiss(id: string) { this.professor(id).choosing = false; this.emit() }
@@ -144,7 +149,7 @@ export class Engine {
     if (this.jobs.has(jobKey)) return this.jobs.get(jobKey)!
     if (!p.candidates.some(x => x.id === profileId)) throw new Error('Choose a profile from the current candidate list.')
     const signal = this.context(p, true)
-    p.profile = undefined; p.summary = undefined; p.summaryIssue = undefined; p.reviewIssue = undefined; p.detailLoading = false; p.summaryLoading = false; p.choosing = false; p.state = 'loading'; this.emit()
+    p.profile = undefined; p.summary = undefined; p.summaryIssue = undefined; p.reviewIssue = undefined; p.detailLoading = false; p.summaryLoading = false; p.choosing = false; p.discoveryLoading = false; p.state = 'loading'; this.emit()
     return this.launch(jobKey, async () => {
       try {
         const profile = await this.previews.run(signal, () => this.preview(p, profileId, signal)); check(signal)
@@ -153,7 +158,7 @@ export class Engine {
       } catch (e) {
         if (!signal.aborted) {
           p.issue = message(e); p.state = e instanceof IdentityError ? 'choose' : 'unavailable'
-          if (e instanceof IdentityError) { await this.store.setChoice(p.name, p.subject, undefined, () => !signal.aborted); await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.candidates = p.candidates.filter(x => x.id !== profileId); p.choosing = true }
+          if (e instanceof IdentityError) { await this.store.setChoice(p.name, p.subject, undefined, () => !signal.aborted); await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.candidates = p.candidates.filter(x => x.id !== profileId) }
           this.emit()
         }
       }
@@ -187,7 +192,7 @@ export class Engine {
       } catch (e) {
         if (!signal.aborted) {
           p.reviewIssue = message(e)
-          if (e instanceof IdentityError) { await this.store.setChoice(p.name, p.subject, undefined, () => !signal.aborted); await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.profile = undefined; p.summary = undefined; p.state = 'choose'; p.candidates = []; p.choosing = true }
+          if (e instanceof IdentityError) { await this.store.setChoice(p.name, p.subject, undefined, () => !signal.aborted); await this.store.setIndex(p.name, p.subject, undefined, () => !signal.aborted); check(signal); p.profile = undefined; p.summary = undefined; p.state = 'choose'; p.candidates = [] }
         }
       } finally { if (!signal.aborted) { p.detailLoading = false; this.emit() } }
     })

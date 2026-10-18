@@ -1,5 +1,17 @@
 # Windows beta verification
 
+## Windows search and profile-dialog fixes — October 18, 2026
+
+Fixed the disappearing exact-course suggestion: `MATH 005A` stays visible while typing, and `math 005a`, `math 5a`, and `MATH5A` resolve to the official course. `005B` remains separate. Selection, Escape, blur and submission dismiss suggestions; editing reopens them. Responses from old queries, semesters or dismissed requests cannot reopen or replace the current list.
+
+Profile dialogs now open only through an explicit Choose profile or Change profile action. Concurrent background ambiguity, missing profiles, retries and identity failures leave status on the cards without opening or queuing dialogs. One requested dialog owns focus; closing during discovery stays closed when results arrive. Loading, empty results, discovery failures and retries are shown in the requested dialog. Identity failures no longer incorrectly claim that multiple profiles exist. Existing saved choices, identity checks, IPC commands and cache formats are retained; the snapshot adds only an optional `discoveryLoading` field.
+
+Verified on Windows x64: all **42 unit tests**, TypeScript checks and the production build pass. `npm run ui:verify:offline` passes against the production Engine, bridge, renderer and preload, with all network blocked. Added fictional MATH fixtures cover exact/shorthand suffixes, mouse and keyboard selection, delayed dismissal and old-query/semester responses, several ambiguous professors, no match, identity failure, empty/error/retry dialog states, refresh without dialogs, and search when suggestions fail. Existing professor switching, review filters/sorts, progressive reveal, cancellation, persisted manual choices and fresh-process restoration also pass. Screenshots of the exact suggestion, neutral MATH results and explicitly requested chooser were visually inspected. Evidence: ignored `test-results/offline-ui-ZjTsyh/report.json` and adjacent PNGs.
+
+Local Windows x64 build staged at ignored `dist/cross-platform-build-qDD6n2/BYE/BYE.exe` using `node scripts/package.mjs --stage-only`. Embedded package policy/structure checks and privacy scans of the app and unpacked ASAR pass. No ZIP was published, and the staged production entrypoint was not launched because it requests live sources; UI acceptance above uses the built production code with injected fixtures.
+
+The sandbox prevents Electron launch and some atomic rename operations in its temporary directory; the complete successful unit/UI checks ran outside the sandbox. No PCC/RMP test requests were sent. Live source availability, full Narrator/display-scaling acceptance, signing and clean-machine acceptance remain unverified. AI stays disabled. Mac and website sources were not changed. The shared agent-board script remains unavailable on Windows because it imports Unix-only `fcntl`; it was not modified.
+
 ## Windows 0.4.0-beta.1 — October 18, 2026
 
 The renderer was rebuilt to match the Mac 0.4.0-beta.1 screens and the shared domain gained the Mac's section details, meeting places, class-day filter, format labels, six review sorts, preferred review filter, HTML-entity decoding and the BYE review link. The Electron main process opens the review link only from the current search's professor and course. Network, caching, identity, queue and AI-policy code is unchanged; summaries stay disabled.
