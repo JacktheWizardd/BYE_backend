@@ -4,6 +4,7 @@ import { Engine } from './engine'
 import { Store } from './storage'
 import type { SummaryProvider } from './summary'
 import type { Command, Term } from '../shared/types'
+import { reviewURL } from '../shared/domain'
 function validate(raw: unknown): Command {
   if (!raw || typeof raw !== 'object') throw new Error('Unsupported command.')
   const c = raw as Record<string, unknown>, kinds = ['terms', 'suggest', 'search', 'stop', 'retry', 'discover', 'dismiss', 'summary', 'select', 'details', 'source']
@@ -17,7 +18,7 @@ function validate(raw: unknown): Command {
     text('query', 100)
     const t = c.term as Term; if (!t || !/^\d{6}$/.test(t.termCode) || typeof t.termName !== 'string' || t.termName.length > 100 || (c.refresh !== undefined && typeof c.refresh !== 'boolean')) throw new Error('Invalid search.')
   }
-  if (c.kind === 'source') { if (!['pcc', 'rmp'].includes(String(c.target))) throw new Error('Invalid source.'); text('professorId', 300, true); text('candidateId', 30, true) }
+  if (c.kind === 'source') { if (!['pcc', 'rmp', 'review'].includes(String(c.target))) throw new Error('Invalid source.'); text('professorId', 300, true); text('candidateId', 30, true) }
   return c as unknown as Command
 }
 
@@ -33,7 +34,7 @@ export function startApplication(options: StartupOptions) {
   const ai = options.ai
   const engine = new Engine(options.pcc, options.rmp, new Store(path.join(options.storage, 'reports')), ai, state => window?.webContents.send('bye:state', state))
   function createWindow() {
-    window = new BrowserWindow({ width: 1180, height: 800, minWidth: 1000, minHeight: 700, title: 'BYE — Before You Enroll', backgroundColor: '#f8f7f3', show: false,
+    window = new BrowserWindow({ width: 1180, height: 800, minWidth: 1000, minHeight: 700, title: 'BYE — Before You Enroll', backgroundColor: '#faf8f3', show: false,
       webPreferences: { preload: options.preload, sandbox: true, contextIsolation: true, nodeIntegration: false, spellcheck: false } })
     window.removeMenu()
     window.once('ready-to-show', () => window?.show())
@@ -64,6 +65,12 @@ export function startApplication(options: StartupOptions) {
           const p = engine.state.professors.find(x => x.id === c.professorId)
           const candidate = c.candidateId ? p?.candidates.find(x => x.id === c.candidateId) : undefined
           if (c.candidateId && !candidate) throw new Error('This candidate is no longer in the current list.')
+          if (c.target === 'review') {
+            // Built from the current search only, so the renderer cannot open arbitrary addresses.
+            const url = p && engine.state.course ? reviewURL(p.name, engine.state.course) : undefined
+            if (!url) throw new Error('Choose a professor in the current search first.')
+            await shell.openExternal(url); return undefined
+          }
           const url = c.target === 'pcc' ? `https://findclasses.pasadena.edu/?term=${engine.state.term?.termCode ?? ''}&q=${encodeURIComponent(engine.state.course?.display ?? '')}` : candidate || p?.profile ? `https://www.ratemyprofessors.com/professor/${(candidate ?? p!.profile!).id}` : `https://www.ratemyprofessors.com/search/professors/2649?q=${encodeURIComponent(p?.name ?? '')}`
           await shell.openExternal(url); return undefined
         }

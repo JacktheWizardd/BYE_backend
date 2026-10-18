@@ -1,5 +1,13 @@
 # Windows beta verification
 
+## Windows 0.4.0-beta.1 — October 18, 2026
+
+The renderer was rebuilt to match the Mac 0.4.0-beta.1 screens and the shared domain gained the Mac's section details, meeting places, class-day filter, format labels, six review sorts, preferred review filter, HTML-entity decoding and the BYE review link. The Electron main process opens the review link only from the current search's professor and course. Network, caching, identity, queue and AI-policy code is unchanged; summaries stay disabled.
+
+Checked in a Linux development container, not on Windows: TypeScript checks, the production build and 37 regression tests pass, and the offline UI acceptance (`scripts/verify-offline.mjs` without the Windows-only guard, under Xvfb with Electron 44.7.0) passes every check: production bootstrap and isolation, search, professor switching, review filters and sorts, progressive reveal, profile chooser and saved choice, cancellation, hidden summary cache and fresh-process restoration, with no network requests.
+
+Still to run on Windows before release: `perf:verify:offline`, `package:win`, `verify:zip`, and the live `ui:verify`/`packaged:verify` checks. The scripts were updated for the new screens (results open on a course overview, so each check opens a professor first) but have not been run on Windows yet.
+
 ## Windows 0.1.0-beta.2 baseline — October 10, 2026
 
 AI summary generation is temporarily disabled in the renderer, summary engine and local provider. New packages omit GGUF weights and record their version, AI status and weight inclusion in `resources/build-info.json`. The implementation, runtime dependencies, model metadata, credits, development weights and existing local caches are retained. Native Mac AI and previously published releases are unchanged.

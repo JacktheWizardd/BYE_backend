@@ -2,9 +2,11 @@
 
 Separate Electron/React/TypeScript application. The Swift application continues to be the Mac-focused build. This release targets Windows 11 x64; no Mac package of this application is claimed or included.
 
+Version `0.4.0-beta.1` follows the Mac 0.4.0-beta.1 release: the BYE design system (ivory and stone grounds, Jet Black type, yellow only for the wordmark, rating bars and progress meter, Libre Baskerville headings), neutral results that open on a course overview, class cards with seats, waitlist, campus, term part and units, the class-day and fully online filters, six review sorts, and a "Write a review" link to the BYE website. The screens mirror `Sources/Classwise/Views`; shared rules mirror `Sources/ClasswiseCore/Models.swift`. In-app updates (Sparkle on the Mac) are not part of the Windows build.
+
 ## Run the Windows ZIP
 
-Extract **all** files, then open `BYE/BYE.exe`. Keep the supporting files beside the executable. No installer, administrator access, Node, Swift, Python, or Ollama is required. Version `0.1.0-beta.2` omits GGUF model weights to reduce download and disk size.
+Extract **all** files, then open `BYE/BYE.exe`. Keep the supporting files beside the executable. No installer, administrator access, Node, Swift, Python, or Ollama is required. Version `0.4.0-beta.1` omits GGUF model weights to reduce download and disk size.
 
 **AI summaries are temporarily disabled in this Windows build.** Automatic generation, the summary button, cached-summary display and backend inference requests are disabled. The implementation, runtime dependencies, model metadata, credits, development model files and existing local summary caches are retained. One policy, `src/shared/features.json`, controls TypeScript and packaging. `resources/build-info.json` records each package's version, AI status and weight inclusion. Previously published ZIPs retain their original behavior; native Mac AI is unchanged.
 
@@ -34,7 +36,7 @@ npm run package:win
 npm run verify:zip
 ```
 
-Outputs are at the repository root under `dist/`. Packaging produces `BYE-CrossPlatform-0.1.0-beta.2-windows-x64.zip` and `.zip.sha256` and refuses to overwrite either. Every build gets a separate staging directory. ZIP verification extracts to a path containing spaces and Unicode, checks the embedded package policy, model inclusion, checksum, structure and privacy. An optional ZIP path can be passed to `verify:zip`; verification follows that package's metadata. Test results are ignored under `test-results/`. No upload, tag, auto-update service, or signing certificate is configured.
+Outputs are at the repository root under `dist/`. Packaging produces `BYE-CrossPlatform-0.4.0-beta.1-windows-x64.zip` and `.zip.sha256` and refuses to overwrite either. Every build gets a separate staging directory. ZIP verification extracts to a path containing spaces and Unicode, checks the embedded package policy, model inclusion, checksum, structure and privacy. An optional ZIP path can be passed to `verify:zip`; verification follows that package's metadata. Test results are ignored under `test-results/`. No upload, tag, auto-update service, or signing certificate is configured.
 
 For staging before compression, build first and run `node scripts/package.mjs --stage-only`. `node scripts/package.mjs --reuse-stage <staging-folder>` accepts only a package whose embedded version and policy match the built source. Rebuild staging whenever application code changes. Required node-llama-cpp metadata stays in ASAR; native CPU libraries stay outside it. Disabled requests stop before model verification or AI imports.
 

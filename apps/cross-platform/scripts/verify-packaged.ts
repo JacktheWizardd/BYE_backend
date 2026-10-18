@@ -2,7 +2,7 @@ import { _electron as electron } from 'playwright'
 import { readFile, mkdtemp, writeFile, readdir, rename, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import assert from 'node:assert/strict'
-import { AI_SUMMARIES_DISABLED_MESSAGE } from '../src/shared/features'
+import { AI_SUMMARIES_UNAVAILABLE_NOTE } from '../src/shared/features'
 const root = path.resolve(import.meta.dirname, '..'), repo = path.resolve(root, '../..'), output = path.join(root, 'test-results')
 const directory = process.argv[2] ? path.resolve(process.argv[2]) : path.join(repo, JSON.parse(await readFile(path.join(output, 'extracted.json'), 'utf8')).appDirectory)
 if (!directory.startsWith(path.join(repo, 'dist') + path.sep)) throw new Error('Packaged test must run inside dist.')
@@ -15,17 +15,16 @@ let app = await launch()
 try {
   const page = await app.firstWindow({ timeout: 30000 }); page.on('pageerror', e => errors.push(e.message))
   await page.getByRole('combobox', { name: 'Semester', exact: true }).selectOption('202710', { timeout: 45000 })
-  await page.getByRole('combobox', { name: 'Course', exact: true }).fill('math5a')
-  await page.getByRole('button', { name: 'Find classes' }).click()
-  await page.getByRole('heading', { name: 'MATH 005A', exact: true }).waitFor({ timeout: 45000 })
+  await page.getByRole('combobox', { name: 'Class', exact: true }).fill('math5a')
+  await page.getByRole('button', { name: 'Find professors' }).click()
+  await page.getByRole('button', { name: /Anahit Asadyan/ }).click({ timeout: 45000 })
   await page.getByRole('heading', { name: 'Anahit Asadyan', exact: true }).waitFor()
   if (AI_SUMMARIES_ENABLED) {
     await page.getByText(/Analyzed \d+ complete reviews of/).waitFor({ timeout: 220000 })
     const analyzed = await page.getByText(/Analyzed \d+ complete reviews of/).textContent()
     assert.match(analyzed!, /downloaded/); results.push('Packaged BYE.exe launched and generated an embedded CPU summary: ' + analyzed)
   } else {
-    await page.getByText(AI_SUMMARIES_DISABLED_MESSAGE, { exact: true }).waitFor()
-    assert.equal(await page.getByRole('button', { name: 'Summary disabled', exact: true }).isDisabled(), true)
+    await page.getByText(AI_SUMMARIES_UNAVAILABLE_NOTE, { exact: true }).waitFor()
     results.push('Packaged BYE.exe shows summaries as disabled while ratings and original reviews remain available')
   }
   await page.screenshot({ path: path.join(output, 'packaged-windows-report.png'), fullPage: true })
@@ -39,9 +38,10 @@ try {
   results.push(AI_SUMMARIES_ENABLED ? 'Profile and summary caches written outside the application folder' : 'Profile caches preserved outside the application folder; no AI summary cache created')
   app = await launch()
   const again = await app.firstWindow(); await again.getByRole('combobox', { name: 'Semester', exact: true }).selectOption('202710', { timeout: 45000 })
-  await again.getByRole('combobox', { name: 'Course', exact: true }).fill('MATH005A')
-  await again.getByRole('button', { name: 'Find classes' }).click()
-  await (AI_SUMMARIES_ENABLED ? again.getByText(/Analyzed \d+ complete reviews of/) : again.getByText(AI_SUMMARIES_DISABLED_MESSAGE, { exact: true })).waitFor({ timeout: 60000 })
+  await again.getByRole('combobox', { name: 'Class', exact: true }).fill('MATH005A')
+  await again.getByRole('button', { name: 'Find professors' }).click()
+  await again.getByRole('button', { name: /Anahit Asadyan/ }).click({ timeout: 45000 })
+  await (AI_SUMMARIES_ENABLED ? again.getByText(/Analyzed \d+ complete reviews of/) : again.getByText(AI_SUMMARIES_UNAVAILABLE_NOTE, { exact: true })).waitFor({ timeout: 60000 })
   results.push(AI_SUMMARIES_ENABLED ? 'Quit/relaunch restores cached profile evidence and summary after repeating search' : 'Quit/relaunch restores profile evidence with AI summaries still disabled')
   await app.close()
   if (AI_SUMMARIES_ENABLED) {
@@ -55,8 +55,9 @@ try {
       app = await launch()
       const recovery = await app.firstWindow({ timeout: 30000 })
       await recovery.getByRole('combobox', { name: 'Semester', exact: true }).selectOption('202710', { timeout: 45000 })
-      await recovery.getByRole('combobox', { name: 'Course', exact: true }).fill('math5a')
-      await recovery.getByRole('button', { name: 'Find classes' }).click()
+      await recovery.getByRole('combobox', { name: 'Class', exact: true }).fill('math5a')
+      await recovery.getByRole('button', { name: 'Find professors' }).click()
+      await recovery.getByRole('button', { name: /Anahit Asadyan/ }).click({ timeout: 45000 })
       await recovery.getByText(corrupt ? /bundled AI model is incomplete/ : /bundled AI model is missing/).waitFor({ timeout: 60000 })
       await recovery.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('all')
       assert.ok(await recovery.locator('.review').count() > 0)

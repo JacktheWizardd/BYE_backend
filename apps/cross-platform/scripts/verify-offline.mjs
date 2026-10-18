@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import { setTimeout as delay } from 'node:timers/promises'
 import { buildInfo, assertPolicy, digest } from './package-policy.mjs'
 import policy from '../src/shared/features.json' with { type: 'json' }
+const UNAVAILABLE_NOTE = 'AI summaries are temporarily unavailable. Read the original student reviews below.'
 const require = createRequire(import.meta.url), root = path.resolve(import.meta.dirname, '..')
 if (process.platform !== 'win32') throw new Error('This baseline measures Windows process memory.')
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8')), info = buildInfo(pkg.version, policy)
@@ -32,13 +33,16 @@ async function readyReport(app, page, previous) {
     return s.operationId !== previous && !s.loading && !s.previewPending && p?.state === 'ready' && p.profile?.coverage.all?.hasNextPage === false && !p.detailLoading
   }, 'complete original-review report')
   await page.getByRole('heading', { name: 'Alex Example', exact: true }).waitFor()
-  await page.getByRole('button', { name: 'Summary disabled', exact: true }).waitFor()
+  await page.getByText(UNAVAILABLE_NOTE, { exact: true }).waitFor()
   // Include React presentation and two browser frames in report-loading latency.
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 }
 async function search(app, page) {
   const before = (await state(app)).operationId, start = performance.now()
-  await page.getByRole('button', { name: 'Find classes' }).click()
+  // Results open on the course overview; repeat searches go back through Change search, as on the Mac.
+  if (await page.getByRole('button', { name: 'Change search', exact: true }).count()) await page.getByRole('button', { name: 'Change search', exact: true }).click()
+  await page.getByRole('button', { name: 'Find professors' }).click()
+  await page.getByRole('button', { name: /Alex Example.*sections?/ }).click()
   await readyReport(app, page, before)
   return performance.now() - start
 }
@@ -48,7 +52,7 @@ async function launch(storage) {
   try {
     const page = await app.firstWindow({ timeout: 30000 }); page.on('pageerror', error => errors.push(error.message))
     await page.getByRole('combobox', { name: 'Semester', exact: true }).selectOption('202650')
-    await page.getByRole('combobox', { name: 'Course', exact: true }).fill('ETH14')
+    await page.getByRole('combobox', { name: 'Class', exact: true }).fill('ETH14')
     return { app, page, startupMs: performance.now() - start }
   } catch (error) {
     await app.close().catch(() => {})
@@ -65,7 +69,7 @@ async function interactions(app, page) {
   await page.getByRole('heading', { name: 'Blair Sample', exact: true }).waitFor()
   await until(async () => { const p = (await state(app)).professors.find(p => p.name === 'Blair Sample'); return !p.detailLoading && p.profile.coverage.all?.hasNextPage === false }, 'second professor reviews')
   await page.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('all')
-  await page.getByRole('combobox', { name: 'Sort', exact: true }).selectOption('highest')
+  await page.getByRole('combobox', { name: 'Sort reviews', exact: true }).selectOption('highest')
   await page.getByRole('button', { name: /Alex Example.*sections?/ }).click()
   await page.getByRole('heading', { name: 'Alex Example', exact: true }).waitFor()
 }
@@ -78,9 +82,9 @@ async function uiChecks(app, page, storage) {
   await page.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('all')
   await page.getByRole('button', { name: 'View more reviews', exact: true }).click()
   assert.equal(await page.locator('.review').count(), 8)
-  await page.getByRole('combobox', { name: 'Sort', exact: true }).selectOption('highest')
+  await page.getByRole('combobox', { name: 'Sort reviews', exact: true }).selectOption('highest')
   assert.match(await page.locator('.review').first().innerText(), /Rating 5\.0/)
-  await page.getByRole('combobox', { name: 'Sort', exact: true }).selectOption('lowest')
+  await page.getByRole('combobox', { name: 'Sort reviews', exact: true }).selectOption('lowest')
   assert.match(await page.locator('.review').first().innerText(), /Rating 1\.0/)
   await page.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('HIST001')
   assert.equal(await page.locator('.review').count(), 3)
@@ -97,8 +101,8 @@ async function uiChecks(app, page, storage) {
   await page.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('HIST001')
   await app.evaluate(() => { globalThis.__offline.controls.holdPages = true })
   await page.getByRole('button', { name: 'Find more for this class', exact: true }).click()
-  await page.getByRole('button', { name: 'Stop', exact: true }).waitFor()
-  await page.getByRole('button', { name: 'Stop', exact: true }).click()
+  await page.getByRole('button', { name: 'Stop loading', exact: true }).waitFor()
+  await page.getByRole('button', { name: 'Stop loading', exact: true }).click()
   await app.evaluate(() => globalThis.__offline.engine.idle())
   await page.getByText('Stopped. Retrieved reviews are still available.', { exact: true }).waitFor()
   assert.ok((await app.evaluate(() => globalThis.__offline.calls.aborted)) > 0)
@@ -113,7 +117,7 @@ async function uiChecks(app, page, storage) {
   const reports = path.join(storage, 'reports'), summaryFile = (await readdir(reports)).find(n => n.startsWith('summary-'))
   assert.ok(summaryFile); const summaryPath = path.join(reports, summaryFile), original = await readFile(summaryPath, 'utf8')
   assert.equal(await page.getByText('HIDDEN_CACHED_SUMMARY_SENTINEL', { exact: true }).count(), 0)
-  assert.equal(await page.getByRole('button', { name: 'Summary disabled', exact: true }).isDisabled(), true)
+  await page.getByText(UNAVAILABLE_NOTE, { exact: true }).waitFor()
   await page.evaluate(async () => {
     // The unmodified production bridge still accepts the existing command type.
     await window.bye.command({ kind: 'summary', professorId: 'alex example' })
