@@ -116,6 +116,11 @@ export function worker(
       const action = typeof input.action === "string"
         ? input.action
         : "scheduled";
+      if (["owner-add", "owner-remove"].includes(action)) {
+        if (typeof input.userId !== "string" || !/^[a-f0-9-]{36}$/i.test(input.userId)) return reply({error:"INVALID_QUERY"},400);
+        const result = await call(action, {userId: input.userId});
+        return reply(result, result.error ? 400 : 200);
+      }
       if (["state", "cleanup", "rollback"].includes(action)) {
         return reply(
           await call(

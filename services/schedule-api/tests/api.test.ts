@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { api, OPENAPI } from "../src/api.ts";
 import { sha } from "../src/domain.ts";
-const key = "public-test-key", hash = await sha(key);
+const key = "public-test-key";
 const request = (path: string, extra: Record<string, string> = {}) =>
   new Request("https://api.test" + path, {
     headers: { apikey: key, ...extra },
@@ -16,7 +16,6 @@ test("keys, methods, terms, paths, sizes, and availability CRNs bounded before D
         return { data: [], meta: {} };
       },
     },
-    hash,
     "test",
   );
   assert.equal(
@@ -44,7 +43,6 @@ test("stable envelopes, alias ranking and ETag/304", async () => {
         meta: { catalogVersion: "c1" },
       }),
     },
-    hash,
     "test",
   );
   const r = await handler(request("/v1/terms/202670/courses?q=math5a"));
@@ -61,7 +59,6 @@ test("stable envelopes, alias ranking and ETag/304", async () => {
 test("gateway and function-runtime route prefixes remain compatible", async () => {
   const handler = api(
     { rpc: async () => ({ data: [], meta: {} }) },
-    hash,
     "test",
   );
   for (
@@ -71,7 +68,6 @@ test("gateway and function-runtime route prefixes remain compatible", async () =
 test("rate failures, private error suppression, CORS and OpenAPI", async () => {
   const handler = api(
     { rpc: async () => ({ error: "RATE_LIMITED" }) },
-    hash,
     "test",
   );
   const r = await handler(request("/v1/terms"));
@@ -83,7 +79,6 @@ test("rate failures, private error suppression, CORS and OpenAPI", async () => {
         throw new Error("secret password should never leak");
       },
     },
-    hash,
     "test",
   );
   assert(

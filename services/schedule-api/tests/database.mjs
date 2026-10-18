@@ -9,7 +9,7 @@ const fixture = JSON.parse(
   await readFile(new URL("./fixtures/fall-2026.json", import.meta.url), "utf8"),
 );
 await db.exec(
-  "create role anon;create role authenticated;create role service_role bypassrls;create table public.review_sentinel(id int primary key,body text);insert into public.review_sentinel values(1,'unchanged');",
+  "create schema auth;create table auth.users(id uuid primary key,email_confirmed_at timestamptz,deleted_at timestamptz);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;create role anon;create role authenticated;create role service_role bypassrls;create table public.review_sentinel(id int primary key,body text);insert into public.review_sentinel values(1,'unchanged');",
 );
 for (
   const migration
@@ -32,7 +32,9 @@ const rpc = {
     ))[0].value;
   },
 };
-const call = (op, args = {}) => rpc.rpc("bye_schedule_backend", { op, args });
+const fixtureDigest=await sha("key");
+const call = (op, args = {}) => rpc.rpc("bye_schedule_backend", { op, args:op==="read"?{keyDigest:fixtureDigest,...args}:args });
+await call("register-key",{digest:fixtureDigest});
 let checks = 0;
 async function check(name, fn) {
   await fn();
@@ -233,7 +235,7 @@ await check(
 await check(
   "API polling has stable catalog ETags and bounded lease/limit storage",
   async () => {
-    const handler = api(rpc, await sha("key"), "salt");
+    const handler = api(rpc, "salt");
     const request = (path) =>
       new Request("https://api.test" + path, {
         headers: { apikey: "key", "x-forwarded-for": "fixture" },
@@ -415,5 +417,6 @@ await check(
     await call("fail", { token: c.token });
   },
 );
+await (await import("./key-scenarios.mjs")).keyScenarios(db,check,query,call,rpc);
 await db.close();
 console.log(`${checks} database scenarios passed`);

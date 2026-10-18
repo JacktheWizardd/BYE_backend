@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 export interface Database {
   rpc(name: string, args?: Record<string, unknown>): Promise<any>;
 }
-export function database(url: string, key: string): Database {
+export function database(url: string, key: string, token: string = key): Database {
   return {
     async rpc(name, args = {}) {
       const controller = new AbortController();
@@ -12,7 +12,7 @@ export function database(url: string, key: string): Database {
           method: "POST",
           headers: {
             apikey: key,
-            Authorization: "Bearer " + key,
+            Authorization: "Bearer " + token,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(args),

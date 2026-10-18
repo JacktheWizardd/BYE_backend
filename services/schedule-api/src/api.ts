@@ -1,6 +1,5 @@
 import { type Database, database } from "./database.ts";
 import { OPENAPI } from "./contract.ts";
-import { PUBLIC_KEY_SHA256 } from "./config.ts";
 import { type Course, search, sha, TERM } from "./domain.ts";
 const errors: Record<string, number> = {
   UNAUTHORIZED: 401,
@@ -17,7 +16,7 @@ const cors = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Expose-Headers": "ETag, Retry-After, X-Content-Type-Options",
 };
-export function api(db: Database, keyHash: string, salt: string) {
+export function api(db: Database, salt: string) {
   return async (req: Request): Promise<Response> => {
     const headers: Record<string, string> = {
       ...cors,
@@ -54,7 +53,7 @@ export function api(db: Database, keyHash: string, salt: string) {
     }
     if (req.url.length > 2048) return fail("INVALID_QUERY");
     const key = req.headers.get("apikey") ?? "";
-    if (!key || key.length > 2048 || await sha(key) !== keyHash) {
+    if (!key || key.length > 2048) {
       return fail("UNAUTHORIZED");
     }
     try {
@@ -63,15 +62,13 @@ export function api(db: Database, keyHash: string, salt: string) {
           /^(?:\/functions\/v1)?\/bye-schedule-api(?=\/|$)/,
           "",
         );
-      if (path === "/v1/openapi.json") {
-        return new Response(JSON.stringify(OPENAPI), { headers });
-      }
       const parts = path.split("/").filter(Boolean);
       let route: string,
         term: string | undefined,
         courseKey: string | undefined,
         crns: string[] | undefined;
-      if (path === "/v1/terms") route = "terms";
+      if (path === "/v1/openapi.json") route = "openapi";
+      else if (path === "/v1/terms") route = "terms";
       else if (parts[0] === "v1" && parts[1] === "terms" && parts.length >= 4) {
         term = parts[2];
         if (term !== TERM) return fail("UNSUPPORTED_TERM");
@@ -106,9 +103,10 @@ export function api(db: Database, keyHash: string, salt: string) {
       );
       const body = await db.rpc("bye_schedule_backend", {
         op: "read",
-        args: { route, term, courseKey, crns, identity },
+        args: { route, term, courseKey, crns, identity, keyDigest: await sha(key) },
       });
       if (body.error) return fail(body.error);
+      if (route === "openapi") return new Response(JSON.stringify(OPENAPI), { headers });
       if (route === "courses") {
         body.data = search(body.data as Course[], url.searchParams.get("q")!);
       }
@@ -136,7 +134,6 @@ if (import.meta.main) {
   Deno.serve(
     api(
       database(url, key),
-      Deno.env.get("BYE_CLIENT_KEY_SHA256") ?? PUBLIC_KEY_SHA256,
       key,
     ),
   );

@@ -2,8 +2,8 @@
 import assert from "node:assert/strict";
 const base = process.env.BYE_API_URL ??
     "https://nahvhampsxtasfwvvfei.supabase.co/functions/v1/bye-schedule-api",
-  key = process.env.BYE_PUBLISHABLE_KEY;
-if (!key) throw Error("Set BYE_PUBLISHABLE_KEY");
+  key = process.env.BYE_CLIENT_KEY ?? process.env.BYE_PUBLISHABLE_KEY;
+if (!key) throw Error("Set BYE_CLIENT_KEY");
 const call = (path, headers = {}) =>
   fetch(base + path, {
     headers: { apikey: key, ...headers },

@@ -2,11 +2,11 @@ const action = process.argv[2] === "rollback-catalog"
   ? "rollback"
   : process.argv[2] ?? "state";
 if (
-  !["state", "run", "bootstrap", "cleanup", "rollback", "enable", "disable"]
+  !["state", "run", "bootstrap", "cleanup", "rollback", "enable", "disable", "owner-add", "owner-remove"]
     .includes(action)
 ) {
   throw Error(
-    "Use state, run, bootstrap, cleanup, rollback, enable, or disable",
+    "Use state, run, bootstrap, cleanup, rollback, enable, disable, owner-add UUID, or owner-remove UUID",
   );
 }
 if (!process.env.BYE_SERVER_KEY && !process.env.BYE_JOB_TOKEN) {
@@ -27,6 +27,7 @@ const response = await fetch(url, {
   },
   body: JSON.stringify({
     action,
+    ...(["owner-add","owner-remove"].includes(action)?{userId:process.argv[3]}:{}),
     ...(process.argv[2] === "rollback-catalog" ? { target: "catalog" } : {}),
   }),
   signal: AbortSignal.timeout(150000),

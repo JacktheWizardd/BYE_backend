@@ -1,6 +1,5 @@
 // Independent backend deploy. No client build, website code, or app dependencies.
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +12,6 @@ if (
     "Set BYE_PUBLISHABLE_KEY to a publishable key (never a server secret).",
   );
 }
-const digest = createHash("sha256").update(key).digest("hex");
 const jobHash = process.env.BYE_JOB_TOKEN_SHA256 ?? "";
 if (jobHash && !/^[a-f0-9]{64}$/.test(jobHash)) {
   throw Error("Invalid job digest");
@@ -23,15 +21,15 @@ const files = await Promise.all(
     async (name) => ({
       name,
       content: (await readFile(path.join(root, "src", name), "utf8")).replace(
-        "__PUBLIC_KEY_SHA256__",
-        digest,
+        "__AUTH_PUBLISHABLE_KEY__",
+        key,
       ).replace("__JOB_TOKEN_SHA256__", jobHash),
     }),
   ),
 );
 const migrations = await readdir(path.join(root, "supabase/migrations"));
-const functions = ["api", "sync"].map((kind) => ({
-  name: kind === "api" ? "bye-schedule-api" : "bye-schedule-sync",
+const functions = ["api", "sync", "admin"].map((kind) => ({
+  name: kind === "admin" ? "bye-key-admin" : "bye-schedule-"+kind,
   entrypoint_path: "index.ts",
   verify_jwt: false,
   files: [...files.filter((f) => f.name !== kind + ".ts"), {
@@ -58,7 +56,7 @@ if (process.argv.includes("--manifest")) {
   await mkdir(path.join(dir, "supabase"), { recursive: true });
   await writeFile(
     path.join(dir, "supabase/config.toml"),
-    'project_id = "bye-schedule-api"\n[functions.bye-schedule-api]\nverify_jwt = false\n[functions.bye-schedule-sync]\nverify_jwt = false\n',
+    'project_id = "bye-schedule-api"\n[functions.bye-schedule-api]\nverify_jwt = false\n[functions.bye-schedule-sync]\nverify_jwt = false\n[functions.bye-key-admin]\nverify_jwt = false\n',
   );
   for (const fn of functions) {
     const target = path.join(dir, "supabase/functions", fn.name);
