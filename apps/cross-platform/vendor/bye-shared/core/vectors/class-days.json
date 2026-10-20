@@ -1,0 +1,18 @@
+{
+  "about": "Class-days rule shared by every BYE app. A section matches only when it meets on every picked day (it may meet on other days too). Fully online sections (every format OD) always match. Sections with no announced days never match. No picked days matches everything. Swift: Section.fits(availableDays:). TypeScript: fits(section, picked).",
+  "cases": [
+    { "name": "no days picked matches everything", "section": { "formats": ["LEC"], "days": ["Mon", "Wed"] }, "picked": [], "expected": true },
+    { "name": "meets on exactly the picked days", "section": { "formats": ["LEC"], "days": ["Mon", "Wed"] }, "picked": ["Mon", "Wed"], "expected": true },
+    { "name": "meets on the picked day and another day", "section": { "formats": ["LEC"], "days": ["Mon", "Wed"] }, "picked": ["Mon"], "expected": true },
+    { "name": "misses one picked day", "section": { "formats": ["LEC"], "days": ["Mon", "Wed"] }, "picked": ["Mon", "Wed", "Fri"], "expected": false },
+    { "name": "meets on none of the picked days", "section": { "formats": ["LEC"], "days": ["Mon", "Wed"] }, "picked": ["Tue"], "expected": false },
+    { "name": "fully online always matches", "section": { "formats": ["OD"], "days": [] }, "picked": ["Mon"], "expected": true },
+    { "name": "no announced days never matches", "section": { "formats": ["LEC"], "days": [] }, "picked": ["Mon"], "expected": false },
+    { "name": "no announced days still matches when nothing is picked", "section": { "formats": ["LEC"], "days": [] }, "picked": [], "expected": true },
+    { "name": "hybrid meets on the picked day", "section": { "formats": ["HY", "OD"], "days": ["Tue"] }, "picked": ["Tue"], "expected": true },
+    { "name": "live online is not fully online", "section": { "formats": ["OL"], "days": ["Thu"] }, "picked": ["Mon"], "expected": false },
+    { "name": "mixed online and lecture is not fully online", "section": { "formats": ["LEC", "OD"], "days": ["Mon"] }, "picked": ["Tue"], "expected": false },
+    { "name": "an unannounced extra meeting does not block announced days", "section": { "formats": ["LEC"], "days": ["Mon"], "unannouncedMeetings": true }, "picked": ["Mon"], "expected": true },
+    { "name": "weekend days work like weekdays", "section": { "formats": ["LEC"], "days": ["Sat"] }, "picked": ["Sat"], "expected": true }
+  ]
+}

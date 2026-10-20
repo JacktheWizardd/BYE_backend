@@ -46,11 +46,14 @@ async function search(app, page) {
   await readyReport(app, page, before)
   return performance.now() - start
 }
-async function launch(storage) {
+async function launch(storage, { firstRun = false } = {}) {
+  // Ordinary runs start past first-run setup; appFlowChecks covers welcome and naming on its own fresh storage.
+  if (!firstRun) await writeFile(path.join(storage, 'settings.json'), JSON.stringify({ name: '', onboarded: true, recent: [] }), { flag: 'wx' }).catch(error => { if (error.code !== 'EEXIST') throw error })
   const start = performance.now()
   const app = await electron.launch({ executablePath: require('electron'), args: [entry], env: { ...env, BYE_OFFLINE_ROOT: root, BYE_OFFLINE_STORAGE: storage }, timeout: 30000 })
   try {
     const page = await app.firstWindow({ timeout: 30000 }); page.on('pageerror', error => errors.push(error.message))
+    if (firstRun) return { app, page, startupMs: performance.now() - start }
     await page.getByRole('combobox', { name: 'Semester', exact: true }).selectOption('202650')
     await page.getByRole('combobox', { name: 'Class', exact: true }).fill('ETH14')
     return { app, page, startupMs: performance.now() - start }
@@ -200,12 +203,14 @@ async function uiChecks(app, page, storage) {
   await page.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('HIST001')
   assert.equal(await page.locator('.review').count(), 3)
   for (const label of await page.locator('.review-heading strong').allTextContents()) assert.equal(label, 'HIST001')
-  await page.getByRole('combobox', { name: 'Sort professors', exact: true }).selectOption('difficulty')
+  await page.getByRole('group', { name: 'Sort professors', exact: true }).getByRole('button', { name: 'Difficulty', exact: true }).click()
+  assert.equal(await page.getByRole('group', { name: 'Sort professors', exact: true }).getByRole('button', { name: 'Difficulty', exact: true }).getAttribute('aria-pressed'), 'true')
   checks.push('Search, professor switching, review loading, course filters, rating sorts and progressive reveal passed')
   await app.evaluate(() => { globalThis.__offline.controls.ambiguous = true })
   await page.getByRole('button', { name: 'Change profile', exact: true }).click()
   await page.getByRole('dialog').waitFor()
-  assert.equal(await page.getByRole('button', { name: 'Use this profile', exact: true }).count(), 2)
+  // The dialog opens before discovery returns, as in the other chooser checks.
+  await until(async () => await page.getByRole('button', { name: 'Use this profile', exact: true }).count() === 2, 'changed-profile candidates')
   await page.getByRole('button', { name: 'Use this profile', exact: true }).last().click()
   await until(async () => { const p = (await state(app)).professors[0]; return p.profile?.coverage.all?.hasNextPage === false && !p.detailLoading }, 'chosen profile report')
   checks.push('Ambiguous profile chooser and persisted manual selection passed')
@@ -257,7 +262,69 @@ async function monitor(number) {
   await Promise.race([until(async () => { try { await access(ready); return true } catch { return false } }, 'memory monitor readiness', 30000), completed.then(() => { throw new Error('Memory monitor exited before ready') })])
   return async () => { await writeFile(stop, 'stop'); await completed; return JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, '')) }
 }
+// First run (welcome, name, ID card), the app bridge, Ctrl K command menu, settings sheet and remembered classes.
+async function appFlowChecks() {
+  const storage = await mkdtemp(path.join(cache, 'offline-first-run-'))
+  const { app, page } = await launch(storage, { firstRun: true })
+  try {
+    await page.getByRole('button', { name: 'Let’s go →', exact: true }).click()
+    await page.getByRole('button', { name: 'That’s me →', exact: true }).click()
+    await page.getByText('Type a name, or skip for now.', { exact: true }).waitFor()
+    await page.getByLabel('Your name', { exact: true }).fill('Sam')
+    await page.getByRole('button', { name: 'That’s me →', exact: true }).click()
+    await page.getByRole('heading', { level: 1 }).filter({ hasText: 'Sam' }).waitFor()
+    assert.deepEqual(JSON.parse(await readFile(path.join(storage, 'settings.json'), 'utf8')), { name: 'Sam', onboarded: true, recent: [] })
+    assert.equal(await page.evaluate(() => Object.keys(window.byeApp).sort().join(',')), 'checkForUpdate,getSettings,info,openDownload,setSettings')
+    assert.equal(await page.evaluate(() => Object.keys(window.bye).sort().join(',')), 'command,subscribe')
+    await page.keyboard.press('Control+k')
+    await page.getByRole('dialog', { name: 'Command menu' }).waitFor()
+    await page.keyboard.press('Escape')
+    await page.getByRole('dialog', { name: 'Command menu' }).waitFor({ state: 'hidden' })
+    await page.getByRole('button', { name: 'Your name and settings', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Settings' }).waitFor()
+    await page.getByRole('group', { name: 'Settings sections' }).getByRole('button', { name: 'Updates', exact: true }).click()
+    await page.getByRole('button', { name: 'Check for updates', exact: true }).waitFor()
+    await page.getByRole('button', { name: 'Close settings', exact: true }).click()
+    await page.getByRole('combobox', { name: 'Semester', exact: true }).selectOption('202650')
+    await page.getByRole('combobox', { name: 'Class', exact: true }).fill('ETH14')
+    await page.getByRole('button', { name: 'Find professors' }).click()
+    await page.getByRole('button', { name: 'Change search', exact: true }).waitFor()
+    await until(async () => JSON.parse(await readFile(path.join(storage, 'settings.json'), 'utf8')).recent.length === 1, 'remembered class')
+    await page.getByRole('navigation', { name: 'Places' }).getByRole('button', { name: /ETH/ }).first().waitFor()
+    // Classes behave like tabs: stable order, and each one comes back exactly as it was left.
+    const places = page.getByRole('navigation', { name: 'Places' })
+    const idle = async label => until(async () => { const st = await state(app); return !st.loading && !st.previewPending }, label)
+    await idle('ETH results')
+    await page.getByRole('group', { name: 'Sort professors', exact: true }).getByRole('button', { name: 'Difficulty', exact: true }).click()
+    await page.getByRole('button', { name: /Blair Sample.*sections?/ }).click()
+    await page.getByRole('heading', { name: 'Blair Sample', exact: true }).waitFor()
+    // Switching professors updates the page in place (no remount, no flash).
+    await page.evaluate(() => { document.querySelector('.report').dataset.kept = 'yes' })
+    await page.getByRole('button', { name: /Alex Example.*sections?/ }).click()
+    await page.getByRole('heading', { name: 'Alex Example', exact: true }).waitFor()
+    assert.equal(await page.evaluate(() => document.querySelector('.report')?.dataset.kept), 'yes', 'Report remounted when switching professors')
+    await page.getByRole('button', { name: /Blair Sample.*sections?/ }).click()
+    await page.getByRole('heading', { name: 'Blair Sample', exact: true }).waitFor()
+    await page.getByRole('button', { name: 'Change search', exact: true }).click()
+    await page.getByRole('combobox', { name: 'Class', exact: true }).fill('MATH 005A')
+    await page.getByRole('button', { name: 'Find professors' }).click()
+    await page.getByRole('button', { name: 'Change search', exact: true }).waitFor(); await idle('MATH results')
+    assert.deepEqual(JSON.parse(await readFile(path.join(storage, 'settings.json'), 'utf8')).recent, ['ETH 014', 'MATH 005A'])
+    assert.equal(await page.getByRole('heading', { name: 'Blair Sample', exact: true }).count(), 0, 'A new class opens on the overview')
+    await places.getByRole('button', { name: 'ETH 014', exact: true }).click()
+    await page.getByRole('heading', { name: 'Blair Sample', exact: true }).waitFor({ timeout: 2000 })
+    assert.equal(await page.getByRole('group', { name: 'Sort professors', exact: true }).getByRole('button', { name: 'Difficulty', exact: true }).getAttribute('aria-pressed'), 'true')
+    await idle('ETH reload'); await page.getByRole('heading', { name: 'Blair Sample', exact: true }).waitFor()
+    await places.getByRole('button', { name: 'MATH 005A', exact: true }).click(); await idle('MATH reload')
+    assert.deepEqual(await places.getByRole('button', { name: /^(ETH|MATH)/ }).allTextContents(), ['ETH 014', 'MATH 005A'], 'Sidebar order stays put')
+    checks.push('Your classes keep their order; each class keeps its professor, sort and page; switching professors updates in place')
+    await page.screenshot({ path: path.join(output, 'first-run-results.png') })
+    await inactive(app)
+    checks.push('First run, name saved on this PC, app bridge, command menu, settings sheet and remembered classes passed; no network')
+  } finally { await app.close().catch(() => {}) }
+}
 const perf = process.argv.includes('--perf')
+if (!perf) await appFlowChecks()
 for (let number = 1; number <= (perf ? 3 : 1); number++) {
   const storage = await mkdtemp(path.join(cache, 'offline-user-')), finishMonitor = perf ? await monitor(number) : undefined
   let app, record

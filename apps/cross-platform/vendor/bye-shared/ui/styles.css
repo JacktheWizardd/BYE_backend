@@ -1,0 +1,102 @@
+/* BYE shared screens, v3 look (approved mockup, 2026-10-19): playful, calm and quick.
+   Uses only the shared tokens (packages/tokens) so the web app and the Windows app look the same.
+   Every control is at least 44px. All motion is off for reduced motion. */
+@import '../tokens/generated/tokens.css';
+
+/* Avatars: initials in a circle. Yellow only on the open professor's page (playful accent). */
+.avatar { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--bye-tile); color: var(--bye-ink); font: 700 13px/1 var(--bye-font-sans); letter-spacing: 0.02em; }
+.avatar.lg { width: 56px; height: 56px; font: 700 20px/1 var(--bye-font-display); }
+.avatar.accent { background: var(--bye-accent); border: var(--bye-border-sticker) solid var(--bye-ink); }
+
+/* "I'm free" day bubbles. */
+.day-bubbles { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.day-bubbles-label { flex: none; font: 600 13px/1 var(--bye-font-sans); color: var(--bye-ink-3); }
+.day-bubbles-row { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.day-bubble { min-width: 0; min-height: 44px; padding: 0; border-radius: var(--bye-radius-pill); border: var(--bye-border-control) solid var(--bye-tile-line); background: var(--bye-card); color: var(--bye-ink); font: 600 13px/1 var(--bye-font-sans); cursor: pointer; transition: background-color var(--bye-duration-fast), color var(--bye-duration-fast), border-color var(--bye-duration-fast); }
+.day-bubble:hover:not(:disabled) { border-color: var(--bye-ink); }
+.day-bubble[aria-pressed='true'] { background: var(--bye-ink); border-color: var(--bye-ink); color: var(--bye-paper); }
+.day-bubble:disabled { opacity: 0.45; cursor: not-allowed; }
+@media (min-width: 760px) { .day-bubbles-row { flex: none; grid-template-columns: repeat(7, 44px); } }
+
+/* Segmented control with a sliding thumb. */
+.segmented { position: relative; display: flex; padding: 3px; border-radius: var(--bye-radius-pill); background: var(--bye-tile); }
+.segmented button { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--bye-radius-pill); background: none; color: var(--bye-ink-2); font: 600 14px/1.2 var(--bye-font-sans); cursor: pointer; white-space: nowrap; }
+.segmented button[aria-pressed='true'] { color: var(--bye-ink); }
+.segmented-thumb { position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: var(--bye-radius-pill); background: var(--bye-card); box-shadow: 0 1px 2px rgb(22 22 24 / 0.15); }
+
+/* Professor list: transparent rows; the open one gets an ink "sticker" highlight that slides between rows. */
+.prof-list { position: relative; display: flex; flex-direction: column; gap: 4px; }
+.prof-slot { position: relative; z-index: 1; }
+.prof-mark { position: absolute; z-index: 0; top: 0; left: 0; right: 0; height: 0; border-radius: 14px; background: var(--bye-card); border: var(--bye-border-sticker) solid var(--bye-ink); box-shadow: var(--bye-shadow-sticker); opacity: 0; pointer-events: none; }
+.prof-mark.on { opacity: 1; }
+.prof-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px; text-align: left; background: transparent; border: var(--bye-border-sticker) solid transparent; border-radius: 14px; color: var(--bye-ink); cursor: pointer; transition: background-color var(--bye-duration-fast); }
+.prof-card:hover { background: rgb(255 255 255 / 0.55); }
+.prof-card.selected:hover { background: transparent; }
+.prof-card.dashed { border-style: dashed; border-color: var(--bye-line-strong); }
+.prof-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prof-card .name { font: 700 16px/22px var(--bye-font-display); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.prof-card small { display: block; font-size: 13px; line-height: 18px; color: var(--bye-ink-3); }
+.prof-card small.ink { color: var(--bye-ink); }
+.prof-card .bar { margin-top: 6px; height: 4px; background: var(--bye-tile); }
+.prof-card .big { font: 700 24px/1 var(--bye-font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.prof-card .side-action { font-weight: 600; font-size: 14px; white-space: nowrap; }
+
+/* Loading: skeleton rows and a little rotating copy. */
+.loading-rows { display: flex; flex-direction: column; gap: 6px; }
+.loading-copy { margin: 0 0 4px; font-size: 13px; color: var(--bye-ink-3); }
+.skeleton-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px; }
+.skeleton-dot { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--bye-tile); }
+.skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.skeleton-lines i { display: block; height: 10px; border-radius: 6px; background: var(--bye-tile); }
+.skeleton-lines i:last-child { width: 60%; }
+
+/* Before a professor is opened: a hand-drawn arrow toward the list, and no automatic pick. */
+.empty-detail { display: flex; flex-direction: column; gap: 8px; max-width: 520px; padding: 48px 20px; }
+.empty-detail h2 { font: 700 28px/1.15 var(--bye-font-display); letter-spacing: -0.02em; }
+.drawn-arrow { display: none; width: 78px; height: 44px; margin-bottom: 4px; fill: none; stroke: var(--bye-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.empty-stats { display: flex; gap: 10px; margin-top: 16px; }
+.empty-stats .stat { min-width: 120px; }
+@media (min-width: 760px) { .empty-detail { padding: 64px 40px; } .drawn-arrow { display: block; } }
+
+/* Professor page. */
+.report { overflow-x: clip; }
+.report-head { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.report-head .report-name { margin: 4px 0 0; }
+.section-card { background: var(--bye-card); border: var(--bye-border-sticker) solid var(--bye-ink); border-radius: 16px; box-shadow: var(--bye-shadow-sticker); }
+.section-card.other-days { border-color: var(--bye-line-strong); box-shadow: none; }
+.seats { border-top-color: var(--bye-line); }
+.seats-bar { background: var(--bye-tile); }
+/* Reviews sit straight: tilted or moving body text renders soft on Windows, so tilts stay on short stickers only. */
+.review-card { background: var(--bye-card); border: 1px solid var(--bye-line); border-radius: 14px; }
+.review-heading { flex-wrap: wrap; }
+.find-more { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+
+/* Mac-style extras (the Windows app today): row actions under a professor, and format/term facts on the course overview. */
+.professor-card { display: flex; flex-direction: column; }
+.row-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 6px 64px; }
+.row-actions .text-link { min-height: 44px; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 12px 0 0; font-size: 14px; }
+.facts dt { font-weight: 700; }
+.facts dd { margin: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .day-bubble.pop { animation: bye-pop 0.4s var(--bye-ease-spring); }
+  .segmented-thumb { transition: transform var(--bye-duration-slide) var(--bye-ease-spring), width var(--bye-duration-slide) var(--bye-ease-expo); }
+  /* Calm, no overshoot, the same as the sidebar class highlight. */
+  .prof-mark { transition: transform 0.28s var(--bye-ease-expo), height 0.28s var(--bye-ease-expo), opacity var(--bye-duration-fast); }
+  /* Text fades in rather than sliding: moving text blurs on Windows. Highlights, thumbs and bars still move. */
+  .prof-slot { animation: bye-fade 0.45s var(--bye-ease-expo) both; animation-delay: calc(var(--n, 0) * var(--bye-duration-stagger)); }
+  .skeleton-dot, .skeleton-lines i { animation: bye-pulse 1.1s ease-in-out infinite; }
+  .drawn-arrow path { stroke-dasharray: 120; stroke-dashoffset: 120; animation: bye-draw 0.9s 0.25s var(--bye-ease-expo) forwards; }
+  .report-in { animation: bye-fade var(--bye-duration-slide) var(--bye-ease-expo) both; }
+}
+@keyframes bye-pop { 35% { transform: scale(0.86); } 70% { transform: scale(1.06); } }
+@keyframes bye-fade { from { opacity: 0; } }
+@keyframes bye-pulse { 50% { opacity: 0.45; } }
+@keyframes bye-draw { to { stroke-dashoffset: 0; } }
+.review-list { display: flex; flex-direction: column; gap: 12px; }
+
+/* Count-up numbers: the final value (invisible) fixes the width, and the counting value sits on top of it. */
+.num { display: inline-grid; }
+.num-size, .num-live { grid-area: 1 / 1; }
+.num-size { visibility: hidden; }

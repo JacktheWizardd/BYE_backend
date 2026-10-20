@@ -9,12 +9,14 @@ const data = await mkdtemp(path.join(os.tmpdir(), 'BYE UI 测试 '))
 const env: Record<string, string> = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined))
 env.BYE_TEST_STORAGE = data
 delete env.ELECTRON_RUN_AS_NODE
+// Start past first-run setup (scripts/verify-offline.mjs covers welcome and naming).
+await writeFile(path.join(data, 'settings.json'), JSON.stringify({ name: '', onboarded: true, recent: [] }))
 const app = await electron.launch({ executablePath: path.join(root, 'node_modules/electron/dist/electron.exe'), args: [root], env, timeout: 30000 })
 const errors: string[] = [], results: string[] = []
 app.process().stderr?.on('data', chunk => { const text = String(chunk); if (/Error|failed to load/i.test(text)) errors.push(text) })
 try {
   const page = await app.firstWindow(); page.on('pageerror', e => errors.push(e.message))
-  await page.getByRole('heading', { name: /Find your\s*professor\./ }).waitFor()
+  await page.getByText('What are you taking next term?', { exact: true }).waitFor()
   await page.getByLabel('Semester', { exact: true }).selectOption('202710', { timeout: 45000 })
   await page.getByRole('combobox', { name: 'Class', exact: true }).fill('math 5a')
   await page.getByRole('button', { name: 'Find professors' }).click()
@@ -31,7 +33,8 @@ try {
   // Renderer isolation and typed-only bridge are checked in the actual Electron window.
   assert.equal(await page.evaluate(() => typeof (window as any).require), 'undefined')
   assert.equal(await page.evaluate(() => Object.keys(window.bye).sort().join(',')), 'command,subscribe')
-  results.push('Renderer has no require; bridge exposes only command and subscribe')
+  assert.equal(await page.evaluate(() => Object.keys((window as any).byeApp).sort().join(',')), 'checkForUpdate,getSettings,info,openDownload,setSettings')
+  results.push('Renderer has no require; data bridge exposes only command and subscribe; app bridge only settings, info and the update check')
   const reportName = await page.getByRole('heading', { name: 'Anahit Asadyan', exact: true }).textContent()
   await page.getByRole('combobox', { name: 'Review course', exact: true }).selectOption('all')
   await page.getByRole('combobox', { name: 'Sort reviews', exact: true }).selectOption('lowest')

@@ -1,0 +1,19 @@
+{
+  "about": "Review sorting shared by every BYE app. Missing scores and unreadable dates sort last; ties fall back to newest first (oldest first for 'oldest'), then review ID. Dates may be ISO or RMP's '2026-05-01 00:00:00 +0000 UTC'. Swift: Ordering.reviews(_:by:) with ReviewSort cases of the same names. TypeScript: orderReviews(reviews, by).",
+  "reviews": [
+    { "id": "a", "rating": 5, "difficulty": 3, "date": "2026-09-01" },
+    { "id": "b", "rating": 3, "difficulty": 4, "date": "2026-05-01" },
+    { "id": "c", "rating": 5, "difficulty": 2, "date": "2025-12-01" },
+    { "id": "d", "difficulty": 1, "date": "2026-10-01 00:00:00 +0000 UTC" },
+    { "id": "e", "rating": 4, "date": "not a date" },
+    { "id": "f", "rating": 3, "difficulty": 4, "date": "2026-05-01" }
+  ],
+  "cases": [
+    { "by": "recent", "expected": ["d", "a", "b", "f", "c", "e"] },
+    { "by": "oldest", "expected": ["c", "b", "f", "a", "d", "e"] },
+    { "by": "highest", "expected": ["a", "c", "e", "b", "f", "d"] },
+    { "by": "lowest", "expected": ["b", "f", "e", "a", "c", "d"] },
+    { "by": "highestDifficulty", "expected": ["b", "f", "a", "c", "d", "e"] },
+    { "by": "difficulty", "expected": ["d", "c", "a", "b", "f", "e"] }
+  ]
+}

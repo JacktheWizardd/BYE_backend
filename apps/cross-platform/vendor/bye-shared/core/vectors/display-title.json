@@ -1,0 +1,11 @@
+{
+  "about": "PCC prints course titles in capitals; every app shows them in title case, keeps Roman numerals and lowercases small joining words after the first word. Swift: displayTitle(_:). TypeScript: displayTitle(raw).",
+  "cases": [
+    { "raw": "SINGLE VARIABLE CALCULUS I", "expected": "Single Variable Calculus I" },
+    { "raw": "HISTORY OF THE UNITED STATES", "expected": "History of the United States" },
+    { "raw": "THE ART OF FILM", "expected": "The Art of Film" },
+    { "raw": "IN THE LAB", "expected": "In the Lab" },
+    { "raw": "GENERAL CHEMISTRY  II", "expected": "General Chemistry II" },
+    { "raw": "READING AND COMPOSITION", "expected": "Reading and Composition" }
+  ]
+}

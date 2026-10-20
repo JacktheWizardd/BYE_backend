@@ -2,6 +2,18 @@
 
 Updated October 18, 2026. Earlier dated entries remain historical records.
 
+## App redesign v3 — October 19, 2026 (in progress, not released)
+
+The owner approved a playful, search-first redesign for both apps (interactive mockup: [design/app-mockup-v3.html](design/app-mockup-v3.html); plan in the website repository's `docs/APP_REDESIGN_PLAN.md`). The approach:
+- One token file (`BYE_website/packages/tokens/tokens.json`) drives the website, the web app, Windows and the Mac.
+- The Windows app reuses the web app's shared React screens through `scripts/sync-bye-shared.mjs`.
+- The Mac stays SwiftUI and follows the same tokens, test vectors and [UI parity map](UI_PARITY.md).
+
+Progress:
+- Website Phases 1–2 are committed on the website branch `redesign/shared-foundations`.
+- Windows Phase 3 is on branch `redesign/windows-app-v3`: first run with the name and student ID card, sidebar frame, search-first home, Ctrl K command menu, settings with a check-only update, and the v3 results and professor page. The offline UI verification passes.
+- The Mac (Phase 4) has not started. Nothing is released; the Windows ZIP was not rebuilt.
+
 ## Website redesign — October 17–18, 2026
 
 The website (separate `../BYE_website` repository) was redesigned mobile first in the BYE design system. It has an interactive, scroll-pinned home page, a matching review page, and a web demo that is clearly labeled as sample data, because testers had mistaken it for the real app. A feedback section emails byebeforeyouenroll@gmail.com. Review-page course search now ranks course codes before title matches. A plan for bringing the same look and motion to the Mac and Windows apps is in the website repository's `docs/APP_REDESIGN_PLAN.md` (not started). No app code or release files changed. See the [website redesign record](website-redesign-record.md).
