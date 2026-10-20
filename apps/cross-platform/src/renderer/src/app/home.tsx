@@ -32,8 +32,10 @@ export function Home(props: { name: string; terms: Term[]; termLoading: boolean;
   const choose = (s: Suggestion) => { dismissSuggestions(); setQuery(s.course.display); input.current?.focus() }
   const term = terms.find(t => t.termCode === termCode)
   return <div className="home">
-    {term && <span className="sticker sticker-term" aria-hidden="true">{term.termName}</span>}
-    <h1 className="greeting">{greeting()}{props.name ? <>, <span className="swipe">{props.name}</span></> : ''}.</h1>
+    <div className="greeting-row">
+      <h1 className="greeting">{greeting()}{props.name ? <>, <span className="swipe">{props.name}</span></> : ''}.</h1>
+      {term && <span className="sticker sticker-term" aria-hidden="true">{term.termName}</span>}
+    </div>
     <p className="lead">What are you taking next term?</p>
     <form className="home-search" onSubmit={e => { e.preventDefault(); if (open && index >= 0 && items[index]) choose(items[index]); else if (!pending) { dismissSuggestions(); search() } }}>
       <div className="command-field">
@@ -63,7 +65,7 @@ export function Home(props: { name: string; terms: Term[]; termLoading: boolean;
       {pending && <div className="row start" role="status"><span className="spinner" aria-hidden="true" /><span className="muted small">{props.progress}</span><button type="button" className="text-link" onClick={props.cancel}>Cancel</button></div>}
       {error && <div role="alert" className="notice"><p className="muted">{error}</p>{!terms.length && !termLoading && <button type="button" className="text-link" onClick={props.retryTerms}>Retry semesters</button>}</div>}
     </form>
-    <div className="try"><span className="muted small">Try</span>{EXAMPLES.map(x => <button key={x} type="button" className="pill mono" disabled={pending || !terms.length} onClick={() => { setQuery(x); search(x) }}>{x}</button>)}</div>
+    <p className="home-tip">Type a class code like <span className="mono">ETH 014</span> or <span className="mono">POLS C1000</span>. We’ll round up every section, seat and review so you know what you’re signing up for.</p>
     <p className="hints muted small"><span className="kbd">{shortcut}</span> anywhere · <span className="kbd">↑</span> <span className="kbd">↓</span> to move · <span className="kbd">↵</span> to open</p>
     <span className="sticker sticker-promise" aria-hidden="true">BYE never ranks professors. Promise.</span>
   </div>

@@ -11,21 +11,26 @@ export const MOTION = {
 // Small motion helpers shared by the web app (demo and live) and the Windows app. Everything is off for reduced motion.
 export const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// Counts a number up from zero once when it first appears (or changes), like the home page.
-export function useCountUp(value: number | undefined, ms = 900) {
+// Counts a number up from zero when it first appears, like the home page. When the value changes later it glides from the
+// number on screen to the new one; when `restartKey` changes (another professor) it counts up from zero again.
+export function useCountUp(value: number | undefined, ms = 900, restartKey?: string) {
   const [shown, setShown] = useState(value)
+  const current = useRef<number | undefined>(undefined), lastKey = useRef(restartKey)
   useEffect(() => {
-    if (value === undefined || reducedMotion()) { setShown(value); return }
+    if (lastKey.current !== restartKey) { lastKey.current = restartKey; current.current = undefined }
+    if (value === undefined || reducedMotion()) { current.current = value; setShown(value); return }
+    const from = current.current ?? 0
+    if (from === value) { setShown(value); return }
     let raf = 0
     const start = performance.now()
     const step = (now: number) => {
-      const t = Math.min(1, (now - start) / ms), eased = 1 - Math.pow(1 - t, 3)
-      setShown(value * eased)
+      const t = Math.min(1, (now - start) / ms), eased = 1 - Math.pow(1 - t, 3), next = from + (value - from) * eased
+      current.current = next; setShown(next)
       if (t < 1) raf = requestAnimationFrame(step)
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
-  }, [value, ms])
+  }, [value, ms, restartKey])
   return shown
 }
 

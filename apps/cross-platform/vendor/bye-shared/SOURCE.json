@@ -2,7 +2,7 @@
   "about": "Copied from the BYE website repository by scripts/sync-bye-shared.mjs. Do not edit; change the website and sync again.",
   "repository": "JacktheWizardd/BYE_website",
   "branch": "redesign/shared-foundations",
-  "commit": "e7b2573c9433bd46bdfa64fe0f967342aca603a0",
+  "commit": "06ee693ff94033b593f137361f7cdce225c53d99",
   "uncommittedChanges": true,
   "packages": [
     "tokens",

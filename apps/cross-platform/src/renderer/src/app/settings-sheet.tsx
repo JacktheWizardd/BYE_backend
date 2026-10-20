@@ -41,7 +41,7 @@ export function SettingsSheet({ open, tab, setTab, name, version, onClose, onSav
         <button className="text-link" onClick={onWelcome}>Show welcome again</button>
       </>}
       {tab === 'updates' && <>
-        <p className="muted">BYE checks the website for a new version when you ask, then links you to the download. Nothing is installed for you yet.</p>
+        <p>You have BYE <span className="mono">{version || '—'}</span>.</p>
         <div><button className="pill primary" disabled={check === 'checking'} onClick={() => void checkNow()}>Check for updates</button></div>
         <div className="update-result" role="status">
           {check === 'checking' && <><span className="progress-bar indeterminate" aria-hidden="true"><i /></span><span className="muted small">Checking…</span></>}
@@ -49,12 +49,16 @@ export function SettingsSheet({ open, tab, setTab, name, version, onClose, onSav
           {check && check !== 'checking' && check.status === 'available' && <span>BYE {check.latest} is out. <button className="text-link" onClick={() => void window.byeApp.openDownload(check.downloadUrl)}>Get it from the website ↗</button></span>}
           {check && check !== 'checking' && check.status === 'error' && <span className="signal">{check.message}</span>}
         </div>
-        <p className="muted small">The check asks bye-before-you-enroll.pages.dev for one small file, only when you press the button. Like any website visit, Cloudflare sees your IP address; your name and searches are never sent.</p>
+        <p className="muted small">No private information is sent.</p>
       </>}
       {tab === 'about' && <>
-        <p>BYE <span className="mono">{version || '—'}</span></p>
-        <p className="muted">Free, no ads, no tracking. Made by a PCC student.</p>
-        <p className="muted small">Ratings come from Rate My Professors and schedules from PCC. Licenses and credits are in THIRD_PARTY_NOTICES.txt next to BYE.exe.</p>
+        {/* The owner's own words (2026-10-20). */}
+        <h3>Hi! :)</h3>
+        <p>I’m a PCC student, just like you. I made BYE because I got tired of juggling a bunch of tabs just to find the right professor and plan my classes.</p>
+        <p>So I thought, why not put everything in one place?</p>
+        <p>BYE is just a little project I started to make picking classes easier for myself and hopefully for you too!</p>
+        <p>It’s free, with no ads or tracking. Just something I built for students, by a student.</p>
+        <p className="muted small">Ratings from Rate My Professors, schedules from PCC. Licenses and credits are in THIRD_PARTY_NOTICES.txt next to BYE.exe.</p>
       </>}
     </div>
   </dialog>

@@ -20,16 +20,30 @@ When you change a row below, say in the handoff whether its other columns change
 | Settings: name, updates, about | — | `app/settings-sheet.tsx` (check-only updates) | Settings scene + `UpdateSettingsView` (Sparkle) |
 | "I'm free" day bubbles | `DayBubbles` | `DayBubbles` (vendored) | `AvailableDaysPicker` |
 | Segmented sort | `Segmented` | `Segmented` (vendored) | Sort picker in `ContentView` |
-| Professor list, sliding highlight, ↑ ↓ | `ProfessorList` + `ProfessorCard` | `ProfessorList` (vendored) + `ProfessorRow` in `app/report.tsx` (Mac-style row actions) | `ProfessorListCard` |
+| Professor list, sliding highlight, ↑ ↓ | `ProfessorList` + `ProfessorCard` (`ProfessorRow` available) | `ProfessorList` + `ProfessorRow` (vendored; Mac-style row actions) | `ProfessorListCard` |
 | Loading rows | `LoadingRows` | `LoadingRows` (vendored) | `ProgressMeter` |
-| Before a professor is picked | `EmptyDetail` | `CourseOverview` in `app/report.tsx` (adds format and term facts) | `CourseOverview` in `ContentView.swift` |
-| Professor page | `Report` | `Report` in `app/report.tsx` (adds Find more, course filter with RMP counts, Write a review, AI note) | `ProfessorReport` |
-| Section card and seats | `SectionCard` | `ClassCard` / `SeatMeter` in `app/report.tsx` | `ClassCard` / `SeatMeter` in `Components.swift` |
-| Profile chooser | `Chooser` | `Chooser` in `app/report.tsx` | `ProfileChooser` |
+| Before a professor is picked | `EmptyDetail` with `sections` (format and term facts) | `EmptyDetail` (vendored) with `sections`, a course caption and the disclaimer | `CourseOverview` in `ContentView.swift` |
+| Professor page | `Report` (chips filter, requests reviews on each filter) | `Report` (vendored) with `reviewFilter="select"`, `findMore`, `writeReview`, `summary` (AI note), `reviewPage={[3, 5]}` and saved per-professor state | `ProfessorReport` |
+| Section card and seats | `SectionCard` | `SectionCard` (vendored) | `ClassCard` / `SeatMeter` in `Components.swift` |
+| Profile chooser | `Chooser` | `Chooser` in `app/report.tsx` (Mac wording: Close, "Finding matching profiles…") | `ProfileChooser` |
+
+## Behavior every desktop app keeps
+
+- Your classes stay in the order they were added; the oldest drops off past five.
+- Each class is a tab for the session: it keeps its open professor, filters, sort and each professor's review choices, and reappears at once when revisited.
+- Switching professors updates the page in place: numbers glide from the old value, bars glide to the new width, and nothing remounts or flashes.
+- Text fades in rather than sliding, and only short stickers tilt.
 
 ## Known differences to close
 
-- The Windows professor page has features the shared web `Report` lacks: Find more for this class, the review-course menu with RMP counts, Write a review, "Listed at PCC as" and the AI policy note. The follow-up is to move them into `packages/ui` `Report` so the web gets them and Windows can use the shared page.
+- Windows now uses the shared `Report`, `ProfessorRow` and `EmptyDetail` (2026-10-20). Their Mac extras are optional props. The web app has "Listed at PCC as", per-review "Original on RMP ↗" links, the "all courses are shown" note and the format/term facts, but it keeps:
+  - review-course chips that request reviews as soon as a filter is picked, instead of the select and "Find more for this class";
+  - 4 reviews first, then 6 more (the Mac and Windows show 3, then 5);
+  - its own "Write a review →" link inside the BYE reviews block, instead of `writeReview`;
+  - no AI policy note, because summaries are not part of the web beta;
+  - `ProfessorCard` rows (taps open the chooser) instead of `ProfessorRow` actions.
+- Windows section cards now use the shared `SectionCard`: the seat bar fills with open seats, without the Mac's ink, yellow and red thresholds. Score cards use the shared stats, without the Mac's helper lines ("Higher means better rated").
+- Windows review cards name courses with RMP's labels (`HIST001`), as the select does. The web spaces them (`HIST 001`), as its chips do.
 - The web app keeps its own search screen and phone navigation. The Windows home is app-only.
 - Updates: the Mac uses Sparkle. Windows only checks `https://bye-before-you-enroll.pages.dev/windows/latest.json` when asked and links to the website.
 

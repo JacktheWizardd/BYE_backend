@@ -16,6 +16,7 @@ The renderer now follows the approved playful v3 design (see [UI parity](../../d
 How it's built:
 - **Shared code:** tokens, domain helpers and shared React screens are copied from the website repository into `vendor/bye-shared/` by `node ../../scripts/sync-bye-shared.mjs`. `vendor/bye-shared/SOURCE.json` names the website commit. Don't edit `vendor/`; change the website, commit, then sync.
 - **App-only screens** are in `src/renderer/src/app/`.
+- **Classes work like tabs:** Your classes keep the order they were added. Each class remembers its open professor, day bubbles, Online only, sort, View all, and each professor's review filter and sort for the session. A revisited class appears at once while the engine quietly reloads it from its cache. Switching professors updates the page in place, with no remount or flash.
 - **Preferences** (name, first-run flag, recent classes) are saved through the separate `window.byeApp` bridge to `%LOCALAPPDATA%\BYECrossPlatformBeta\settings.json`; `src/main/settings.ts` validates every update.
 - **Update check:** "Check for updates" asks only `https://bye-before-you-enroll.pages.dev/windows/latest.json`, only when pressed, and opens only links on the BYE website. Nothing is installed automatically.
 

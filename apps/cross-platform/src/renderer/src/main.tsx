@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import type { Snapshot, Term, Weekday } from '../../shared/types'
 import type { AppSettings } from '../../shared/app'
 import { WEEKDAYS, displayTitle, filterSections, orderProfessors } from '../../../vendor/bye-shared/core/domain'
-import { SurfaceProvider } from '../../../vendor/bye-shared/ui'
+import { SurfaceProvider, type ReportState } from '../../../vendor/bye-shared/ui'
 import { AI_SUMMARIES_ENABLED } from '../../shared/features'
 import { CommandMenu, type Action } from './app/command-menu'
 import { confetti } from './app/confetti'
@@ -19,6 +19,8 @@ import './app/app.css'
 // behavior (Sources/Classwise/Views). Shared screens and tokens come from vendor/bye-shared (synced from the website).
 const empty: Snapshot = { operationId: '', professors: [], loading: false, previewPending: 0 }
 const RECENT_LIMIT = 5
+// Each opened class keeps its own screen for this session, like a browser tab: the last finished results and every choice on them.
+interface ClassTab { snapshot: Snapshot; selected: string; days: Weekday[]; onlineOnly: boolean; sort: string; showAll: boolean; reports: Record<string, ReportState> }
 
 function App() {
   const [settings, setSettings] = useState<AppSettings | null>(null), [version, setVersion] = useState('')
@@ -26,8 +28,11 @@ function App() {
   const [state, setState] = useState(empty), [terms, setTerms] = useState<Term[]>([]), [termCode, setTermCode] = useState(''), [termLoading, setTermLoading] = useState(true)
   const [query, setQuery] = useState(''), [view, setView] = useState<'home' | 'results'>('home'), [pending, setPending] = useState(false), [error, setError] = useState('')
   const [days, setDays] = useState<Weekday[]>([]), [onlineOnly, setOnlineOnly] = useState(false), [sort, setSort] = useState('rating'), [showAll, setShowAll] = useState(false), [selected, setSelected] = useState('')
+  // The sidebar item the student just picked; the highlight stays there while that class loads.
+  const [navTarget, setNavTarget] = useState<string | null>(null)
   const [menu, setMenu] = useState(false), [sheet, setSheet] = useState(false), [tab, setTab] = useState<SettingsTab>('general'), [homeFocus, setHomeFocus] = useState(0)
   const started = useRef(''), lastOperation = useRef(''), reportOpened = useRef(''), summarized = useRef('')
+  const tabs = useRef(new Map<string, ClassTab>()), [shownClass, setShownClass] = useState<string | null>(null)
   const run: Run = command => { window.bye.command(command).catch(e => setError(e instanceof Error ? e.message : 'This action failed. Try again.')) }
   const save = async (update: Partial<AppSettings>) => { const next = await window.byeApp.setSettings(update); setSettings(next); return next }
 
@@ -48,34 +53,56 @@ function App() {
     const onKey = (e: KeyboardEvent) => { if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === 'k' && !onboarding) { e.preventDefault(); setSheet(false); setMenu(true) } }
     addEventListener('keydown', onKey); return () => removeEventListener('keydown', onKey)
   }, [onboarding])
-  // A new search opens on the course overview; no professor opens automatically.
-  useEffect(() => { if (state.operationId !== lastOperation.current) { lastOperation.current = state.operationId; setSelected(''); setShowAll(false); reportOpened.current = ''; summarized.current = '' } }, [state.operationId])
+  // Every new engine operation re-requests details for the open professor; it no longer clears the screen.
+  useEffect(() => { if (state.operationId !== lastOperation.current) { lastOperation.current = state.operationId; reportOpened.current = ''; summarized.current = '' } }, [state.operationId])
+  function restore(tab: ClassTab | undefined) {
+    // A class seen before comes back exactly as it was left. A new class opens on the course overview with fresh filters;
+    // no professor opens automatically.
+    setSelected(tab?.selected ?? ''); setDays(tab?.days ?? []); setOnlineOnly(tab?.onlineOnly ?? false); setSort(tab?.sort ?? 'rating'); setShowAll(tab?.showAll ?? false)
+  }
   useEffect(() => {
     if (!pending || state.operationId === started.current) return
     if (state.course) {
-      setPending(false); setView('results'); setQuery(state.course.display)
-      // Remember the class on this PC for the sidebar and command menu.
       const display = state.course.display
-      if (settings && settings.recent[0] !== display) void save({ recent: [display, ...settings.recent.filter(x => x !== display)].slice(0, RECENT_LIMIT) }).catch(() => {})
-    } else if (!state.loading) { setPending(false); if (state.issue) setError(state.issue) }
+      setPending(false); setView('results'); setNavTarget(null); setQuery(display)
+      if (shownClass !== display) { restore(tabs.current.get(display)); setShownClass(display) }
+      // Remember the class on this PC. New classes join the end, so the sidebar order never jumps; the oldest drops off past five.
+      if (settings && !settings.recent.includes(display)) void save({ recent: [...settings.recent, display].slice(-RECENT_LIMIT) }).catch(() => {})
+    } else if (!state.loading) { setPending(false); setNavTarget(null); setView('home'); if (state.issue) setError(state.issue) }
   }, [pending, state])
 
-  const course = state.course
-  const filtered = course ? orderProfessors(filterSections(state.professors, days, onlineOnly), sort, course) : []
+  // Show the live engine state once it has finished loading the class on screen. Until then, a revisited class shows its
+  // saved results, so nothing flickers or resets.
+  const liveMatches = !!shownClass && state.course?.display === shownClass
+  const liveReady = liveMatches && !state.loading && !state.previewPending
+  const saved = shownClass ? tabs.current.get(shownClass) : undefined
+  const shown = saved && !liveReady ? saved.snapshot : state
+  useEffect(() => {
+    if (view !== 'results' || !shownClass || !(liveMatches || saved)) return
+    const previous = tabs.current.get(shownClass)
+    tabs.current.set(shownClass, { snapshot: liveMatches && (liveReady || !previous) ? state : previous!.snapshot, selected, days, onlineOnly, sort, showAll, reports: previous?.reports ?? {} })
+  }, [state, shownClass, view, selected, days, onlineOnly, sort, showAll])
+  const reportState = (id: string) => (shownClass ? tabs.current.get(shownClass)?.reports[id] : undefined)
+  const saveReport = (id: string, value: ReportState) => { const tab = shownClass ? tabs.current.get(shownClass) : undefined; if (tab) tab.reports[id] = value }
+
+  const course = shown.course
+  const filtered = course ? orderProfessors(filterSections(shown.professors, days, onlineOnly), sort, course) : []
   const displayed = showAll ? filtered : filtered.slice(0, 5)
   const p = filtered.find(x => x.id === selected)
   // Incoming ratings may reorder the top five. Keep the report the student opened; if filters hide it, return to the course overview.
   useEffect(() => { if (selected && course && !filtered.some(x => x.id === selected)) setSelected('') })
+  // Engine work uses only the live engine state for the class on screen, never a saved snapshot.
+  const lp = liveMatches ? state.professors.find(x => x.id === selected) : undefined
   useEffect(() => {
-    if (!p?.profile || p.state !== 'ready' || state.previewPending || state.loading) return
-    const key = `${state.operationId}|${p.id}|${p.profile.id}`
-    if (reportOpened.current !== key) { reportOpened.current = key; run({ kind: 'details', professorId: p.id }) }
-  }, [p?.id, p?.profile?.id, p?.state, state.previewPending, state.loading])
+    if (!lp?.profile || lp.state !== 'ready' || state.previewPending || state.loading) return
+    const key = `${state.operationId}|${lp.id}|${lp.profile.id}`
+    if (reportOpened.current !== key) { reportOpened.current = key; run({ kind: 'details', professorId: lp.id }) }
+  }, [lp?.id, lp?.profile?.id, lp?.state, state.previewPending, state.loading])
   useEffect(() => {
-    if (!AI_SUMMARIES_ENABLED || !p?.profile || p.detailLoading || p.state !== 'ready' || state.loading || state.previewPending) return
-    const key = `${state.operationId}|${p.id}|${p.profile.id}|${JSON.stringify(p.profile.reviews)}`
-    if (summarized.current !== key) { summarized.current = key; run({ kind: 'summary', professorId: p.id }) }
-  }, [p?.id, p?.profile, p?.detailLoading, p?.state, state.loading, state.previewPending])
+    if (!AI_SUMMARIES_ENABLED || !lp?.profile || lp.detailLoading || lp.state !== 'ready' || state.loading || state.previewPending) return
+    const key = `${state.operationId}|${lp.id}|${lp.profile.id}|${JSON.stringify(lp.profile.reviews)}`
+    if (summarized.current !== key) { summarized.current = key; run({ kind: 'summary', professorId: lp.id }) }
+  }, [lp?.id, lp?.profile, lp?.detailLoading, lp?.state, state.loading, state.previewPending])
 
   function search(refresh = false, text = query) {
     const term = refresh ? state.term : terms.find(t => t.termCode === termCode)
@@ -85,8 +112,15 @@ function App() {
     run({ kind: 'search', query: text, term, refresh })
   }
   const stop = () => { setPending(false); run({ kind: 'stop' }) }
-  const goHome = () => { stop(); setError(''); setView('home'); setHomeFocus(n => n + 1) }
-  const openClass = (display: string) => { setQuery(display); if (view === 'results') { stop(); setView('home') } search(false, display) }
+  const goHome = () => { stop(); setError(''); setNavTarget(null); setView('home'); setHomeFocus(n => n + 1) }
+  // Opening a class from the sidebar or command menu stays on screen while it loads (no flash of Home). A class seen before
+  // appears at once as it was left, while the engine quietly reloads it from its cache.
+  const openClass = (display: string) => {
+    if (view === 'results' && shownClass === display && !pending) return
+    const tab = tabs.current.get(display)
+    if (tab) { restore(tab); setShownClass(display); setView('results') }
+    setNavTarget(display); setQuery(display); search(false, display)
+  }
   function action(a: Action) {
     if (a === 'home') goHome()
     if (a === 'settings' || a === 'name') { setTab('general'); setSheet(true) }
@@ -94,25 +128,25 @@ function App() {
     if (a === 'welcome') { setSheet(false); setOnboarding(true) }
   }
   const checked = state.professors.filter(x => x.state !== 'pending' && x.state !== 'loading').length
-  const title = displayTitle(state.professors[0]?.sections[0]?.title ?? '')
-  const summary = [state.term?.termName ?? '', WEEKDAYS.filter(d => days.includes(d.key)).map(d => d.key).join(', '), onlineOnly ? 'Fully online' : ''].filter(Boolean).join(' · ')
+  const title = displayTitle(shown.professors[0]?.sections[0]?.title ?? '')
+  const summary = [shown.term?.termName ?? '', WEEKDAYS.filter(d => days.includes(d.key)).map(d => d.key).join(', '), onlineOnly ? 'Fully online' : ''].filter(Boolean).join(' · ')
   const termName = terms.find(t => t.termCode === termCode)?.termName ?? ''
 
   if (!settings) return <div className="app-loading" aria-busy="true" />
   if (onboarding) return <Onboarding initialName={settings.name} term={termName} onDone={async name => {
     await save({ name, onboarded: true }); setOnboarding(false); setView('home'); setHomeFocus(n => n + 1); confetti()
   }} />
-  const active = view === 'home' ? 'home' : course?.display ?? ''
+  const active = navTarget ?? (view === 'home' ? 'home' : shownClass ?? course?.display ?? '')
   return <SurfaceProvider demo={false}><div className="app-frame">
     <Sidebar name={settings.name} recent={settings.recent} active={active} onHome={goHome} onClass={openClass} onMenu={() => setMenu(true)}
-      onRemove={display => void save({ recent: settings.recent.filter(x => x !== display) })} onSettings={() => { setTab('general'); setSheet(true) }} />
+      onRemove={display => { tabs.current.delete(display); void save({ recent: settings.recent.filter(x => x !== display) }) }} onSettings={() => { setTab('general'); setSheet(true) }} />
     <main className="panel">
       {view === 'home'
         ? <Home name={settings.name} terms={terms} termLoading={termLoading} termCode={termCode} setTermCode={setTermCode} query={query} setQuery={setQuery} focusKey={homeFocus}
             pending={pending} progress={state.professors.length ? `Checking ratings · ${checked} of ${state.professors.length}` : 'Finding classes at PCC…'} error={error} search={text => search(false, text)} cancel={stop} retryTerms={() => void loadTerms()} />
-        : <Results state={state} title={title} summary={summary} filtered={filtered} displayed={displayed} showAll={showAll} setShowAll={setShowAll}
+        : <Results state={shown} title={title} summary={summary} filtered={filtered} displayed={displayed} showAll={showAll} setShowAll={setShowAll}
             days={days} setDays={setDays} onlineOnly={onlineOnly} setOnlineOnly={setOnlineOnly} sort={sort} setSort={setSort}
-            selected={selected} select={id => { setSelected(id); setError('') }} run={run} refresh={() => course && search(true, course.display)} changeSearch={goHome} stop={stop} error={error} />}
+            selected={selected} select={id => { setSelected(id); setError('') }} run={run} reportState={reportState} saveReport={saveReport} refresh={() => course && search(true, course.display)} changeSearch={goHome} stop={stop} error={error} />}
     </main>
     <CommandMenu open={menu} termCode={termCode} recent={settings.recent} onClose={() => setMenu(false)} onClass={openClass} onAction={action} />
     <SettingsSheet open={sheet} tab={tab} setTab={setTab} name={settings.name} version={version} onClose={() => setSheet(false)}

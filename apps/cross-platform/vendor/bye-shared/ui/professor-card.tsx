@@ -1,4 +1,4 @@
-import type { Professor } from '../core/types'
+import type { Command, Professor } from '../core/types'
 import { formatLabel } from '../core/domain'
 import { useSurface } from './context'
 import { plural, score, unnamed } from './format'
@@ -26,4 +26,32 @@ export function ProfessorCard({ p, selected, onOpen }: { p: Professor; selected:
   return <button className={className} aria-pressed={selected} aria-busy="true" onClick={onOpen}>
     <Avatar name={p.name} /><span className="prof-main"><b className="name">{p.name}</b><small>Checking RMP…</small><small>{where}</small></span><span className="big muted">—</span>
   </button>
+}
+
+/** The Mac app's row (desktop, real data): scores and counts, plus actions under it to choose a profile, retry or check RMP.
+ *  Use it as `ProfessorList`'s `renderRow`. Opening the row never chooses a profile; only the student's tap on an action does. */
+export function ProfessorRow({ p, selected, onOpen, command }: { p: Professor; selected: boolean; onOpen: () => void; command: (c: Command) => void }) {
+  const sections = plural(p.sections.length, 'section'), profile = p.profile
+  return <div className={`professor-card${selected ? ' selected' : ''}`}>
+    <button className={`prof-card${selected ? ' selected' : ''}`} aria-pressed={selected} onClick={onOpen}>
+      <Avatar name={p.name} />
+      <span className="prof-main">
+        <b className="name">{p.name}</b>
+        {profile ? <>
+          <small>Difficulty {score(profile.difficulty)} · {profile.wouldTakeAgain === undefined ? 'take-again rate unavailable' : `${Math.round(profile.wouldTakeAgain)}% would take again`}</small>
+          <small>{profile.ratingCount === undefined ? 'Rating count unavailable' : plural(profile.ratingCount, 'rating')} · {sections}</small>
+          <Bar value={profile.rating} label="Rating" />
+        </> : <>
+          <small>{p.state === 'choose' ? (p.candidates.length > 1 ? 'Two or more RMP profiles · Choose profile' : 'Profile needs confirmation · Choose profile') : p.state === 'unavailable' ? (unnamed(p) ? "PCC hasn't named an instructor yet" : 'Cannot retrieve RMP info') : p.state === 'loading' ? 'Checking RMP…' : 'Not checked yet'}</small>
+          <small>{sections}</small>
+        </>}
+      </span>
+      <span className={`big${profile ? '' : ' muted'}`}>{profile ? <Num value={profile.rating} /> : '—'}</span>
+    </button>
+    {(p.state === 'choose' || p.state === 'pending' || (p.state === 'unavailable' && !unnamed(p))) && <div className="row-actions">
+      {p.state === 'choose' && <button className="text-link" onClick={() => command({ kind: 'discover', professorId: p.id })}>Choose profile</button>}
+      {p.state !== 'choose' && <button className="text-link" onClick={() => command({ kind: 'retry', professorId: p.id })}>Try again</button>}
+      {p.state === 'unavailable' && <button className="text-link muted" onClick={() => command({ kind: 'source', target: 'rmp', professorId: p.id })}>Check on RMP ↗</button>}
+    </div>}
+  </div>
 }

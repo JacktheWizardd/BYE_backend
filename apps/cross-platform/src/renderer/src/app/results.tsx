@@ -1,21 +1,26 @@
 import type { Professor, Snapshot, Weekday } from '../../../shared/types'
-import { DayBubbles, LoadingRows, ProfessorList, Segmented } from '../../../../vendor/bye-shared/ui'
-import { AI_SUMMARIES_ENABLED } from '../../../shared/features'
-import { Chooser, CourseOverview, DISCLAIMER, ProfessorRow, Report, plural } from './report'
+import { fits } from '../../../../vendor/bye-shared/core/domain'
+import { DayBubbles, EmptyDetail, LoadingRows, ProfessorList, ProfessorRow, Report, Segmented, plural, type ReportState } from '../../../../vendor/bye-shared/ui'
+import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_UNAVAILABLE_NOTE } from '../../../shared/features'
+import { Chooser, DISCLAIMER, Summary } from './report'
 import type { Run } from './types'
 
 const SORTS = [['rating', 'Rating'], ['difficulty', 'Difficulty'], ['reviews', 'Reviews']] as const
 
 // Results: course header, filters and the professor list on the left, the professor page (or the neutral overview) on the right.
+// The row, page and overview are the shared screens with the Mac app's extras turned on (see vendor/bye-shared/ui/report.tsx).
 export function Results(props: {
   state: Snapshot; title: string; summary: string; filtered: Professor[]; displayed: Professor[]; showAll: boolean; setShowAll: (v: boolean) => void
   days: Weekday[]; setDays: (d: Weekday[]) => void; onlineOnly: boolean; setOnlineOnly: (v: boolean) => void; sort: string; setSort: (s: string) => void
-  selected: string; select: (id: string) => void; run: Run; refresh: () => void; changeSearch: () => void; stop: () => void; error: string
+  selected: string; select: (id: string) => void; run: Run
+  reportState: (professorId: string) => ReportState | undefined; saveReport: (professorId: string, value: ReportState) => void; refresh: () => void; changeSearch: () => void; stop: () => void; error: string
 }) {
   const { state, filtered, displayed, days, onlineOnly, run } = props, course = state.course
   const p = filtered.find(x => x.id === props.selected), chooser = state.professors.find(x => x.choosing)
   const checked = state.professors.filter(x => x.state !== 'pending' && x.state !== 'loading').length
-  const sectionCount = new Set(filtered.flatMap(x => x.sections.map(s => s.crn))).size
+  const sections = filtered.flatMap(x => x.sections), sectionCount = new Set(sections.map(s => s.crn)).size
+  // Open seats across the listed sections, when PCC published them.
+  const seats = [...new Map(sections.map(s => [s.crn, s])).values()].map(s => s.details?.seatsOpen).filter((n): n is number => n !== undefined)
   return <div className="results">
     <header className="results-top">
       {course && <span className="chip ink">{course.display}</span>}
@@ -36,18 +41,26 @@ export function Results(props: {
         {state.loading && !state.professors.length && <LoadingRows />}
         {state.loading && state.professors.length > 0 && <p className="muted small">Ratings appear as each professor is checked. Pending results are not ranked yet.</p>}
         <ProfessorList list={displayed} selectedId={p?.id} onOpen={x => props.select(x.id)} openOnArrow
-          renderRow={(x, selected, open) => <ProfessorRow p={x} selected={selected} open={open} run={run} />} />
+          renderRow={(x, selected, open) => <ProfessorRow p={x} selected={selected} onOpen={open} command={run} />} />
         {!props.showAll && filtered.length > 5 && <button className="pill wide" onClick={() => props.setShowAll(true)}>View all {filtered.length} professors</button>}
         {props.showAll && filtered.length > 5 && <div><button className="pill" onClick={() => props.setShowAll(false)}>Show top five</button></div>}
         <p className="muted small">{DISCLAIMER}</p>
       </aside>
       <div className="detail">
-        {p && course ? <Report key={p.id} p={p} course={course} state={state} run={run} /> : !filtered.length && !state.loading ? <div className="empty-detail">
-          <h2>No matching classes</h2>
-          <p className="muted">{days.length ? (onlineOnly ? 'Try changing or clearing your days, or turning off Online only.' : 'Nobody teaches this on all of those days. Try unticking a day.') : onlineOnly ? 'Try turning off Online only.' : state.issue ?? 'PCC may not offer this course in the selected semester.'}</p>
-          <div className="row start">{days.length > 0 && <button className="pill primary" onClick={() => props.setDays([])}>Clear days</button>}{onlineOnly && <button className={`pill${days.length ? '' : ' primary'}`} onClick={() => props.setOnlineOnly(false)}>Show all formats</button>}</div>
-          <button className="text-link plain" onClick={() => run({ kind: 'source', target: 'pcc' })}>Check PCC’s schedule ↗</button>
-        </div> : <CourseOverview course={course} title={props.title} summary={props.summary} professors={filtered} />}
+        {p && course ? <Report p={p} course={course} matches={s => fits(s, days)} command={run} reviewFilter="select" findMore writeReview reviewPage={[3, 5]}
+            checking={state.loading || state.previewPending > 0} initial={props.reportState(p.id)} onChange={value => props.saveReport(p.id, value)}
+            summary={AI_SUMMARIES_ENABLED ? <Summary p={p} course={course} run={run} /> : <p className="panel small muted" role="status">{AI_SUMMARIES_UNAVAILABLE_NOTE}</p>} />
+          : !filtered.length ? !state.loading && <div className="empty-detail">
+            <h2>No matching classes</h2>
+            <p className="muted">{days.length ? (onlineOnly ? 'Try changing or clearing your days, or turning off Online only.' : 'Nobody teaches this on all of those days. Try unticking a day.') : onlineOnly ? 'Try turning off Online only.' : state.issue ?? 'PCC may not offer this course in the selected semester.'}</p>
+            <div className="row start">{days.length > 0 && <button className="pill primary" onClick={() => props.setDays([])}>Clear days</button>}{onlineOnly && <button className={`pill${days.length ? '' : ' primary'}`} onClick={() => props.setOnlineOnly(false)}>Show all formats</button>}</div>
+            <button className="text-link plain" onClick={() => run({ kind: 'source', target: 'pcc' })}>Check PCC’s schedule ↗</button>
+          </div>
+          : <EmptyDetail professors={filtered.length} sections={sections} openSeats={seats.length ? seats.reduce((a, b) => a + b, 0) : undefined}
+              caption={[course?.display, props.title, props.summary].filter(Boolean).join(' · ')}>
+            <p className="muted small">Choose a professor on the left to see their sections, ratings and student reviews.</p>
+            <p className="muted small">{DISCLAIMER}</p>
+          </EmptyDetail>}
       </div>
     </div>
     <footer className="results-foot">
