@@ -1,0 +1,36 @@
+{
+  "name": "bye-admin",
+  "main": "./cloudflare.ts",
+  "compatibility_date": "2026-10-19",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "OWNER_SESSIONS",
+        "class_name": "OwnerSessions"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "OwnerSessions"
+      ]
+    }
+  ],
+  "vars": {
+    "PUBLIC_ORIGIN": "https://bye-admin.jack-truong2k1.workers.dev",
+    "SUPABASE_URL": "https://nahvhampsxtasfwvvfei.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_p5Uu02qkDMFNas43G0_EFQ_u-MlXNYl"
+  },
+  "observability": {
+    "enabled": false
+  }
+}

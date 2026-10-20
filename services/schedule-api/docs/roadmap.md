@@ -9,15 +9,17 @@
 - Stale-count suppression, atomic publication, rollback and bounded retention.
 - Fixture/database tests, saved-source benchmark and recorded hosted acceptance.
 
-## Next: key management
+## Delivered key management and hosted owner access
 
-The current single configured key is sufficient for backend verification. Add
-named client keys with creation, revocation and overlapping rotation before
-promising independent per-platform key management. Design administration as a
-private capability; a public schedule key must never manage other keys.
+The private registry, owner management API and separate Cloudflare dashboard are
+deployed. Shared keys can be created, rotated, extended, disabled and revoked
+without a read-API redeployment. Owner sign-in and the temporary-key lifecycle
+walkthrough passed. Test keys are revoked; the original key remains active with
+no expiry. The hosted site works with the local development server stopped.
 
-See [API keys](api-keys.md) for current limitations. This is a recorded next-step
-direction, not authorization to implement or deploy another phase automatically.
+See the [delivery record](records/2026-10-19-delivery.md) for decisions and the
+[handoff](records/handoff.md) for taking over. Installed-client key delivery is
+still separate from the completed management controls.
 
 ## Later: client integration
 

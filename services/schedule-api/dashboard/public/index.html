@@ -1,9 +1,16 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BYE · Client keys</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body>
-<header><span class="brand">BYE</span><div><h1>Client key management</h1><p>Local owner dashboard · shared application keys</p></div><button id="signout" hidden>Sign out</button></header>
+<header><span class="brand">BYE</span><div><h1>Client key management</h1><p>Owner dashboard · shared application keys</p></div><button id="signout" hidden>Sign out</button></header>
 <main><p id="notice" role="status" aria-live="polite"></p><button id="retry" hidden>Retry uncertain request</button>
 <section id="login"><h2>Owner sign-in</h2><p>Use your existing BYE account. Only approved owners can manage keys.</p><form id="send"><label>Email<input id="email" type="email" required autocomplete="email"></label><button>Send email code</button></form><form id="verify"><label>Email code<input id="code" inputmode="numeric" pattern="[0-9]{6,10}" autocomplete="one-time-code" required></label><button>Sign in</button></form></section>
 <div id="workspace" hidden><section><h2>Create a shared key</h2><p>A key identifies an application, not a student. New keys have no automatic expiry.</p><form id="create"><label>Label<input id="label" maxlength="80" required placeholder="Windows production"></label><label>Client<select id="client"><option value="windows">Windows</option><option value="mac">Mac</option><option value="website">Website</option><option value="other">Other</option></select></label><button>Create key</button></form></section>
 <section id="secret" hidden><h2>Copy this key now</h2><p>This is its only display. After closing, the key cannot be recovered.</p><output id="plaintext"></output><button id="copy">Copy</button><button id="dismiss">I have saved it</button></section>
 <section><div class="row"><h2>Application keys</h2><button id="reload">Refresh</button></div><div id="keys"></div><div class="row"><button id="previous">Previous</button><span id="page"></span><button id="next">Next</button></div></section>
 <section><div class="row"><h2>Audit history</h2><button id="audit-load">Load audit</button></div><div id="audit"></div><div class="row"><button id="audit-previous">Previous</button><span id="audit-page"></span><button id="audit-next">Next</button></div></section></div>
-</main><footer>BYE schedule keys do not change Supabase project credentials. Replacement delivery to installed apps is a separate step.</footer></body></html>
+</main>
+<dialog id="action-dialog" aria-labelledby="action-title"><form id="action-form">
+<h2 id="action-title"></h2><p id="action-message"></p><p id="action-key"></p>
+<div id="retirement-fields" hidden><label>New retirement date (optional, your local time)<input id="retirement-date" type="datetime-local"></label><p>Leave blank to add 30 days from the later of now or the current retirement date.</p></div>
+<label id="restore-field" hidden><input id="restore-confirm" type="checkbox"> I understand this key has expired and explicitly want to restore its eligibility for use.</label>
+<div class="actions"><button id="action-cancel" type="button">Cancel</button><button id="action-submit" type="submit">Confirm</button></div>
+</form></dialog>
+<footer>BYE schedule keys do not change Supabase project credentials. Replacement delivery to installed apps is a separate step.</footer></body></html>

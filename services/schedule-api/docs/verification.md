@@ -1,5 +1,11 @@
 # Standalone schedule API verification
 
+Latest accepted state is recorded in the [hosted owner acceptance](#hosted-owner-portal-acceptance--october-19-2026-pacific)
+and [key-management update](#key-management-update--october-19-2026-pacific).
+Read the [delivery record](records/2026-10-19-delivery.md) for a nontechnical overview.
+The original October 17 deployment and intermediate preparation checkpoints below
+are historical; use the later acceptance entries for the delivered state.
+
 Verified October 17, 2026 (Pacific). This is a backend-only delivery.
 
 ## Deployed result
@@ -141,3 +147,129 @@ were present before this work and remain unchanged. No new warning was introduce
 - The coordination board could not run on Windows because `scripts/agents.py`
   imports Unix-only `fcntl`. It was not changed, and existing uncommitted app
   work was preserved.
+
+## Key management update — October 19, 2026 (Pacific)
+
+Deployed: read v5, sync v4, owner management `bye-key-admin` v1. The registry
+migration was applied, and the explicitly supplied verified account UUID was
+approved through the private gateway. The old key remains active with no expiry.
+
+Checks rerun for this delivery:
+
+- `npm test`: 17/17 unit/security checks after the in-page form fix, including real loopback HTTP fixture tests.
+- `npm run test:db`: 22/22 PostgreSQL scenarios.
+- `npm run check`: read, sync and management Edge sources checked by Deno.
+- `node --check dashboard/public/app.js`: passed.
+- `npm run verify:hosted`: 8/8 schedule checks, no direct PCC/RMP traffic.
+- Hosted management without a user JWT returns 401.
+- Local dashboard and session endpoint both return HTTP 200; CSP is present.
+- Review counts remain 1,531 courses, 1,425 professors and 2 reviews; before/after
+  checksum `ab3bdcdcbdce6505e200d24b26d18842` is unchanged.
+- Registry stores only digests; 304 requests still authorize; revocation/expiry,
+  30-day boundary, extensions, revision conflicts, lost-response replay, shared
+  rate limits, sampled last use and retention pass fixture tests.
+- New local Host/Origin/CSRF, non-owner/expired login, sign-out, session bounds,
+  shutdown cleanup and database-outage tests pass with no email/network fixtures.
+- Security advisors report no new warning: four new private tables intentionally
+  add deny-by-default RLS/no-policy INFO notices. Existing warnings remain the
+  review SECURITY DEFINER function and disabled leaked-password protection.
+
+Owner-assisted email-code login passed: the owner reported reaching the key list
+and seeing the preserved active key. Create, rotation, retirement extension and permanent revocation passed with
+owner assistance. All three temporary keys are confirmed revoked in Supabase; the
+original compatibility key is active with no retirement date. Automated concurrency scenarios use PGlite's serialized
+connection; real PostgreSQL exclusion is enforced with an advisory transaction
+lock and revision predicates, not yet stress-tested with parallel hosted owners.
+A fresh headless Edge browser verified extension submission and rotation cancellation
+against intercepted fixtures, with no page errors or live API mutations. Existing Cron was left running;
+source scheduling and source request budgets were not changed. Hosted reads may
+renew the normal demand lease; they never download PCC data themselves.
+
+No client integration, replacement delivery, website rollout or project-key
+rotation is included. Additional security tests, retry-window fix and documentation
+remain uncommitted; no commit or push was performed during this delivery.
+
+### Owner walkthrough finding: embedded-browser prompts
+
+The owner reached the key list and created a temporary key. During the walkthrough,
+the original compatibility key was accidentally rotated; its no-expiry state was
+restored with an audited private owner-recovery correction. The accidental
+replacement was subsequently revoked through the dashboard during explicit cleanup.
+
+The owner then reported `prompt() is not supported` on Extend retirement. The
+browser-native prompt/confirm calls were replaced with accessible HTML dialogs
+showing the selected key's label, mask and ID. Extension supports a blank default
+or a local date converted to UTC, plus explicit restoration confirmation when
+expired. Replacement labels now include “replacement” to distinguish the rows.
+Three added regression tests exercise these forms without native dialogs. A fresh
+headless Edge check with intercepted API fixtures confirmed submission and cancel
+behavior without modifying production keys. The local server serves the fix
+immediately; already open pages need a browser reload.
+
+### Final owner-assisted result
+
+The owner confirmed the in-page extension and revoke forms work. Database checks
+confirmed the original key remains active with `retire_at = null`, while the test
+key, its replacement, and the accidental compatibility-key replacement are revoked.
+The live extension used a selected future date; default 30-day extension and UTC
+boundaries are covered by controlled-clock fixtures. App usage of these keys has
+not been tested because no Windows/Mac/website client integration is included.
+
+Final hosted authorization probes after cleanup: existing key returned HTTP 200;
+the revoked temporary key with `If-None-Match: *` returned HTTP 401, never 304.
+A final review checksum/count comparison still matches the pre-deployment baseline.
+
+## Separate Cloudflare owner portal — October 19, 2026 (Pacific)
+
+Historical preparation checkpoint, superseded by the acceptance section below:
+a separate `bye-admin` Worker was prepared without public-site or Supabase changes.
+Cloudflare account authorization was still pending at this checkpoint.
+Current checks: 21 unit/security tests, Deno checks of Edge and hosted sources,
+Cloudflare dry-run build, and the complete workerd/SQLite runtime test all pass.
+The runtime intercepts all outbound requests and proves memory-only login tokens
+are dropped on restart while the three quota records survive. The build is about
+12 KiB / 4 KiB gzip before static assets. New pins: Wrangler 4.151.2 and its matching
+Miniflare 5.20261019.0-beta test runtime; npm audit reports no vulnerabilities.
+The earlier 22 database and 8 hosted schedule checks remain recorded evidence;
+source/read schema and key lifecycle code were not changed by this hosting work.
+See hosted-owner-dashboard.md for deployment commands and remaining live acceptance.
+At this checkpoint no hosted URL had been verified. Deployment and acceptance
+were subsequently completed as recorded below; no commit or push was performed.
+
+## Hosted owner portal acceptance — October 19, 2026 (Pacific)
+
+Cloudflare authentication completed. `bye-admin` was absent from the existing
+account before creation. Published HTTPS URL:
+https://bye-admin.jack-truong2k1.workers.dev . Version
+`7fb9ee13-a222-424c-89c1-29e779dba956`; startup 1 ms; bundle 11.98 KiB / 3.94 KiB gzip.
+The account is Free. Cloudflare rejected a custom CPU limit on the first upload;
+the setting was removed and deployment succeeded using built-in Free limits.
+No paid plan was enabled and no unrelated Worker/site was changed.
+
+Live checks passed: HTTPS page/CSP/HSTS/no-store, assets, signed-out session,
+management 401, cross-origin sign-in 403 without sending email, and unknown-route
+404. Fresh Edge browser checks at 390px and 1280px passed after waiting for the
+initial session request, with no overflow or JavaScript errors. The owner completed
+real email-code sign-in and confirmed the existing key list on the hosted URL.
+The local admin process was verified by port and command line, then stopped.
+The hosted page and session API still returned HTTP 200 afterward. The site is
+independent of the local computer/server and this chat. Tokens remain server-memory
+only; a Cloudflare restart can require sign-in again. Client integration is deferred.
+The 21 offline tests, Deno checks and full workerd restart/quota tests pass. No
+additional schedule live refresh or app build was performed. Changes are uncommitted.
+
+## Documentation and records pass — October 19, 2026 (Pacific)
+
+Added a dated plain-language delivery record and owner/developer handoff under
+`docs/records/`, and linked them from package/repository indexes. Updated architecture,
+roadmap and commit handoff to reflect the accepted hosted state. Corrected the
+historical test-count typo and labeled the pre-deployment checkpoint as superseded.
+This pass changes documentation only: the earlier implementation, runtime and live
+results above were not rerun or presented as fresh production-health measurements.
+Local-link, consistency, whitespace and Git-exclusion checks are recorded with this
+pass. No code deployment, app build, staging, commit or push is part of this update.
+
+Documentation-pass results: 14 Markdown files and 84 local links checked;
+58 Git-eligible API/index files scanned with no private-key, real BYE-key or
+long-JWT pattern findings; seven credential/build/local-state exclusions confirmed.
+`git diff --check` passed. These checks do not constitute an exhaustive security audit.

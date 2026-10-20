@@ -10,14 +10,15 @@ Base URL:
 ## Read contract
 
 The complete OpenAPI 3.1 specification is [openapi.json](../openapi.json), also served
-at `/v1/openapi.json`. Every read requires `apikey: <publishable key>`. Obtain the
-enabled **default publishable key** from the BYE project's Supabase Settings →
-API Keys. This key is public app identification; it is not a student identity or
-a database write credential. Do not distribute a secret/service-role/job key.
+at `/v1/openapi.json`. Every read requires `apikey: <BYE client key>`. Generate
+shared application keys using the [local owner dashboard](owner-dashboard.md).
+The existing key remains registered for compatibility. A BYE key is public app
+identification; it is not a student identity or database write credential. The
+genuine Supabase publishable key is used separately for owner sign-in.
 
 ```js
 const response = await fetch(`${base}/v1/terms/202670/courses?q=math5a`, {
-  headers: { apikey: publishableKey }
+  headers: { apikey: clientKey }
 });
 const { data, meta } = await response.json();
 ```
@@ -83,11 +84,11 @@ set `BYE_PROJECT_REF`, `BYE_PUBLISHABLE_KEY`, and `BYE_JOB_TOKEN_SHA256`, then:
 npm run deploy
 ```
 
-This builds only the two backend functions. It does not build or publish an app,
-website, or database migration. The deployment injects only public key and job
-token **digests**; server credentials are read from Edge Function environment
+This builds only the three backend functions (read, sync, owner management). It does not build or publish an app,
+website, or database migration. The deployment injects the public Auth key and private job-token
+**digest**; server credentials are read from Edge Function environment
 variables. JWT gateway checks are off because each handler verifies its own
-publishable key or private machine credential. Handler checks remain mandatory.
+registry key, owner Auth token, or private machine credential. Handler checks remain mandatory.
 
 The job-token digest can be obtained without revealing the token:
 
@@ -99,10 +100,12 @@ from vault.decrypted_secrets where name='bye_schedule_cron';
 Use a stable base URL and `/v1` contract in future clients. Additive backend
 changes need no client release. UI fixes need no backend deployment. Breaking
 contract changes require `/v2` alongside `/v1`; never silently remove v1 fields.
-The current API accepts one configured public key. Changing it requires a backend
-redeployment; replacing it immediately stops the old key from working. Multiple
-keys and overlapping rotation are future work, not current features. See
-[API keys](api-keys.md) before changing a key used by shipped clients.
+The API accepts registered BYE application keys and checks their status in the
+database. Creating or changing a key through the hosted owner dashboard requires
+no read-API redeployment. Rotation creates an active replacement while the old key
+has a thirty-day transition period. Delivery to installed clients remains future
+work. See the [key guide](api-keys.md) and [handoff](records/handoff.md) before
+changing a key used by shipped clients.
 
 ## Source synchronization and storage
 

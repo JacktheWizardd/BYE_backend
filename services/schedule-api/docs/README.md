@@ -1,48 +1,50 @@
 # Schedule API documentation
 
-This folder is the documentation home for the independently deployed BYE
-schedule API. The backend is implemented; client integration is not yet done.
+Start with the plain-language records. They explain the result and the reasons
+behind it; the technical guides below explain how to operate or change it.
 
-Read in this order:
-
-1. [Architecture](architecture.md) — what runs where and how data moves.
-2. [Setup and operations](guide.md) — use, test, deploy, inspect, pause and roll back.
-3. [API keys](api-keys.md) — configure the existing public key and understand the limits.
-4. [Verification](verification.md) — evidence from implementation and hosted checks.
-5. [Roadmap](roadmap.md) — agreed boundaries and future work.
-6. [Commit guide](commit-guide.md) — review the pending changes before committing.
-
-The [OpenAPI specification](../openapi.json) stays at the package root so tooling
-and contract tests can use its stable path. Its source is
-[src/contract.ts](../src/contract.ts). Code, migrations and tests remain beside the
-docs in the standalone package; no client implementation is imported.
-
-## Current snapshot
-
-| Item | Implemented state |
+| Document | What it answers |
 | --- | --- |
-| Database | Existing BYE Supabase project; schedule data separate from reviews |
-| Semester | Fall 2026 only, `202670` |
-| Public reads | Six v1 endpoints, publishable key, no student login |
-| Source refresh | Daily metadata/catalog check; shared availability checks during demand |
-| Active collection | Five-minute minimum, normally five to six minutes with timer timing |
-| Stale values | Availability suppressed after fifteen minutes without a successful check |
-| Client keys | One configured key; replacement requires backend redeployment |
-| Clients | Existing Windows, Mac and website behavior unchanged |
-| Verification | 11 unit/contract/transport tests, 15 database scenarios, 8 hosted scenarios recorded |
+| [Delivery record](records/2026-10-19-delivery.md) | What did we build, why, and what was verified? |
+| [Owner and developer handoff](records/handoff.md) | How do I use it or take over the next task? |
+| [Record index](records/README.md) | How should future milestones be documented? |
+| [Architecture](architecture.md) | What runs where, and which component owns each responsibility? |
+| [API operations](guide.md) | How do endpoints, synchronization, deployment and rollback work? |
+| [Key guide](api-keys.md) | What do the different keys mean, and how does their lifecycle work? |
+| [Hosted dashboard](hosted-owner-dashboard.md) | How is the Cloudflare admin site deployed and protected? |
+| [Owner access and local development](owner-dashboard.md) | How do bootstrap, recovery, the management API and localhost work? |
+| [Verification](verification.md) | What evidence and limitations were recorded? |
+| [Roadmap](roadmap.md) | What is delivered and what remains separate work? |
+| [Commit handoff](commit-guide.md) | What belongs in the pending commit, and what text can I paste? |
+| [OpenAPI contract](../openapi.json) | What is the precise machine-readable v1 interface? |
 
-This table describes the delivered implementation, not a fresh production health
-check. The verification report records dated measurements; live data can change.
+## Accepted state — October 19, 2026
 
-## Related project documents
+The schedule API and owner key manager are deployed. The owner dashboard is at
+**https://bye-admin.jack-truong2k1.workers.dev** on Cloudflare Free. Owner sign-in,
+key operations and operation without the localhost server were verified.
 
-- [PCC database pilot](../../../docs/pcc-schedule-pilot.md): source preservation,
-  original import workflow and first snapshot verification.
-- [Repository documentation index](../../../docs/README.md): application,
-  database and release guides.
-- [Windows verification](../../../apps/cross-platform/VERIFICATION.md): earlier
-  suggestions and profile-dialog fixes, separate from this backend phase.
+| Area | Delivered behavior |
+| --- | --- |
+| Schedule coverage | Fall 2026 only (`202670`), in the existing Supabase project |
+| Read API | Six v1 endpoints; registered BYE key; no student login for browsing |
+| PCC synchronization | Daily check and shared activity-driven collection, with a five-minute minimum between semester fetches |
+| Freshness | Stale availability is suppressed after fifteen minutes without a successful source check |
+| Key management | Shared application keys; registry changes require no API redeployment |
+| Admin hosting | Separate Cloudflare site; owner-only management; optional local development server |
+| Client integration | Pending for Windows, Mac and the public website |
+| Replacement delivery | Pending for installed clients; rotation does not deliver new configuration |
 
-Update the operations guide when behavior changes, the verification report when
-checks are actually run, and the roadmap when queued work becomes implemented.
-Do not describe a future key manager or client integration as already shipped.
+Recorded verification includes 21 offline tests, a full Cloudflare runtime test,
+22 database scenarios from key-management work, and eight hosted schedule checks.
+The verification report distinguishes phases and limitations. This documentation
+update does not claim those tests or live checks were rerun.
+
+The [PCC database pilot](../../../docs/pcc-schedule-pilot.md) explains the original
+import foundation. The [repository documentation index](../../../docs/README.md)
+links to app development and review-system work. Public website source and its
+own guides are in the separate `BYE_website` repository.
+
+Maintain this index and the handoff when accepted behavior changes. Add dated
+records for milestones, preserve historical evidence, and keep future work clearly
+separate from delivered features.

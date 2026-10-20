@@ -8,6 +8,8 @@ does not mean the clients have been connected.
 
 | Guide | Purpose |
 | --- | --- |
+| [API delivery record](../services/schedule-api/docs/records/2026-10-19-delivery.md) | Owner/developer account of what was built, why, and what remains |
+| [API handoff](../services/schedule-api/docs/records/handoff.md) | Start here to operate the service or take over development |
 | [Standalone API documentation](../services/schedule-api/docs/README.md) | Main index: architecture, setup, keys, operations, verification and roadmap |
 | [PCC Fall 2026 database pilot](pcc-schedule-pilot.md) | Original private schema, importer and first published snapshot |
 | [API commit preparation](../services/schedule-api/docs/commit-guide.md) | Pending change groups, checks and ready-to-paste Summary/Description |

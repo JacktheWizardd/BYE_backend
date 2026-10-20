@@ -29,11 +29,15 @@ each student. Source failures retain the last validated snapshot.
 
 | Location | Owns |
 | --- | --- |
-| `src/api.ts` | Public key checks, bounded read routes, errors, ETags and CORS |
+| `src/api.ts` | Registry-gated reads, bounded routes, errors, ETags and CORS |
 | `src/contract.ts` / `openapi.json` | Versioned machine-readable contract |
 | `src/domain.ts` | Complete course identity, normalization, validation and hashes |
 | `src/sync.ts` | Private worker, publication workflow and deadline cleanup |
 | `src/database.ts` | Server RPC access and bounded streaming source reads |
+| `src/admin.ts` | Owner-authenticated key management; random key generation and one-time display |
+| `dashboard/public/` | Shared owner interface and in-page lifecycle forms |
+| `dashboard/hosted/` | Separate Cloudflare Worker, session routing and bounded quotas |
+| `dashboard/server.ts` | Optional loopback-only development server |
 | `scripts/` | Deployment, owner commands, saved-feed benchmark and hosted checks |
 | `tests/` | Synthetic fixtures and offline regression/database tests |
 | `supabase/migrations/` | Ordered additive schema, scheduler and integrity changes |
@@ -46,7 +50,8 @@ different component from this hosted schedule service.
 - `pcc_schedule`: original private Fall pilot, preserved in place. The bootstrap
   action reads its verified source data once; the dedicated importer remains available.
 - `bye_schedule`: backend read model, current/previous catalogs, section
-  definitions, availability rollback evidence, staging, activity and bounded logs.
+  definitions, availability rollback evidence, staging, activity and bounded logs;
+  also private owner approvals, key digests, audit events and retry receipts.
 - Existing public student-review tables: unchanged. This service neither imports
   RMP reviews nor changes review IDs, submissions, moderation or profile choices.
 
@@ -70,3 +75,37 @@ freshness and rollback behavior; the OpenAPI document defines response shapes.
 
 Future v1 changes must be additive. Breaking changes belong in v2 while v1
 remains supported for installed clients.
+
+## Owner access and key authorization
+
+The hosted owner path is:
+
+```text
+Approved BYE account → Cloudflare dashboard/session server
+                    → Supabase owner management function
+                    → private owner/key registry
+```
+
+Cloudflare hosts a separate `bye-admin` Worker, not a route in the public website.
+It uses only public Supabase Auth configuration. Login access tokens remain in a
+bounded server-memory map; the browser receives a secure opaque session cookie.
+The singleton Durable Object keeps sessions routed consistently and persists only
+three aggregate rate-limit counters. Restarts can require another sign-in. They
+do not change the registry in Supabase. `dashboard/server.ts` provides optional
+local development and is not part of the hosted service's availability.
+
+The management Edge Function validates the signed-in user and passes that user's
+JWT to narrowly exposed database functions. Those functions independently check
+`auth.uid()` against the explicit owner table. There is no public self-approval.
+Cloudflare does not receive a database, service-role or cron credential.
+
+Schedule keys identify shared clients rather than students. The read handler
+sends a key digest into the database read operation. That operation validates
+status and retirement before returning schedule data or allowing a 304 response;
+there is no positive authorization cache or compiled-key fallback. Rate limits
+remain shared by network identity, so extra keys cannot multiply that allowance.
+
+The key registry and the schedule API are already deployed. Client consumption
+and delivery of replacement keys to installed apps remain future integration
+work. Read the [handoff](records/handoff.md) for the practical boundaries and the
+[key guide](api-keys.md) for lifecycle rules.

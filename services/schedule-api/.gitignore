@@ -5,3 +5,8 @@ node_modules/
 .deploy/
 supabase/.temp/
 test-results/
+
+.wrangler/
+**/.wrangler/
+.dev.vars
+.dev.vars.*

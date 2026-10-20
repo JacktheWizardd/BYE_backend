@@ -54,6 +54,7 @@ begin
    return result;
  end if;
  if action not in ('create','rotate','extend','disable','enable','revoke') then return '{"error":"INVALID_QUERY"}'; end if;
+ if args->>'requestedAt' is null or (args->>'requestedAt')::timestamptz<t-interval '24 hours' or (args->>'requestedAt')::timestamptz>t+interval '1 minute' then return '{"error":"REQUEST_EXPIRED"}'; end if;
  request_id:=(args->>'requestId')::uuid;
  if request_id is null then return '{"error":"INVALID_QUERY"}'; end if;
  fingerprint:=encode(sha256(convert_to(action || (args-'digest'-'newId'-'mask')::text,'UTF8')),'hex');

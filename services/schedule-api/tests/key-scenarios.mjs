@@ -4,9 +4,11 @@ import { sha } from '../src/domain.ts';
 import { api } from '../src/api.ts';
 export async function keyScenarios(db,check,query,call,rpc){
  const owner='11111111-1111-4111-8111-111111111111', outsider='22222222-2222-4222-8222-222222222222';
- const setTime=async iso=>db.exec(`create or replace function bye_schedule.key_clock() returns timestamptz language sql volatile set search_path=pg_catalog as $$select '${iso}'::timestamptz$$`);
+ let fixtureTime='2030-01-01T00:00:00Z';
+ const setTime=async iso=>{fixtureTime=iso;return db.exec(`create or replace function bye_schedule.key_clock() returns timestamptz language sql volatile set search_path=pg_catalog as $$select '${iso}'::timestamptz$$`);};
  const manage=async(action,args={})=>(await query('select public.bye_key_management($1,$2::jsonb) value',[action,JSON.stringify(args)]))[0].value;
- const mutation=(action,args={})=>manage(action,{requestId:randomUUID(),...args});
+ const stamp=async()=>new Date(fixtureTime).toISOString();
+ const mutation=async(action,args={})=>manage(action,{requestId:randomUUID(),requestedAt:await stamp(),...args});
  let key,rotated,raw='bye_pk_'+('a'.repeat(43));
  await setTime('2030-01-01T00:00:00Z');
  await check('explicit confirmed owner bootstrap; ordinary accounts and private tables denied',async()=>{
@@ -24,12 +26,13 @@ export async function keyScenarios(db,check,query,call,rpc){
   await db.exec('reset role');
  });
  await check('creation is digest-only, no expiry, paginated and idempotent even after a lost response',async()=>{
-  const args={requestId:randomUUID(),newId:randomUUID(),digest:await sha(raw),mask:'bye_pk_…aaaa',label:'Windows fixture',clientType:'windows'};
+  const args={requestId:randomUUID(),requestedAt:await stamp(),newId:randomUUID(),digest:await sha(raw),mask:'bye_pk_…aaaa',label:'Windows fixture',clientType:'windows'};
   const result=await manage('create',args);key=result.key;
   assert.equal(key.retire_at,null);assert.equal(key.digest,undefined);
   const replay=await manage('create',{...args,newId:randomUUID(),digest:await sha('another random retry'),mask:'bye_pk_…bbbb'});
   assert.equal(replay.key.id,key.id);assert.equal(replay.replayed,true);assert.equal(replay.keyRecoverable,false);
   assert.equal((await manage('create',{...args,label:'different'})).error,'IDEMPOTENCY_CONFLICT');
+  assert.equal((await manage('create',{...args,requestedAt:'2020-01-01T00:00:00Z'})).error,'REQUEST_EXPIRED');
   assert.equal((await manage('list',{offset:0})).limit,25);
   assert(!JSON.stringify(await manage('audit')).includes(raw));
  });
