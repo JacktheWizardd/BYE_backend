@@ -67,6 +67,7 @@ Pages ignores the website's `wrangler.pages.jsonc`, so production settings live 
 
 ## Still to do
 
+- Run `supabase/006_pcc_student_no_plus_alias.sql` in the Supabase SQL Editor. It stops `name+tag@go.pasadena.edu` aliases from counting as separate students. Tested in an in-memory PostgreSQL with the repo schema, not yet run on the live database.
 - One sign-in by a second PCC student. This is the case the old Resend test sender could not serve.
 - Change Supabase's **Site URL** (Authentication → URL Configuration) from `http://localhost:3000` to `https://bye-before-you-enroll.pages.dev`.
 - Later: show BYE reviews next to RMP once enough exist, and consider an owned domain for email.
