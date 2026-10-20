@@ -1,0 +1,28 @@
+[
+  {
+    "id": "fixture-1",
+    "firstName": "Martha",
+    "lastName": "Joya/Toscano",
+    "school": "Pasadena City College",
+    "schoolID": 2649,
+    "department": "Ethnic Studies",
+    "rating": 5,
+    "difficulty": 1.1,
+    "ratingCount": 18,
+    "wouldTakeAgain": 100,
+    "reviews": []
+  },
+  {
+    "id": "fixture-2",
+    "firstName": "Martha",
+    "lastName": "Browne",
+    "school": "Pasadena City College",
+    "schoolID": 2649,
+    "department": "Mathematics",
+    "rating": null,
+    "difficulty": null,
+    "ratingCount": 0,
+    "wouldTakeAgain": null,
+    "reviews": []
+  }
+]
