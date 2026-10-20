@@ -194,7 +194,7 @@ select:hover:not(:disabled) { border-color: var(--bye-ink); }
 .seats { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--bye-line); }
 .seats-label { font-size: 13px; line-height: 16px; color: var(--bye-ink-3); }
 .seats-label b { margin-right: 2px; font: 700 22px/1 var(--bye-font-display); color: var(--bye-ink); }
-.seats-bar { height: 6px; border-radius: var(--bye-radius-pill); overflow: hidden; }
+.seats-bar { height: 6px; border-radius: var(--bye-radius-pill); overflow: hidden; background: var(--bye-tile); }
 .seats-bar i { display: block; height: 100%; background: var(--bye-ink); border-radius: var(--bye-radius-pill); transform-origin: left; }
 .seats-wait { font-size: 12px; line-height: 16px; color: var(--bye-ink-3); }
 .seats.full .seats-wait { color: var(--bye-signal); font-weight: 600; }

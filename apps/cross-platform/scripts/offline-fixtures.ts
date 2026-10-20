@@ -9,7 +9,9 @@ export const term: Term = { termCode: '202650', termName: 'Summer 2026', termDis
 const otherTerm: Term = { termCode: '202670', termName: 'Fall 2026', termDisplayControl: 'Y' }
 export function fixtureServices(saved: Row[]) {
   // Preserve saved schedule fields, substituting fictional instructor identities.
-  const rows: Row[] = [...saved.slice(0, 3).map(row => ({ ...row, pfaName: row.pfaName === saved[0].pfaName ? 'Alex Example' : 'Blair Sample' })), ...mathRows.map((r,i) => ({...r,crn:String(91001+i)}))]
+  // Fictional seats and waitlists, so the seat meter shows in offline checks and the test window (one section is full).
+  const seats = (i: number) => ({ seatsAvail: [15, 4, 0, 22, 9][i % 5], maxEnrl: 35, waitCount: [0, 2, 6, 0, 1][i % 5], waitCapacity: 10 })
+  const rows: Row[] = [...saved.slice(0, 3).map((row, i) => ({ ...row, ...seats(i), pfaName: row.pfaName === saved[0].pfaName ? 'Alex Example' : 'Blair Sample' })), ...mathRows.map((r,i) => ({...r,...seats(i + 3),crn:String(91001+i)}))]
   const controls = { ambiguous: false, holdPages: false, scheduleDelay: 0, scheduleFailure:false, candidateDelay: 0, candidateFailure: false, candidateEmpty: false, suggestDelay: 0, suggestFailure: false, byeFailure:false, byeAmbiguous:false, byeDelay:0 }
   const calls = { terms: 0, schedule: 0, candidates: 0, pages: 0, aborted: 0, suggestions: 0, byeResolve:0, byePages:0 }
   const profiles: Profile[] = ['Alex Example', 'Blair Sample', 'Alex Example'].map((name, i) => ({
