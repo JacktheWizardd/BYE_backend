@@ -31,7 +31,7 @@ No app code, release files, appcast or Pages project settings were changed by th
 
 ### Plan for the apps (website commit `1f36040`)
 
-- `docs/APP_REDESIGN_PLAN.md` in the website repository plans how to bring this look and motion to **the Mac app (SwiftUI) and the Windows app (Electron)**. It is a plan only and has not been started. Open questions are listed at its end: the AI summaries label on the Mac, a welcome screen, ambient dots in the apps, and the release version.
+- `docs/web-app/APP_REDESIGN_PLAN.md` in the website repository plans how to bring this look and motion to **the Mac app (SwiftUI) and the Windows app (Electron)**. It is a plan only and has not been started. Open questions are listed at its end: the AI summaries label on the Mac, a welcome screen, ambient dots in the apps, and the release version.
 
 ### October 18 fixes (owner commits this batch from GitHub Desktop)
 

@@ -85,6 +85,7 @@ export function Report({ p, course, matches, command, back, byeReviews, reviewFi
         : <div className="callout card" role="status"><p><b className="signal">{p.issue?.includes('access is pending') ? 'RMP access pending.' : 'Cannot retrieve RMP info.'}</b> {p.issue?.includes('access is pending') ? 'PCC sections and BYE reviews are available in this preview.' : <>{p.issue} The PCC sections below remain available; check their retrieval times.</>}</p>
           {!p.issue?.includes('access is pending') && <button className="button secondary wide" onClick={() => command({ kind: 'retry', professorId: p.id })}>Try again</button>}</div>)}
 
+      {!demo && !unnamed(p) && byeReviews}
       {profile && <section aria-label="Rate My Professors scores" className="block">
         <div className="stats">
           <div className="stat"><b><Num value={profile.rating} restartKey={p.id} /><small>/5</small></b><span>{demo ? 'Rating · sample' : 'RMP rating'}</span><Bar value={profile.rating} label="Rating" /></div>
@@ -99,7 +100,6 @@ export function Report({ p, course, matches, command, back, byeReviews, reviewFi
         <div className="section-list">{p.sections.map(s => <SectionCard key={s.crn} s={s} matches={matches(s)} />)}</div>
       </section>
 
-      {!demo && !unnamed(p) && byeReviews}
       {profile && summary}
       {profile && <section className="block" aria-label="Student reviews">
         <div className="row"><h3>{demo ? 'Sample reviews' : 'Rate My Professors reviews'}</h3>

@@ -11,7 +11,7 @@ import { course } from '../src/shared/domain'
 import { buildSummary } from '../src/main/summary-evidence'
 import { AI_SUMMARIES_DISABLED_MESSAGE } from '../src/shared/features'
 import type { Profile, Review, Term } from '../src/shared/types'
-import { fixtureServices } from '../scripts/offline-fixtures'
+import { fixtureServices, fixtureSchedule } from '../scripts/offline-fixtures'
 const term: Term = { termCode: '202650', termName: 'Summer 2026', termDisplayControl: 'Y' }
 const base = (id = '1'): Profile => ({ id, firstName: 'John', lastName: 'Harris', schoolID: 2649, school: 'Pasadena City College', department: 'History', reviews: [], coverage: {}, courseCounts: [] })
 const review = (id = 'r1'): Review => ({ id, text: 'Clear explanations', course: 'ETH14', date: '2026-01-01' })
@@ -21,7 +21,7 @@ function harness(directory: string, candidates: Profile[] = [base()], summariesE
   const fake = { candidates: async () => structuredClone(candidates), page: async (id: string, _count: number, _signal: AbortSignal, cursor?: string) => ({ profile: { ...base(id), reviews: [review(cursor ? 'r2' : 'r1')] }, ids: [cursor ? 'r2' : 'r1'], hasNextPage: !cursor, nextCursor: cursor ? undefined : 'next' }) }
   const ai = { cacheIdentity: 'test', summarize: async (reviews: Review[], c: ReturnType<typeof course>) => buildSummary({ positives: [], concerns: [] }, reviews, c, 'test') }
   const store = new Store(directory), snapshots: any[] = []
-  const engine = new Engine(pcc, fake as unknown as RMP, store, ai, state => snapshots.push(state), summariesEnabled)
+  const engine = new Engine(fixtureSchedule(pcc), fake as unknown as RMP, store, ai, state => snapshots.push(state), summariesEnabled)
   return { engine, fake, store, snapshots, ai }
 }
 

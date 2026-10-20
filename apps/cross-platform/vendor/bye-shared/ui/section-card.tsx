@@ -3,6 +3,7 @@ import type { Section } from '../core/types'
 import { formatLabel, fullyOnline, scheduleNotAnnounced } from '../core/domain'
 import { useSurface } from './context'
 import { day } from './format'
+import { availabilityDeadline, staleSource } from '../core/freshness'
 
 // `matches` is whether the section fits the picked class days; sections that don't are tagged "Other days".
 export function SectionCard({ s, matches }: { s: Section; matches: boolean }) {
@@ -10,11 +11,12 @@ export function SectionCard({ s, matches }: { s: Section; matches: boolean }) {
   const [clock, setClock] = useState(Date.now)
   useEffect(() => {
     if (!s.source || demo) return
-    const timer = setTimeout(() => setClock(Date.now()), Math.max(0, 300_000 - (Date.now() - s.source.retrievedAt)))
+    setClock(Date.now())
+    const timer = setTimeout(() => setClock(Date.now()), Math.max(0, availabilityDeadline(s.source) - Date.now()))
     return () => clearTimeout(timer)
-  }, [s.source?.retrievedAt])
+  }, [s.source?.retrievedAt, s.source?.expiresAt, s.source?.stale])
   // Stale schedules hide seats and waitlists.
-  const stale = s.source?.stale || (!!s.source && clock - s.source.retrievedAt >= 300_000)
+  const stale = staleSource(s.source, Math.max(clock, Date.now()))
   const seats = stale ? undefined : s.details, full = seats?.seatsOpen === 0, other = !matches
   return <article className={`section-card${other ? ' other-days' : ''}`}>
     <div>
@@ -23,7 +25,7 @@ export function SectionCard({ s, matches }: { s: Section; matches: boolean }) {
       {s.meetings.length > 0 && scheduleNotAnnounced(s) && !s.meetings.some(m => m.includes('TBA') || m.includes('no set')) && <p className="muted small">Some meetings not announced</p>}
       <p className="muted small">{s.start && s.end ? `${day(s.start)} – ${day(s.end)}` : 'Dates not announced'}</p>
       {s.details && <p className="muted small">{[s.details.termPart, fullyOnline(s) ? '' : s.details.campus, s.details.units && (s.details.units === '1' ? '1 unit' : `${s.details.units} units`)].filter(Boolean).join(' · ')}</p>}
-      {s.source && <p className="muted small">PCC checked {new Date(s.source.retrievedAt).toLocaleString()}{stale ? ' · Older schedule · seat counts hidden' : ''}</p>}
+      {s.source && <p className="muted small">PCC checked {s.source.retrievedAt > 0 ? new Date(s.source.retrievedAt).toLocaleString() : 'time unavailable'}{stale ? ' · Older schedule · seat counts hidden' : ''}</p>}
       {!demo && seats?.seatsOpen === undefined && !stale && <p className="muted small">Seat availability not published.</p>}
     </div>
     {seats?.seatsOpen !== undefined && <div className={`seats${full ? ' full' : ''}`}>

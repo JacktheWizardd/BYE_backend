@@ -23,7 +23,7 @@ const aiCalls = { summarize: 0, verify: 0 }
 const summarize = ai.summarize.bind(ai)
 ai.summarize = async (...args) => { aiCalls.summarize++; return summarize(...args) }
 ai.verify = async () => { aiCalls.verify++; throw new Error('AI verification must stay inactive.') }
-const runtime = startApplication({ storage, pcc: services.pcc, rmp: services.rmp, ai,
+const runtime = startApplication({ storage, pcc: services.pcc, rmp: services.rmp, bye:services.bye, ai,
   preload: path.join(root, 'out/preload/index.cjs'), renderer: path.join(root, 'out/renderer/index.html'),
   beforeWindow() {
     session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (details, callback) => { networkAttempts.push(details.url); callback({ cancel: true }) })

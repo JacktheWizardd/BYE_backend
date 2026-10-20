@@ -1,8 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
 import type { Course, Profile, Professor, Snapshot, Term } from '../shared/types'
-import { eligible, identity, orderReviews, professors, resolve } from '../shared/domain'
-import { check, IdentityError, PCC, RMP } from './network'
+import { eligible, identity, orderReviews } from '../shared/domain'
+import { check, IdentityError, RMP } from './network'
+import type { ScheduleProvider, ScheduleResult } from './schedule-api'
+import { BYE_SORTS, type ByeReviewProvider } from './bye-reviews'
 import { Store } from './storage'
 import type { SummaryProvider } from './summary'
 import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_DISABLED_MESSAGE } from '../shared/features'
@@ -30,7 +32,10 @@ export class Engine {
   private summaries = new Queue(1, () => this.previews.pending > 0)
   private tasks = new Set<Promise<unknown>>()
   private jobs = new Map<string, Promise<void>>()
-  constructor(readonly pcc: Pick<PCC, 'terms' | 'schedule' | 'suggest'>, readonly rmp: Pick<RMP, 'candidates' | 'page'>, readonly store: Store, readonly ai: SummaryProvider, private publish: (state: Snapshot) => void, private summariesEnabled = () => AI_SUMMARIES_ENABLED) {}
+  private byeQueue = new Queue(2)
+  private byeRuns = new Map<string, AbortController>()
+  private scheduleRun?: AbortController
+  constructor(readonly pcc: ScheduleProvider, readonly rmp: Pick<RMP, 'candidates' | 'page'>, readonly store: Store, readonly ai: SummaryProvider, private publish: (state: Snapshot) => void, private summariesEnabled = () => AI_SUMMARIES_ENABLED, private bye?: ByeReviewProvider) {}
   emit() { this.state.previewPending = this.previews.pending; this.publish(structuredClone(this.state)) }
   private launch(key: string, task: () => Promise<void>) {
     if (this.jobs.has(key)) return this.jobs.get(key)!
@@ -47,13 +52,17 @@ export class Engine {
     return AbortSignal.any([this.run.signal, local.signal])
   }
   stop() {
+    this.scheduleRun?.abort(); this.scheduleRun = undefined
+    this.byeRuns.forEach(c => c.abort()); this.byeRuns.clear()
     this.run.abort(); this.versions.forEach(c => c.abort()); this.versions.clear(); this.run = new AbortController()
     this.state.loading = false
+    this.state.refreshing = false
     for (const p of this.state.professors) {
       if (p.state === 'pending' || p.state === 'loading') { p.state = p.profile ? 'ready' : 'unavailable'; p.issue = 'Stopped. Try again to retrieve this profile.' }
       if (p.detailLoading) p.reviewIssue = 'Stopped. Retrieved reviews are still available.'
       if (p.summaryLoading) p.summaryIssue = 'Stopped. Retry summary when ready.'
       p.detailLoading = false; p.summaryLoading = false; p.discoveryLoading = false; p.choosing = false
+      if (p.bye?.loading) { p.bye.loading = false; p.bye.issue = 'Stopped. Retry BYE reviews when ready.' }
     }
     this.emit()
   }
@@ -66,13 +75,77 @@ export class Engine {
         const terms = await this.pcc.terms(); check(signal)
         const published = terms.find(t => t.termCode === term.termCode)
         if (!published) throw new Error('Choose a published PCC semester.')
-        const rows = await this.pcc.schedule(published.termCode, refresh); check(signal)
-        const c = resolve(query, rows); this.state.course = c; this.state.term = published; this.state.professors = professors(rows, c)
+        const result = await this.pcc.search(published.termCode, query, refresh, signal); check(signal)
+        this.state.course = result.course; this.state.term = published; this.state.professors = result.professors
+        this.state.source = result.source; this.state.catalogVersion = result.catalogVersion; this.state.scheduleOffline = result.offline
+        this.state.loading = false
         if (!this.state.professors.length) this.state.issue = 'No matching sections were published for this course and semester.'
         this.emit()
+        // BYE jobs start first, but their network or matching failures never gate RMP.
+        for (const p of this.state.professors) if (this.bye && !['staff','tba','instructor to be announced'].includes(p.name.toLowerCase())) void this.loadBye(p.id)
         await Promise.all(this.state.professors.map(p => this.lookup(p, refresh, this.context(p))))
       } catch (e) { if (!signal.aborted) this.state.issue = message(e) }
       finally { if (!signal.aborted) { this.state.loading = false; this.emit() } }
+    })
+  }
+  async refreshSchedule(crns?: string[], outerSignal?: AbortSignal, force = false) {
+    if (!this.state.course || !this.state.term || this.state.loading || this.state.refreshing) return
+    const controller = new AbortController(); this.scheduleRun = controller
+    const signal = AbortSignal.any([this.run.signal, controller.signal, ...(outerSignal ? [outerSignal] : [])])
+    const operation = this.state.operationId, current: ScheduleResult = { course:this.state.course, professors:this.state.professors, source:this.state.source, catalogVersion:this.state.catalogVersion }
+    this.state.refreshing = true; this.state.scheduleIssue = undefined; this.emit()
+    try {
+      const requested = [...new Set(crns ?? current.professors.flatMap(p => p.sections.map(s => s.crn)))]
+      const next = !force && this.pcc.update ? await this.pcc.update(this.state.term.termCode,current,requested,signal) : await this.pcc.search(this.state.term.termCode,current.course.display,true,signal)
+      check(signal); if (operation !== this.state.operationId) return
+      const old = new Map(this.state.professors.map(p => [p.id,p]))
+      const retained = new Set(next.professors.map(p => p.id))
+      for (const id of old.keys()) if (!retained.has(id)) { this.byeRuns.get(id)?.abort(); this.byeRuns.delete(id); this.versions.get(id)?.abort(); this.versions.delete(id) }
+      this.state.professors = next.professors.map(p => { const previous = old.get(p.id); if (previous) { previous.sections=p.sections; return previous }; return p })
+      this.state.source = next.source; this.state.catalogVersion = next.catalogVersion; this.state.scheduleOffline = next.offline
+      if (next.offline) throw new Error('BYE could not verify the latest schedule. Saved sections remain available; seat counts are hidden.')
+      for (const p of this.state.professors) if (!old.has(p.id)) { if (this.bye) void this.loadBye(p.id); void this.launch(`new-profile-${operation}-${p.id}`,() => this.lookup(p,false,this.context(p))) }
+    } catch (e) {
+      if (!signal.aborted && operation === this.state.operationId) {
+        this.state.scheduleIssue = message(e); this.state.scheduleOffline = true
+        for (const p of this.state.professors) for (const s of p.sections) if (s.source) s.source = { ...s.source, stale:true }
+        throw e
+      }
+    } finally {
+      if (operation === this.state.operationId && this.scheduleRun === controller) { this.state.refreshing = false; this.scheduleRun = undefined; this.emit() }
+    }
+  }
+  loadBye(id: string, filter = 'this', sort = 'recent', more = false) {
+    const p = this.professor(id), api = this.bye
+    if (!api || !this.state.course) return Promise.resolve()
+    if (!BYE_SORTS.includes(sort) || (filter !== 'this' && filter !== 'all' && !p.bye?.profile?.courses.some(c => c.id === filter))) throw new Error('Choose a BYE review filter from this professor’s report.')
+    if (more && (p.bye?.loading || p.bye?.nextOffset == null || p.bye.filter !== filter || p.bye.sort !== sort)) return Promise.resolve()
+    this.byeRuns.get(id)?.abort()
+    const controller = new AbortController(); this.byeRuns.set(id,controller)
+    const signal = AbortSignal.any([this.run.signal,controller.signal]), course = this.state.course.display, previous = p.bye
+    p.bye = { loading:true, filter, sort, reviews:more ? previous!.reviews : [], nextOffset:null, resolution:previous?.resolution, profile:previous?.profile }
+    const target = p.bye; this.emit()
+    return this.launch(`bye-${this.state.operationId}-${id}-${randomUUID()}`, async () => {
+      try {
+        await this.byeQueue.run(signal, async () => {
+          const resolution = (more && previous?.resolution) || await api.resolve(p.name,course,signal); check(signal); target.resolution = resolution; this.emit()
+          if (!resolution.professor) { target.profile = undefined; target.ratingIssue = undefined; return }
+          if (target.profile?.professorId !== resolution.professor.id) target.profile = undefined
+          // Scores and written reviews fail independently.
+          try { target.profile = await api.profile(resolution.professor.id,signal) }
+          catch (e) { check(signal); target.ratingIssue = message(e) }
+          check(signal); this.emit()
+          if (filter === 'this' && !resolution.course) return
+          const courseId = filter === 'this' ? resolution.course!.id : filter === 'all' ? undefined : filter
+          if (courseId && courseId !== resolution.course?.id && !target.profile?.courses.some(c => c.id === courseId)) throw new Error('This BYE course filter is no longer available.')
+          const page = await api.list(resolution.professor.id,courseId,sort,more ? previous!.nextOffset! : 0,signal); check(signal)
+          if (more && page.nextOffset !== null && !page.reviews.some(r => !target.reviews.some(old => old.id === r.id))) throw new Error('BYE review pagination stopped progressing. Refresh BYE reviews before continuing.')
+          target.reviews = [...new Map([...target.reviews,...page.reviews].map(r => [r.id,r])).values()].slice(0,200)
+          target.nextOffset = target.reviews.length >= 200 ? null : page.nextOffset; target.retrievedAt = new Date().toISOString()
+          if (target.reviews.length >= 200) target.issue = 'Showing the first 200 BYE reviews. Change the filter to narrow the results.'
+        })
+      } catch (e) { if (!signal.aborted) target.issue = message(e) }
+      finally { if (!signal.aborted) { target.loading = false; this.emit() } }
     })
   }
   private async save(p: Professor, signal: AbortSignal) {
@@ -87,6 +160,7 @@ export class Engine {
   private async preview(p: Professor, id: string, signal: AbortSignal) {
     const page = await this.rmp.page(id, 3, signal); check(signal); this.verify(p, page.profile, id)
     page.profile.coverage.all = { reviewIDs: page.ids, hasNextPage: page.hasNextPage, nextCursor: page.nextCursor, updatedAt: Date.now() }
+    page.profile.source = { source:'rmp',retrievedAt:Date.now(),stale:false }
     return page.profile
   }
   private async lookup(p: Professor, refresh: boolean, signal: AbortSignal) {
@@ -183,6 +257,7 @@ export class Engine {
             if (page.hasNextPage && (!newIDs.length || !page.nextCursor || visited.has(page.nextCursor))) throw new Error('RMP pagination stopped progressing. Retrieved reviews remain available.')
             if (page.nextCursor) visited.add(page.nextCursor)
             const merged = page.profile
+            merged.source = { source:'rmp',retrievedAt:Date.now(),stale:false }
             merged.reviews = orderReviews([...new Map([...current.reviews, ...merged.reviews].map(r => [r.id, r])).values()])
             merged.coverage = { ...current.coverage, [key]: { reviewIDs: [...coverage.reviewIDs, ...newIDs].slice(0, 50), nextCursor: page.nextCursor, hasNextPage: page.hasNextPage, updatedAt: Date.now() } }
             p.profile = merged; p.summary = undefined; await this.save(p, signal); this.emit()

@@ -1,7 +1,7 @@
 import type { Course, Profile, Professor, Review, Row, Section, SectionDetails, Suggestion, Weekday } from './types'
 export const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 export function course(input: string): Course {
-  const match = input.trim().toUpperCase().match(/^([A-Z]{2,8})\s*([A-Z]?\d{1,4}[A-Z]?)$/)
+  const match = input.trim().toUpperCase().match(/^([A-Z]{2,8})\s*([A-Z]?\d{1,4}[A-Z]*)$/)
   if (!match) throw new Error('Enter a subject and course number, such as ETH 014 or POLS C1000.')
   const [, subject, number] = match
   return { subject, number, key: subject + number, display: `${subject} ${number}`, matchingKey: subject + number.replace(/\d+/, n => String(Number(n))) }
@@ -96,9 +96,10 @@ export function orderReviews(reviews: Review[], by = 'recent') {
     return score || compare(a.time, b.time, by === 'oldest') || (a.review.id < b.review.id ? -1 : a.review.id > b.review.id ? 1 : 0)
   }).map(x => x.review)
 }
-export const fullyOnline = (s: Section) => s.formats.length > 0 && s.formats.every(f => f === 'OD')
+export const fullyOnline = (s: Section) => !s.formatUnknown && s.formats.length > 0 && s.formats.every(f => f === 'OD')
 /** Short format label for tags: In person, Hybrid, Online · live or Online · async. Mirrors Section.formatLabel. */
 export function formatLabel(s: Section) {
+  if (s.formatUnknown) return 'Format not announced'
   if (fullyOnline(s)) return 'Online · async'
   if (s.formats.includes('HY')) return 'Hybrid'
   if (s.formats.length && s.formats.every(f => ['OD', 'OL', 'OS', 'ON'].includes(f))) return 'Online · live'

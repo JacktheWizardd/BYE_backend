@@ -1,6 +1,6 @@
 # BYE shared UI
 
-React screens shared by the web app (`apps/web`, demo and live) and the Windows app (the app repository vendors this folder with `scripts/sync-bye-shared.mjs`). The Mac app mirrors them in SwiftUI; the app repository's `docs/UI_PARITY.md` maps each one to its Swift view.
+React screens shared by the web app (`apps/web`, demo and live) and the Windows app (the app repository vendors this folder with `scripts/sync-bye-shared.mjs`). The Mac app mirrors them in SwiftUI; the app repository's `docs/windows/UI_PARITY.md` maps each one to its Swift view.
 
 | Export | What it is |
 | --- | --- |

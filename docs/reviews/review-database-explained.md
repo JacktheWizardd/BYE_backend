@@ -116,4 +116,4 @@ are reused; no migration or live write was made for this integration. AI summari
 and statistical comparisons remain disabled. Real local PCC reads and BYE catalog
 reads passed; RMP access and hosted rollout remain pending. The earlier test review
 is no longer publicly visible; administrator confirmation of its deletion is
-still needed. See the website repo’s docs/LIVE_APP_PREVIEW.md.
+still needed. See the website repo’s docs/web-app/LIVE_APP_PREVIEW.md.

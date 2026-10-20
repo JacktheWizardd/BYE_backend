@@ -21,9 +21,9 @@ See the [delivery record](records/2026-10-19-delivery.md) for decisions and the
 [handoff](records/handoff.md) for taking over. Installed-client key delivery is
 still separate from the completed management controls.
 
-## Later: client integration
+## Client integration follow-up
 
-Connect clients in separately agreed phases. The integration requirements are:
+Windows integration is now implemented locally; see [its handoff](../../../docs/windows/WINDOWS_API_INTEGRATION.md). Mac and website schedule integration and installed-client releases remain separate. The client requirements are:
 
 - Use cached catalog data immediately; check the API on startup and Refresh.
 - Use one 60-second loop while visible, with one request in flight.

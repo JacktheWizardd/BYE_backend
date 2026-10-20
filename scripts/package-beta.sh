@@ -31,7 +31,7 @@ if [ -n "$NOTARY_PROFILE" ]; then
 fi
 ditto "$APP" "$STAGING/$BETA_APP_NAME.app"
 ln -s /Applications "$STAGING/Applications"
-sed "s/@BETA_VERSION@/$BETA_VERSION/g" docs/BETA_INSTALLATION.txt > "$STAGING/START HERE.txt"
+sed "s/@BETA_VERSION@/$BETA_VERSION/g" docs/releases/BETA_INSTALLATION.txt > "$STAGING/START HERE.txt"
 python3 scripts/check-distribution-privacy.py "$STAGING"
 hdiutil create -volname "$BETA_APP_NAME" -srcfolder "$STAGING" -format UDZO -ov "$DMG"
 codesign --force --sign "$SIGN_IDENTITY" "$DMG"
@@ -49,5 +49,5 @@ ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 SIGNATURE=$("$SPARKLE_BIN/sign_update" --account "$UPDATE_KEY_ACCOUNT" "$ZIP")
 python3 scripts/make-appcast.py --appcast "$APPCAST" --version "$BETA_VERSION" --build "$BETA_BUILD" \
     --url "$UPDATE_DOWNLOAD_PREFIX/$ZIP_NAME" --signature-output "$SIGNATURE" \
-    --notes docs/GITHUB_PRERELEASE.md
+    --notes docs/releases/GITHUB_PRERELEASE.md
 printf 'Packaged %s and %s\n' "$DMG" "$ZIP"

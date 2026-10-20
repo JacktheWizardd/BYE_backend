@@ -3,16 +3,16 @@ import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 
 // App preferences kept only on this PC (%LOCALAPPDATA%\BYECrossPlatformBeta\settings.json). Nothing here is sent anywhere.
-export interface Settings { name: string; onboarded: boolean; recent: string[] }
+export interface Settings { name: string; onboarded: boolean; recent: string[]; recentTerms?: Record<string,string> }
 export const DEFAULT_SETTINGS: Settings = { name: '', onboarded: false, recent: [] }
 export const NAME_LIMIT = 20, RECENT_LIMIT = 5
-const COURSE = /^[A-Z]{2,8} [A-Z]?\d{1,4}[A-Z]?$/
+const COURSE = /^[A-Z]{2,8} [A-Z]?\d{1,4}[A-Z]*$/
 
 /** Validates a partial update from the renderer. Unknown keys and bad values are rejected, not ignored. */
 export function validateSettings(raw: unknown): Partial<Settings> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Invalid settings.')
   const input = raw as Record<string, unknown>, out: Partial<Settings> = {}
-  for (const key of Object.keys(input)) if (!['name', 'onboarded', 'recent'].includes(key)) throw new Error('Invalid settings.')
+  for (const key of Object.keys(input)) if (!['name', 'onboarded', 'recent', 'recentTerms'].includes(key)) throw new Error('Invalid settings.')
   if ('name' in input) {
     if (typeof input.name !== 'string' || /[\p{Cc}\p{Cf}]/u.test(input.name)) throw new Error('Invalid name.')
     const name = input.name.trim().replace(/ +/g, ' ')
@@ -24,6 +24,11 @@ export function validateSettings(raw: unknown): Partial<Settings> {
   if ('recent' in input) {
     if (!Array.isArray(input.recent) || input.recent.length > RECENT_LIMIT || !input.recent.every(x => typeof x === 'string' && COURSE.test(x))) throw new Error('Invalid recent classes.')
     out.recent = [...new Set(input.recent as string[])]
+  }
+  if ('recentTerms' in input) {
+    const terms = input.recentTerms
+    if (!terms || typeof terms !== 'object' || Array.isArray(terms) || Object.keys(terms).length > RECENT_LIMIT || Object.entries(terms).some(([c,t]) => c.length > 100 || !COURSE.test(c) || typeof t !== 'string' || !/^\d{6}$/.test(t))) throw new Error('Invalid recent semesters.')
+    out.recentTerms = { ...terms } as Record<string,string>
   }
   return out
 }

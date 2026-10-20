@@ -6,12 +6,16 @@ import type { SummaryProvider } from './summary'
 import type { Command, Term } from '../shared/types'
 import { reviewURL } from '../shared/domain'
 import { SettingsStore, checkForUpdate, isUpdateLink } from './settings'
+import { SchedulePoll } from './schedule-poll'
+import type { ByeReviewProvider } from './bye-reviews'
 function validate(raw: unknown): Command {
   if (!raw || typeof raw !== 'object') throw new Error('Unsupported command.')
-  const c = raw as Record<string, unknown>, kinds = ['terms', 'suggest', 'search', 'stop', 'retry', 'discover', 'dismiss', 'summary', 'select', 'details', 'source']
+  const c = raw as Record<string, unknown>, kinds = ['terms', 'suggest', 'search', 'stop', 'retry', 'discover', 'dismiss', 'summary', 'select', 'details', 'source', 'byeReviews', 'scheduleView']
   if (typeof c.kind !== 'string' || !kinds.includes(c.kind)) throw new Error('Unsupported command.')
   const text = (key: string, max: number, optional = false) => { if (optional && c[key] === undefined) return; if (typeof c[key] !== 'string' || !c[key] || (c[key] as string).length > max) throw new Error('Invalid ' + key) }
-  if (['retry', 'discover', 'dismiss', 'summary', 'select', 'details'].includes(c.kind)) text('professorId', 300)
+  if (['retry', 'discover', 'dismiss', 'summary', 'select', 'details', 'byeReviews'].includes(c.kind)) text('professorId', 300)
+  if (c.kind === 'byeReviews') { text('filter',100,true); text('sort',30,true); if (c.more !== undefined && typeof c.more !== 'boolean') throw new Error('Invalid review page.') }
+  if (c.kind === 'scheduleView' && (typeof c.active !== 'boolean' || !Array.isArray(c.crns) || c.crns.length > 1000 || c.crns.some(x => typeof x !== 'string' || !/^\d{5}$/.test(x)))) throw new Error('Invalid schedule view.')
   if (c.kind === 'select') { text('profileId', 30); if (!/^[1-9]\d*$/.test(c.profileId as string)) throw new Error('Invalid profile ID.') }
   if (c.kind === 'details') text('filter', 100, true)
   if (c.kind === 'suggest') { text('term', 6); if (!/^\d{6}$/.test(c.term as string)) throw new Error('Invalid semester.'); if (typeof c.query !== 'string' || c.query.length > 100) throw new Error('Invalid query.') }
@@ -25,7 +29,7 @@ function validate(raw: unknown): Command {
 
 export interface StartupOptions {
   storage: string; preload: string; renderer: string; rendererURL?: string
-  pcc: Engine['pcc']; rmp: Engine['rmp']; ai: SummaryProvider
+  pcc: Engine['pcc']; rmp: Engine['rmp']; ai: SummaryProvider; bye?: ByeReviewProvider
   beforeWindow?: () => void
 }
 // Shared internal startup keeps verification on the production security and IPC path.
@@ -35,7 +39,10 @@ export function startApplication(options: StartupOptions) {
   const ai = options.ai
   const settings = new SettingsStore(path.join(options.storage, 'settings.json'))
   let offeredDownload = ''
-  const engine = new Engine(options.pcc, options.rmp, new Store(path.join(options.storage, 'reports')), ai, state => window?.webContents.send('bye:state', state))
+  const engine = new Engine(options.pcc, options.rmp, new Store(path.join(options.storage, 'reports')), ai, state => window?.webContents.send('bye:state', state), undefined, options.bye)
+  let viewActive = false, visibleCRNs: string[] = []
+  const poll = new SchedulePoll(signal => engine.refreshSchedule(visibleCRNs,signal))
+  const polling = () => poll.setActive(viewActive && !!window && window.isVisible() && !window.isMinimized())
   function createWindow() {
     window = new BrowserWindow({ width: 1180, height: 800, minWidth: 1000, minHeight: 700, title: 'BYE — Before You Enroll', backgroundColor: '#faf8f3', show: false,
       webPreferences: { preload: options.preload, sandbox: true, contextIsolation: true, nodeIntegration: false, spellcheck: false } })
@@ -45,7 +52,8 @@ export function startApplication(options: StartupOptions) {
     window.webContents.on('will-navigate', event => event.preventDefault())
     window.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
     window.webContents.on('did-finish-load', () => engine.emit())
-    window.on('closed', () => { window = undefined; engine.stop() })
+    window.on('show',polling); window.on('hide',polling); window.on('minimize',polling); window.on('restore',polling)
+    window.on('closed', () => { poll.stop(); window = undefined; engine.stop() })
     if (options.rendererURL) void window.loadURL(options.rendererURL)
     else void window.loadFile(options.renderer)
   }
@@ -73,7 +81,12 @@ export function startApplication(options: StartupOptions) {
       switch (c.kind) {
         case 'terms': return engine.pcc.terms()
         case 'suggest': return engine.pcc.suggest(c.term, c.query)
-        case 'search': void engine.search(c.query, c.term, c.refresh); return undefined
+        case 'search': if (c.refresh && engine.state.course?.display === c.query && engine.state.term?.termCode === c.term.termCode) { await engine.refreshSchedule(undefined,undefined,true) } else { void engine.search(c.query, c.term, c.refresh) }; return undefined
+        case 'byeReviews': void engine.loadBye(c.professorId,c.filter,c.sort,c.more); return undefined
+        case 'scheduleView': {
+          const allowed = new Set(engine.state.professors.flatMap(p => p.sections.map(s => s.crn)))
+          visibleCRNs = [...new Set(c.crns)].filter(crn => allowed.has(crn)); viewActive = c.active && !!engine.state.course; polling(); return undefined
+        }
         case 'stop': engine.stop(); return undefined
         case 'retry': void engine.retry(c.professorId); return undefined
         case 'discover': void engine.discover(c.professorId); return undefined
@@ -101,7 +114,7 @@ export function startApplication(options: StartupOptions) {
   })
   app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
   app.on('activate', () => { if (!window) createWindow(); else { if (window.isMinimized()) window.restore(); window.show(); window.focus() } })
-  app.on('before-quit', () => { engine.stop(); void ai.dispose?.() })
+  app.on('before-quit', () => { poll.stop(); engine.stop(); void ai.dispose?.() })
 
   return { engine, getWindow: () => window }
 }

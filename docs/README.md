@@ -1,45 +1,20 @@
-# Engineering documentation
+# BYE documents
 
-Use the standalone API folder for the newly deployed schedule backend. Native
-and Windows clients still use their existing integrations; backend deployment
-does not mean the clients have been connected.
+Start with an area below. Each overview explains **what we built, why we chose it, how it works, and what remains**. These are private engineering documents, not release announcements.
 
-## PCC database and standalone API
-
-| Guide | Purpose |
+| Area | What you will find |
 | --- | --- |
-| [API delivery record](../services/schedule-api/docs/records/2026-10-19-delivery.md) | Owner/developer account of what was built, why, and what remains |
-| [API handoff](../services/schedule-api/docs/records/handoff.md) | Start here to operate the service or take over development |
-| [Standalone API documentation](../services/schedule-api/docs/README.md) | Main index: architecture, setup, keys, operations, verification and roadmap |
-| [PCC Fall 2026 database pilot](pcc-schedule-pilot.md) | Original private schema, importer and first published snapshot |
-| [API commit preparation](../services/schedule-api/docs/commit-guide.md) | Pending change groups, checks and ready-to-paste Summary/Description |
-| [API and external integrations](api.md) | Distinguish the hosted schedule service, direct client integrations and RMP module |
+| [Project](project/README.md) | Current status, architecture, setup, testing, history and product roadmap |
+| [Windows app](windows/README.md) | Electron integration, BYE/RMP review behavior and UI parity |
+| [Student reviews](reviews/README.md) | BYE database, identity, privacy, submission and launch history |
+| [PCC schedules and API](schedules/README.md) | PCC import, integration boundaries and canonical backend guides |
+| [Design](design/README.md) | App mockup, design history and shared design ownership |
+| [Releases](releases/README.md) | Mac installation, packaging, updates and prepared notes |
+| [AI experiments](experiments/README.md) | Preserved summary research; AI summaries remain disabled |
+| [Verification records](verification/README.md) | Dated test evidence and its limitations |
 
-## Application development
+For current implementation, start with [Project status](project/PROJECT_STATUS.md). For future capabilities, see the [roadmap](project/roadmap.md). Dated evidence describes the version tested at that time; implementation, deployment and release are separate milestones.
 
-- [Project status and handoff](PROJECT_STATUS.md)
-- [Architecture](architecture.md)
-- [Development setup](development.md)
-- [Testing](testing.md)
-- [Windows app guide](../apps/cross-platform/README.md)
-- [Windows verification](../apps/cross-platform/VERIFICATION.md)
+The [sibling website documentation](../../BYE_website/docs/README.md) owns the landing page, browser app, shared React packages and public review routes. Service-specific docs remain [beside the schedule API](../services/schedule-api/docs/README.md); app and package READMEs remain beside their code.
 
-## Student reviews
-
-- [Database overview](database.md)
-- [Review database explained](review-database-explained.md)
-- [Supabase decisions and history](supabase-plan.md)
-- [Review launch record](review-launch-record.md)
-- [Website redesign record](website-redesign-record.md)
-
-## Releases and historical records
-
-- [Mac release procedure](RELEASING.md)
-- [Prepared prerelease notes](GITHUB_PRERELEASE.md)
-- [Implementation history](IMPLEMENTATION_HISTORY.md)
-- [Repository overview](../README.md)
-
-Older dated entries describe the state at the time they were written. For the
-schedule API's delivered behavior, use its dedicated docs and verification
-report. Public website source and its own documentation live in the separate
-`BYE_website` repository.
+When an area changes, update its overview and link the detailed decision or verification record. Keep one canonical guide for each responsibility; link across repositories rather than copying it.

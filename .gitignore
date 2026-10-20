@@ -21,6 +21,7 @@ apps/cross-platform/models/*.gguf
 apps/cross-platform/models/*.part
 apps/cross-platform/test-results/
 apps/cross-platform/.cache/
+apps/cross-platform/.env.local
 
 # Local archived builds and private experiment records.
 /archive/
