@@ -5,6 +5,7 @@ import { Store } from './storage'
 import type { SummaryProvider } from './summary'
 import type { Command, Term } from '../shared/types'
 import { reviewURL } from '../shared/domain'
+import { SettingsStore, checkForUpdate, isUpdateLink } from './settings'
 function validate(raw: unknown): Command {
   if (!raw || typeof raw !== 'object') throw new Error('Unsupported command.')
   const c = raw as Record<string, unknown>, kinds = ['terms', 'suggest', 'search', 'stop', 'retry', 'discover', 'dismiss', 'summary', 'select', 'details', 'source']
@@ -32,6 +33,8 @@ export function startApplication(options: StartupOptions) {
   app.setPath('userData', options.storage)
   let window: BrowserWindow | undefined
   const ai = options.ai
+  const settings = new SettingsStore(path.join(options.storage, 'settings.json'))
+  let offeredDownload = ''
   const engine = new Engine(options.pcc, options.rmp, new Store(path.join(options.storage, 'reports')), ai, state => window?.webContents.send('bye:state', state))
   function createWindow() {
     window = new BrowserWindow({ width: 1180, height: 800, minWidth: 1000, minHeight: 700, title: 'BYE — Before You Enroll', backgroundColor: '#faf8f3', show: false,
@@ -46,9 +49,26 @@ export function startApplication(options: StartupOptions) {
     if (options.rendererURL) void window.loadURL(options.rendererURL)
     else void window.loadFile(options.renderer)
   }
+  const trusted = (event: Electron.IpcMainInvokeEvent) => { if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) throw new Error('Untrusted command sender.') }
   app.whenReady().then(() => {
+    // App preferences and the on-demand update check. Settings stay on this PC; the update check is the only new network request.
+    ipcMain.handle('bye:app:info', event => { trusted(event); return { version: app.getVersion() } })
+    ipcMain.handle('bye:settings:get', event => { trusted(event); return settings.get() })
+    ipcMain.handle('bye:settings:set', (event, raw) => { trusted(event); return settings.set(raw) })
+    ipcMain.handle('bye:update:check', async event => {
+      trusted(event)
+      const result = await checkForUpdate(app.getVersion())
+      offeredDownload = result.status === 'available' ? result.downloadUrl : ''
+      return result
+    })
+    ipcMain.handle('bye:update:open', async (event, raw) => {
+      trusted(event)
+      // Opens only the link the last check returned, and only on the BYE website.
+      if (typeof raw !== 'string' || raw !== offeredDownload || !isUpdateLink(raw)) throw new Error('Check for updates first.')
+      await shell.openExternal(raw)
+    })
     ipcMain.handle('bye:command', async (event, raw) => {
-      if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) throw new Error('Untrusted command sender.')
+      trusted(event)
       const c = validate(raw)
       switch (c.kind) {
         case 'terms': return engine.pcc.terms()

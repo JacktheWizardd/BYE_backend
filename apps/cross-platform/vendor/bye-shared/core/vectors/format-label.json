@@ -1,0 +1,14 @@
+{
+  "about": "Short format label for a section's PCC schedule codes. Swift: Section.formatLabel. TypeScript: formatLabel(section).",
+  "cases": [
+    { "formats": ["OD"], "expected": "Online · async" },
+    { "formats": ["HY", "OD"], "expected": "Hybrid" },
+    { "formats": ["HY"], "expected": "Hybrid" },
+    { "formats": ["OL"], "expected": "Online · live" },
+    { "formats": ["OD", "OL"], "expected": "Online · live" },
+    { "formats": ["OS"], "expected": "Online · live" },
+    { "formats": ["LEC"], "expected": "In person" },
+    { "formats": ["LEC", "OL"], "expected": "In person" },
+    { "formats": [], "expected": "In person" }
+  ]
+}

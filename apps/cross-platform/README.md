@@ -4,6 +4,21 @@ Separate Electron/React/TypeScript application. The Swift application continues 
 
 Version `0.4.0-beta.1` follows the Mac 0.4.0-beta.1 release: the BYE design system (ivory and stone grounds, Jet Black type, yellow only for the wordmark, rating bars and progress meter, Libre Baskerville headings), neutral results that open on a course overview, class cards with seats, waitlist, campus, term part and units, the class-day and fully online filters, six review sorts, and a "Write a review" link to the BYE website. The screens mirror `Sources/Classwise/Views`; shared rules mirror `Sources/ClasswiseCore/Models.swift`. In-app updates (Sparkle on the Mac) are not part of the Windows build.
 
+## v3 redesign (in progress, 2026-10-19)
+
+The renderer now follows the approved playful v3 design (see [UI parity](../../docs/UI_PARITY.md) and the [mockup](../../docs/design/app-mockup-v3.html)):
+- **First run:** a welcome screen and "What should we call you?" next to a live student ID card. The name stays on this PC.
+- **Frame:** a sidebar with Search (Ctrl K), Home, Your classes (up to five, removable) and your profile.
+- **Home:** search-first.
+- **Results:** "I'm free" day bubbles, a sliding segmented sort and a sliding selection.
+- **Professor page and menus:** a professor page in the sticker style, a command menu, and a Settings sheet (name, updates, about).
+
+How it's built:
+- **Shared code:** tokens, domain helpers and shared React screens are copied from the website repository into `vendor/bye-shared/` by `node ../../scripts/sync-bye-shared.mjs`. `vendor/bye-shared/SOURCE.json` names the website commit. Don't edit `vendor/`; change the website, commit, then sync.
+- **App-only screens** are in `src/renderer/src/app/`.
+- **Preferences** (name, first-run flag, recent classes) are saved through the separate `window.byeApp` bridge to `%LOCALAPPDATA%\BYECrossPlatformBeta\settings.json`; `src/main/settings.ts` validates every update.
+- **Update check:** "Check for updates" asks only `https://bye-before-you-enroll.pages.dev/windows/latest.json`, only when pressed, and opens only links on the BYE website. Nothing is installed automatically.
+
 ## Run the Windows ZIP
 
 Extract **all** files, then open `BYE/BYE.exe`. Keep the supporting files beside the executable. No installer, administrator access, Node, Swift, Python, or Ollama is required. Version `0.4.0-beta.1` omits GGUF model weights to reduce download and disk size.
