@@ -1,99 +1,219 @@
+
 # BYE — Before You Enroll
 
-> **Internal developer documentation.** This source repository is private and is not the public BYE download or product website.
+**A student-built course planning project for Pasadena City College.**
 
-BYE is a student-focused course-planning application, currently centered on Pasadena City College (PCC). The implemented experience helps students find course sections, compare professor information, and read original reviews. Broader transfer-plan evaluation is a longer-term product goal, **not an implemented feature**.
+BYE (Before You Enroll) helps students explore class sections, compare professor information, and read reviews before registering for classes.
 
-## Current status
+I started BYE as a personal project to make choosing classes less frustrating. What began as a desktop application has expanded into an ongoing experiment in software engineering, including native applications, web development, APIs, databases, and infrastructure.
 
-- **Native macOS application:** Swift/SwiftUI, Swift Package Manager, Apple Silicon, macOS 14+. The version declared in `scripts/beta-version.sh` is **0.4.0-beta.1 (build 8)**. Local preparation, verification, and publication are separate steps.
-- **Separate Windows-oriented prototype:** Electron, React, and TypeScript in `apps/cross-platform/`. Its own package version is **0.4.0-beta.1**, matching the Mac 0.4.0-beta.1 design and features; it is a separate app, not the native Mac app.
-- **Implemented:** PCC course/section search, schedule filters, professor profile selection, RMP ratings and original review retrieval, sorting, local caches, and failure/retry handling.
-- **Temporarily disabled:** AI-generated review summaries in the current prepared Mac beta and the separate Windows beta. Existing experimental code and records remain in the repository.
-- **Review database:** Supabase schema, PCC professor/course lists, restricted submissions, reporting, and automatic hiding are live and tested. Student login, email delivery, the review form, and app integration remain pending.
-- **Standalone schedule backend deployed:** Private Fall 2026 PCC data and an independent Supabase API with shared availability synchronization. Windows, Mac and website API integration remain pending. See the [API documentation](services/schedule-api/docs/README.md).
-- **Longer-term proposal:** Educational-plan/transfer requirement evaluation.
+This repository contains BYE's desktop applications, schedule API, supporting services, tests, and engineering documentation.
 
-For an up-to-date engineering handoff and verified-versus-unverified behavior, read [Project Status](docs/PROJECT_STATUS.md). Do not treat this README as a release announcement.
+> **Development repository:** BYE is an independent student project, not an official PCC application. This repository is private. Public-facing information is available on the [BYE website](https://bye-before-you-enroll.pages.dev).
 
-## Quick start
+## Project status
 
-### Native macOS
+*Updated October 20, 2026.*
 
-Requires a Mac with a compatible Xcode installation and macOS SDK. Run from the repository root:
+BYE is under active development. Different components are at different stages of testing and release.
 
-~~~sh
+| Component | Current status |
+|---|---|
+| macOS application | Native SwiftUI beta; 0.4.0-beta.1 prepared locally |
+| Windows application | Electron/React beta; v3 redesign merged into main |
+| Public website | Deployed through Cloudflare Pages |
+| Browser demo | Available with clearly labeled sample data |
+| Student reviews | Live submission system using PCC email verification |
+| PCC schedule API | Deployed with Fall 2026 data |
+| API dashboard | Hosted owner dashboard with key management |
+| Desktop API integration | Pending |
+| AI review summaries | Temporarily disabled |
+| Transfer planning | Long-term idea, not implemented |
+
+A component being implemented or deployed does not necessarily mean it has been released to students.
+
+## What BYE does
+
+### Course and professor research
+
+The desktop applications are designed to help students:
+
+- Search PCC courses and sections.
+- Filter classes by schedule preferences.
+- View section information, including available enrollment details when provided.
+- Compare professor ratings and original reviews.
+- Explore reviews associated with specific courses.
+- Resolve professors with similar names without automatically selecting the wrong profile.
+
+BYE provides information to help students make their own decisions. It does not designate a professor as the best choice.
+
+### Student-submitted reviews
+
+BYE also maintains its own review database.
+
+PCC students can visit the [review page](https://bye-before-you-enroll.pages.dev/reviews/) and verify their `@go.pasadena.edu` email address using a one-time code.
+
+Students can then submit ratings and written feedback. The database implements submission restrictions, duplicate prevention, review reporting, and automatic hiding after the configured reporting threshold.
+
+This system is separate from Rate My Professors. BYE reviews are not imported RMP reviews.
+
+The desktop application continues to use its existing professor-information integration while the original BYE review collection grows.
+
+### Centralized PCC schedule API
+
+BYE has an independently deployed schedule service built with Supabase.
+
+Instead of eventually having every application retrieve and process the same PCC schedule independently, the goal is to share validated schedule data through one versioned API.
+
+The backend includes:
+
+- A structured Fall 2026 schedule database.
+- Course, section, and availability endpoints.
+- Scheduled and demand-driven synchronization.
+- Data freshness and cache controls.
+- A shared application-key registry.
+- Key creation, rotation, disabling, and revocation.
+- A separately hosted owner dashboard.
+
+**Current limitation:** Windows, macOS, and the public website have not yet completed migration to the centralized schedule API.
+
+See [Schedule API documentation](services/schedule-api/README.md).
+
+## Repository structure
+
+| Path | Purpose |
+|---|---|
+| `Sources/Classwise/` | Native macOS application |
+| `Sources/ClasswiseCore/` | Shared Swift models and schedule logic |
+| `Sources/BYEAPI/` | Native RMP client |
+| `apps/cross-platform/` | Windows Electron application |
+| `apps/web/` | Historical migration pointer to website source |
+| `services/schedule-api/` | Supabase schedule backend and administration |
+| `supabase/` | Review and database SQL records |
+| `Tests/` | Swift tests |
+| `scripts/` | Build, packaging, and release scripts |
+| `benchmarks/` | Performance experiments and evaluations |
+| `docs/` | Architecture, decisions, tests, and project history |
+
+The landing page, browser application, and canonical shared React packages are maintained separately in `BYE_website`.
+
+## Development
+
+### macOS
+
+Requires a compatible Mac, Xcode, and the macOS SDK.
+
+From the repository root:
+
+```bash
 ./scripts/swift.sh build
 ./scripts/swift.sh test
 ./scripts/build-test-app.sh
-~~~
+```
 
-The last command creates the locally generated `test/BYE Test.app` for interactive review; it is ignored by Git. See [Development Setup](docs/development.md) for details. Packaging and publication are **not** part of this quick-start workflow.
+The final command builds the local test application. It does not publish a release.
 
-### Windows-oriented Electron application
+See [Development setup](docs/development.md).
 
-On Windows x64, install Node 24 LTS (or Node 22.16+), npm, and development prerequisites. Then:
+### Windows
 
-~~~powershell
+Requires Windows x64, Node.js 24 LTS (or Node 22.16+), and npm.
+
+```powershell
 cd apps/cross-platform
 npm ci
 npm run runtime:fetch
 npm run dev
-~~~
+```
 
-See the [cross-platform README](apps/cross-platform/README.md) before building or testing that application.
+See the [Windows development guide](apps/cross-platform/README.md) for testing, packaging, and limitations.
 
-## Repository map
+### Schedule API
 
-| Location | Responsibility |
-| --- | --- |
-| `Sources/Classwise/` | Native Mac app, UI, workflows, and local state |
-| `Sources/ClasswiseCore/` | Shared Swift course/schedule domain logic |
-| `Sources/BYEAPI/` | Typed native RMP client and transport |
-| `Tests/` | Swift unit and integration tests |
-| `apps/cross-platform/` | Separate Electron/React/TypeScript app, scripts, and tests |
-| `services/schedule-api/` | Independent schedule API, synchronization worker, contract, migrations, tests and docs |
-| `scripts/` | Mac build, verification, packaging, and update tooling |
-| `test/` | Local Mac test-app entry point; generated app is not committed |
-| `benchmarks/` | Performance and summarization evaluation fixtures/tooling |
-| `docs/` | Engineering guides, decisions, experiments, release and verification records |
+From `services/schedule-api/`:
 
-## Developer guides
+```bash
+npm ci
+npm test
+npm run test:db
+npm run check
+```
 
-- [Documentation index](docs/README.md) — project guides and the standalone API documentation folder.
-- [Standalone schedule API](services/schedule-api/docs/README.md) — architecture, keys, setup, deployment, verification and commit preparation.
+Deployment and live synchronization are separate operations and should only be performed intentionally.
 
-- [Architecture](docs/architecture.md) — application boundaries, data flow, storage, and external services.
-- [Development](docs/development.md) — setup, local workflow, branches, and configuration hygiene.
-- [Database overview](docs/database.md) — the live review database, proposed schedule cache, and their data boundaries.
-- [Review database explained](docs/review-database-explained.md) — a plain-language guide to student verification, reviews, privacy, reporting, and completed tests.
-- [Supabase status and plan](docs/supabase-plan.md) — SQL migrations, implementation decisions, verification results, and remaining work.
-- [Review launch record](docs/review-launch-record.md) — how student reviews went live: the review page, the Mac button, email-code delivery (Brevo), website hosting fix, and troubleshooting.
-- [API and integrations](docs/api.md) — direct client integrations and the independently deployed schedule API.
-- [Testing](docs/testing.md) — commands, offline versus live checks, and evidence requirements.
+## Architecture and design
 
-Existing reference material:
+BYE consists of several independently developed components:
 
-- [Project status and handoff](docs/PROJECT_STATUS.md)
+**Desktop applications:** The macOS application uses Swift and SwiftUI. The Windows application uses Electron, React, and TypeScript. They share product goals but have separate runtimes.
+
+**Website:** Cloudflare Pages hosts BYE's landing page, sample-data demo, review submission experience, and distribution infrastructure.
+
+**Student review database:** Supabase handles student verification, review records, and database access controls.
+
+**Schedule backend:** A separate Supabase service stores validated PCC schedule data, provides a versioned API, and supports centralized synchronization.
+
+**Administration:** A Cloudflare-hosted owner dashboard manages shared schedule API keys without requiring a local development server.
+
+The schedule backend and student-review system serve different purposes. Their access controls and data flows must remain separate.
+
+## Security and privacy
+
+Security is an ongoing development responsibility, particularly because BYE handles student email addresses and submitted feedback.
+
+Development principles include:
+
+- Never commit API secrets, service-role keys, credentials, or private user data.
+- Keep privileged operations on trusted backend services.
+- Restrict database operations through appropriate authentication and authorization.
+- Maintain separate permissions for student reviews and schedule administration.
+- Avoid collecting personal data that the application does not need.
+- Test changes affecting authentication, access controls, and data exposure before deployment.
+- Do not treat a private GitHub repository as a security boundary.
+
+Existing tests and audits document specific protections; they are not a guarantee that the application is free of vulnerabilities.
+
+## Documentation
+
+Start with the [engineering documentation index](docs/README.md).
+
+Important references:
+
+- [Project status](docs/PROJECT_STATUS.md)
+- [Architecture](docs/architecture.md)
+- [Development setup](docs/development.md)
+- [Testing](docs/testing.md)
+- [Review database](docs/review-database-explained.md)
+- [Review launch history](docs/review-launch-record.md)
+- [Schedule API](services/schedule-api/docs/README.md)
+- [Schedule API delivery record](services/schedule-api/docs/records/2026-10-19-delivery.md)
 - [Implementation history](docs/IMPLEMENTATION_HISTORY.md)
-- [Mac release and update procedure](docs/RELEASING.md)
-- [Prepared release notes](docs/GITHUB_PRERELEASE.md)
-- [Windows development/verification](apps/cross-platform/README.md)
-- [RMP client design](Sources/BYEAPI/README.md)
-- [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [Mac release procedure](docs/RELEASING.md)
 
-## Contribution and change workflow
+Historical documents preserve decisions and test results from the dates when they were recorded. Newer implementation records take precedence when describing current behavior.
 
-1. Branch from the current `main` for a single change or coherent workstream.
-2. Make focused changes, keeping new or unfinished features clearly marked as experimental.
-3. Run the relevant checks in [Testing](docs/testing.md), and record what was **not** tested.
-4. Open a pull request and review the diff before merging into `main`.
-5. Update the relevant docs when behavior, dependencies, data handling, or release steps change.
+## Development philosophy
 
-Do not commit credentials, student-submitted content, raw personal data, model weights, build products, or local machine-specific logs. Verify the Git diff even when a path is ignored. A private repository is **not** a substitute for secret management or access controls.
+BYE is a personal learning project.
 
-## Scope and distribution
+It is an opportunity to experiment with software architecture, native applications, APIs, databases, user-interface design, testing, and deployment.
 
-This repository serves authorized BYE developers and collaborators. Product marketing, end-user installation, feedback collection, and public downloads belong on the separate BYE website/distribution channel. The Mac update feed and release artifacts are handled as documented in [Releasing](docs/RELEASING.md).
+The project uses AI-assisted development alongside testing, documentation, and manual review. As it grows, the goal is to understand how real software systems are designed and maintained without losing the freedom to experiment.
 
-BYE is an independent project and is not affiliated with PCC or Rate My Professors. Class, professor, and transfer information should be verified against authoritative sources; RMP uses an undocumented endpoint and can change. Do not infer permission to republish third-party data from its technical accessibility.
+Features, architectures, and tools may change as the project evolves.
+
+## Disclaimer
+
+BYE is independently developed and is not affiliated with or endorsed by Pasadena City College or Rate My Professors.
+
+Course schedules, enrollment availability, professor information, and ratings may change. Students should confirm official enrollment information through PCC.
+
+Rate My Professors uses an unofficial integration that may change or become unavailable. Technical access to third-party information does not imply permission to redistribute it.
+
+Third-party acknowledgments are maintained in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+---
+
+**BYE — Before You Enroll**
+
+Built by a student, for students.
