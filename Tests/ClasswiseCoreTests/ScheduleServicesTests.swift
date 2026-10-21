@@ -131,7 +131,7 @@ final class ScheduleServicesTests: XCTestCase {
         """)
         let exact = CourseSuggestions.match(rows: sample, query: "  math   005a ")
         XCTAssertEqual(exact.map(\.course.display), ["MATH 005A"])
-        XCTAssertEqual(CourseSuggestions.match(rows: sample, query: "math").map(\.course.display), ["MATH 005A", "MATH 005B"])
+        XCTAssertEqual(CourseSuggestions.match(rows: sample, query: "math").map(\.course.display), ["MATH 005A", "MATH 005B", "MATH 005C", "MATH 005D"], "Catalog membership is independent of registration status")
         XCTAssertEqual(CourseSuggestions.match(rows: sample, query: "calculus", limit: 1).count, 1)
         XCTAssertTrue(CourseSuggestions.match(rows: sample, query: " ").isEmpty)
         XCTAssertTrue(CourseSuggestions.match(rows: sample, query: "math", limit: 0).isEmpty)

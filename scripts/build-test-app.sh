@@ -2,6 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 . ./scripts/beta-version.sh
+. ./scripts/schedule-api-config.sh
 
 ./scripts/swift.sh build -c release --arch "$BETA_ARCH"
 BIN_DIR=$(./scripts/swift.sh build -c release --arch "$BETA_ARCH" --show-bin-path)
@@ -40,6 +41,7 @@ cat > "$STAGED_APP/Contents/Info.plist" <<PLIST
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
+$(schedule_api_plist)
 </dict></plist>
 PLIST
 codesign --force --deep --sign - "$STAGED_APP"
@@ -47,3 +49,4 @@ codesign --verify --deep --strict "$STAGED_APP"
 rm -rf "$APP"
 mv "$STAGED_APP" "$APP"
 printf 'Test app ready: %s\n' "$APP"
+if [ -n "$SCHEDULE_API_KEY" ]; then echo 'Schedule API: key included.'; else echo 'Schedule API: no key (add one to config/schedule-api.local); the app will say it is not configured.'; fi

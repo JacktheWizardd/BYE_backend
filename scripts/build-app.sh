@@ -3,6 +3,9 @@ set -eu
 cd "$(dirname "$0")/.."
 . ./scripts/beta-version.sh
 . ./scripts/update-config.sh
+. ./scripts/schedule-api-config.sh
+# A release without the application key could not load any schedules.
+[ -n "$SCHEDULE_API_KEY" ] || { echo 'Release builds need the BYE application key in config/schedule-api.local (see config/schedule-api.example).' >&2; exit 1; }
 python3 scripts/archive-app.py before-build "$BETA_APP_NAME.app"
 ./scripts/swift.sh build -c release --arch "$BETA_ARCH" \
     -Xswiftc -file-prefix-map -Xswiftc "$PWD=/build/BYE" \
@@ -54,6 +57,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <key>SUAutomaticallyUpdate</key><true/>
 <key>SUEnableSystemProfiling</key><false/>
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
+$(schedule_api_plist)
 </dict></plist>
 PLIST
 python3 scripts/check-distribution-privacy.py "$APP"

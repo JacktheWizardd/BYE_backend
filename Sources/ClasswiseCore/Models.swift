@@ -14,7 +14,7 @@ public struct Course: Hashable, Codable, Sendable {
         return subject + prefix + (significant.isEmpty ? "0" : String(significant)) + remainder.dropFirst(digits.count)
     }
 
-    private static let courseRegex = try! NSRegularExpression(pattern: "^([A-Z]{2,8})\\s*([A-Z]?\\d{1,4}[A-Z]?)$")
+    private static let courseRegex = try! NSRegularExpression(pattern: "^([A-Z]{2,8})\\s*([A-Z]?\\d{1,4}[A-Z]*)$")
 
     public init(_ input: String) throws {
         let cleaned = input.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -44,6 +44,7 @@ public struct Term: Codable, Identifiable, Hashable, Sendable {
 
 public struct ScheduleRow: Decodable, Sendable {
     public let values: [String: String]
+    public init(values: [String: String]) { self.values = values }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: DynamicKey.self)
         var result: [String: String] = [:]
@@ -117,8 +118,10 @@ public struct Section: Codable, Identifiable, Hashable, Sendable {
     public var schedule: SectionSchedule? = nil
     public var details: SectionDetails? = nil
     public var fullyOnline: Bool { !formats.isEmpty && formats.allSatisfy { $0 == "OD" } }
-    /// Short format label for tags: In person, Hybrid, Online · live or Online · async.
+    /// Short format label for tags: In person, Hybrid, Online · live or Online · async, or
+    /// "Format not announced" when PCC published no format codes (shared rule: format-label.json).
     public var formatLabel: String {
+        if formats.isEmpty { return "Format not announced" }
         if fullyOnline { return "Online · async" }
         if formats.contains("HY") { return "Hybrid" }
         if !formats.isEmpty && formats.allSatisfy({ ["OD", "OL", "OS", "ON"].contains($0) }) { return "Online · live" }
@@ -135,6 +138,7 @@ public struct Section: Codable, Identifiable, Hashable, Sendable {
         return availableDays.isSubset(of: schedule.days)
     }
     public var delivery: String {
+        if formats.isEmpty { return "Delivery details unavailable" }
         if fullyOnline { return "Online · no scheduled meetings" }
         if formats.contains("HY") { return "Hybrid · campus meetings required" }
         if formats.allSatisfy({ ["OD", "OL", "OS", "ON"].contains($0) }) { return "Online · scheduled meetings" }
@@ -457,7 +461,7 @@ public enum ScheduleParser {
 
     public static func professors(rows: [ScheduleRow], course: Course) -> [Professor] {
         let matches = rows.filter { row in
-            guard !["R", "X"].contains(row["fwSectOpenInd"]) && !row["crn"].isEmpty else { return false }
+            guard !row["crn"].isEmpty else { return false }
             let subj = row["subjCode"].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             // Cheap pre-check before parsing. A prefix test, because a code typed without a space
             // ("STATC1000") parses with subject STATC while PCC lists subject STAT.

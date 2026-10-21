@@ -188,6 +188,6 @@ final class ScheduleAvailabilityTests: XCTestCase {
         XCTAssertEqual(label(["HY"]), "Hybrid")
         XCTAssertEqual(label(["OS"]), "Online · live")
         XCTAssertEqual(label(["OD"]), "Online · async")
-        XCTAssertEqual(label([]), "In person")
+        XCTAssertEqual(label([]), "Format not announced")
     }
 }

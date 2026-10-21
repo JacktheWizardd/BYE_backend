@@ -71,7 +71,8 @@ struct ClasswiseApp: App {
     }
     var body: some Scene {
         WindowGroup("BYE", id: "main") {
-            ContentView(model: model)
+            ContentView(model: model, updater: updater)
+                .modifier(ScheduleLifecycle(model: model))
                 .background(MainWindowRegistration(owner: applicationDelegate))
                 .frame(minWidth: 1000, minHeight: 700)
                 .preferredColorScheme(.light)
@@ -94,12 +95,15 @@ struct ClasswiseApp: App {
                 }
             }
             CommandGroup(replacing: .newItem) {
-                Button("New search") { model.changeSearch(); applicationDelegate.reopenMainWindow() }.keyboardShortcut("n")
+                Button("New search") { model.goHome(); applicationDelegate.reopenMainWindow() }.keyboardShortcut("n")
+                    .disabled(model.route == .welcome || model.route == .name)
+                Button("Search or Jump To…") { applicationDelegate.reopenMainWindow(); model.commandMenuOpen = true }
+                    .keyboardShortcut("k").disabled(model.route == .welcome || model.route == .name)
                 Button("Refresh results") { model.refresh() }.keyboardShortcut("r").disabled(!model.showingResults || model.busy)
             }
         }
         Settings {
-            UpdateSettingsView(updater: updater)
+            SettingsWindow(model: model, updater: updater) { applicationDelegate.reopenMainWindow() }
                 .preferredColorScheme(.light)
         }
     }

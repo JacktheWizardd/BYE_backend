@@ -107,8 +107,9 @@ export function delivery(section: Section) {
   return f.length && f.every(x => x === 'OD') ? 'Online · no scheduled meetings' : f.includes('HY') ? 'Hybrid · campus meetings required' : f.length && f.every(x => ['OD', 'OL', 'OS', 'ON'].includes(x)) ? 'Online · scheduled meetings' : 'In person'
 }
 export const fullyOnline = (s: Section) => s.formats.length > 0 && s.formats.every(f => f === 'OD')
-/** Short format label for tags: In person, Hybrid, Online · live or Online · async. */
+/** Short format label for tags: In person, Hybrid, Online · live or Online · async, or "Format not announced" without format codes. */
 export function formatLabel(s: Section) {
+  if (!s.formats.length) return 'Format not announced'
   if (fullyOnline(s)) return 'Online · async'
   if (s.formats.includes('HY')) return 'Hybrid'
   if (s.formats.length && s.formats.every(f => ['OD', 'OL', 'OS', 'ON'].includes(f))) return 'Online · live'
