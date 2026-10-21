@@ -1,8 +1,10 @@
 # Engineering documentation
 
-Use the standalone API folder for the newly deployed schedule backend. Native
-and Windows clients still use their existing integrations; backend deployment
-does not mean the clients have been connected.
+This repository owns backend contracts and the standalone schedule service;
+`BYE_website` owns the shared frontend and Tauri preview. Website API and source
+Worker implementations remain there during the transition. Start with the
+[current repository map](REPOSITORY_MAP.md) and [contract workspace](../packages/api-contracts/README.md).
+Backend deployment does not imply that legacy clients have been connected.
 
 ## PCC database and standalone API
 

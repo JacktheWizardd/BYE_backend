@@ -5,7 +5,28 @@ Backend-owned, versioned public contract artifact for the shared React/Tauri tri
 shapes. `schedule.openapi.json` pins the independently deployed schedule API's
 checked-in v1 schema. This package neither deploys nor changes those services.
 
-Export an intentional snapshot from this repository:
+From the repository root, use Node 22.16+, pnpm 11.25.0 and the pinned TypeScript
+5.9.3 toolchain:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm contracts:check ../BYE_website/packages/api-contracts
+```
+
+`contracts:check` is read-only and requires the explicit frontend contracts
+directory. For differently named worktrees, pass their real paths. Neither
+repository imports runtime code from the other checkout. The root workspace
+covers `packages/*` only; the schedule service retains its own npm workflow and
+Node 24.3+ requirement.
+
+Export an intentional snapshot only when a contract update is intended:
+
+```sh
+pnpm contracts:export ../BYE_website/packages/api-contracts
+```
+
+The underlying commands remain available without pnpm:
 
 ```sh
 node packages/api-contracts/export.mjs ../BYE_website/packages/api-contracts

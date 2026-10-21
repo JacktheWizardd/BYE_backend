@@ -1,4 +1,6 @@
 .build/
+/node_modules/
+/packages/*/node_modules/
 .DS_Store
 app-history/
 /.local-docs/

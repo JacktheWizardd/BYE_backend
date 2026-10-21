@@ -1,0 +1,17 @@
+{
+  "name": "bye-backend-workspace",
+  "private": true,
+  "description": "BYE backend contracts and repository tooling",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22.16"
+  },
+  "scripts": {
+    "typecheck": "tsc --project packages/api-contracts/tsconfig.json",
+    "contracts:check": "node packages/api-contracts/export.mjs --check",
+    "contracts:export": "node packages/api-contracts/export.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

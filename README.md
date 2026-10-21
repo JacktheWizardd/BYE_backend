@@ -7,20 +7,24 @@ BYE (Before You Enroll) helps students explore class sections, compare professor
 
 I started BYE as a personal project to make choosing classes less frustrating. What began as a desktop application has expanded into an ongoing experiment in software engineering, including native applications, web development, APIs, databases, and infrastructure.
 
-This repository contains BYE's desktop applications, schedule API, supporting services, tests, and engineering documentation.
+This is BYE's backend repository: it owns versioned API contracts, the schedule service, its owner dashboard, and database migration records. Retained SwiftUI/Electron applications and release tooling remain here during the transition. New shared frontend work lives in `BYE_website`.
+
+The website's API and source Worker implementations still run from `BYE_website`; their future homes here are `services/web-api/` and `services/source-worker/`. This structure preparation does not relocate them or change deployments. See the [repository ownership map](docs/REPOSITORY_MAP.md).
 
 > **Development repository:** BYE is an independent student project, not an official PCC application. This repository is private. Public-facing information is available on the [BYE website](https://bye-before-you-enroll.pages.dev).
 
 ## Project status
 
-*Updated October 20, 2026.*
+*Repository structure updated October 21, 2026. Deployment entries below retain their October 20 record; hosting was not rechecked for this change.*
 
 BYE is under active development. Different components are at different stages of testing and release.
 
 | Component | Current status |
 |---|---|
-| macOS application | Native SwiftUI beta; 0.4.0-beta.1 prepared locally |
-| Windows application | Electron/React beta; v3 redesign merged into main |
+| Retained macOS application | Legacy SwiftUI implementation; preserve sources and release/update paths |
+| Retained Windows application | Legacy Electron/React implementation; not the target architecture |
+| Shared frontend trial | React/browser/Tauri workspace in `BYE_website`; replacement acceptance pending |
+| Backend contracts | Versioned snapshot and independent root pnpm tooling |
 | Public website | Deployed through Cloudflare Pages |
 | Browser demo | Available with clearly labeled sample data |
 | Student reviews | Live submission system using PCC email verification |
@@ -83,10 +87,11 @@ See [Schedule API documentation](services/schedule-api/README.md).
 
 | Path | Purpose |
 |---|---|
-| `Sources/Classwise/` | Native macOS application |
+| `packages/api-contracts/` | Backend-owned `@bye/contracts`; root pnpm workspace |
+| `Sources/Classwise/` | Retained legacy native macOS application |
 | `Sources/ClasswiseCore/` | Shared Swift models and schedule logic |
 | `Sources/BYEAPI/` | Native RMP client |
-| `apps/cross-platform/` | Windows Electron application |
+| `apps/cross-platform/` | Retained legacy Windows Electron application |
 | `apps/web/` | Historical migration pointer to website source |
 | `services/schedule-api/` | Supabase schedule backend and administration |
 | `supabase/` | Review and database SQL records |
@@ -95,13 +100,32 @@ See [Schedule API documentation](services/schedule-api/README.md).
 | `benchmarks/` | Performance experiments and evaluations |
 | `docs/` | Architecture, decisions, tests, and project history |
 
-The landing page, browser application, and canonical shared React packages are maintained separately in `BYE_website`.
+The landing page, browser app, shared React application, isolated Tauri host, UI/core/tokens and client adapters are maintained in `BYE_website`. Its frontend contract snapshot is exported explicitly from this repository and works without runtime access to this checkout.
 
 ## Development
 
+### Backend contracts workspace
+
+Use Node 22.16+ and pnpm 11.25.0 at this repository's root:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm contracts:check ../BYE_website/packages/api-contracts
+```
+
+The final command is read-only. Pass the actual frontend contracts directory when
+using differently named worktrees. For an intentional contract update, use
+`pnpm contracts:export <frontend-contract-directory>`; it writes the snapshot.
+The public contract remains `@bye/contracts` version `1.0.0-preview.1`.
+
+The root workspace covers only `packages/*`. It does not install or test the
+schedule service or retained desktop apps. Each keeps its existing toolchain,
+lockfile and commands. See [contract export details](packages/api-contracts/README.md).
+
 ### macOS
 
-Requires a compatible Mac, Xcode, and the macOS SDK.
+The retained legacy application requires a compatible Mac, Xcode, and the macOS SDK.
 
 From the repository root:
 
@@ -117,7 +141,7 @@ See [Development setup](docs/development.md).
 
 ### Windows
 
-Requires Windows x64, Node.js 24 LTS (or Node 22.16+), and npm.
+The retained legacy application requires Windows x64, Node.js 24 LTS (or Node 22.16+), and npm.
 
 ```powershell
 cd apps/cross-platform
@@ -129,6 +153,8 @@ npm run dev
 See the [Windows development guide](apps/cross-platform/README.md) for testing, packaging, and limitations.
 
 ### Schedule API
+
+Requires Node 24.3+ and its existing npm tooling; the root pnpm workspace does not manage this service.
 
 From `services/schedule-api/`:
 
@@ -145,7 +171,7 @@ Deployment and live synchronization are separate operations and should only be p
 
 BYE consists of several independently developed components:
 
-**Desktop applications:** The macOS application uses Swift and SwiftUI. The Windows application uses Electron, React, and TypeScript. They share product goals but have separate runtimes.
+**Shared frontend:** `BYE_website` owns the React/TypeScript application and isolated browser/Tauri hosts. Tauri remains subject to desktop acceptance; Capacitor is later. The SwiftUI and Electron sources here are retained legacy implementations, not the target architecture.
 
 **Website:** Cloudflare Pages hosts BYE's landing page, sample-data demo, review submission experience, and distribution infrastructure.
 
@@ -189,7 +215,7 @@ Important references:
 
 - [Project status](docs/PROJECT_STATUS.md)
 - [Architecture](docs/architecture.md)
-- [Cross-platform proposal and repository options](docs/cross-platform-migration-proposal.md)
+- [Agreed shared architecture and migration gates](docs/cross-platform-migration-proposal.md)
 - [Development setup](docs/development.md)
 - [Testing](docs/testing.md)
 - [Review database](docs/review-database-explained.md)
