@@ -13,7 +13,8 @@ const files = ['api.ts', 'types.ts', 'reviews.ts', 'schedule.openapi.json']
 const hashes = {}
 const outputs = new Map()
 for (const file of files) {
-  const bytes = await readFile(path.join(root, 'src', file))
+  // Git may check text out with CRLF on Windows; pin the canonical LF artifact.
+  const bytes = Buffer.from((await readFile(path.join(root, 'src', file), 'utf8')).replace(/\r\n/g, '\n'))
   hashes[file] = createHash('sha256').update(bytes).digest('hex')
   outputs.set('src/' + file, bytes)
 }
@@ -25,7 +26,7 @@ outputs.set('SOURCE.json', Buffer.from(JSON.stringify(manifest, null, 2) + '\n')
 for (const [file, expected] of outputs) {
   const out = path.join(target, file)
   if (check) {
-    if (!(await readFile(out)).equals(expected)) throw new Error('Contract snapshot differs: ' + file)
+    if ((await readFile(out, 'utf8')).replace(/\r\n/g, '\n') !== expected.toString('utf8')) throw new Error('Contract snapshot differs: ' + file)
   } else { await mkdir(path.dirname(out), { recursive: true }); await writeFile(out, expected) }
 }
 console.log(`${check ? 'Verified' : 'Exported'} @bye/contracts 1.0.0-preview.1; ${files.length} source hashes match.`)

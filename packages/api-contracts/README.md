@@ -13,7 +13,7 @@ node packages/api-contracts/export.mjs ../BYE_website/packages/api-contracts --c
 ```
 
 The frontend works independently after export. `SOURCE.json` records exact
-SHA-256 identities, not a claim that uncommitted work is deployed. Newer local
+SHA-256 identities of canonical LF text, not a claim that uncommitted work is deployed. Newer local
 multi-term schedule work remains a separate workstream; update the schema snapshot
 only when that work has been reviewed and its contract verified. The existing
 Swift/Windows apps, browser deployments, migrations and release assets are unchanged.
