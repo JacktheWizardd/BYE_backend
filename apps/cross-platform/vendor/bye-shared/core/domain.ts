@@ -149,7 +149,33 @@ export function preferredFilter(profile: Profile | undefined, c: Course) {
   if (!profile?.reviews.length) return 'this'
   return profile.reviews.some(r => sameCourse(c, r.course)) ? 'this' : 'all'
 }
-/** The source label "Find more" requests for a filter; all courses requests none. */
+export type StampTier = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+/** The collectible stamp on a BYE review, picked by luck from its ID so it never reflects the scores (BYE stays neutral).
+ *  FNV-1a over UTF-16 code units, then 2% legendary, 6% epic, 12% rare, 25% uncommon, 55% common.
+ *  packages/core/vectors/stamp-tier.json holds the cases every app must pass. */
+export function stampTier(id: string): StampTier {
+  let h = 2166136261
+  for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0 }
+  const roll = h % 100
+  return roll < 2 ? 'legendary' : roll < 8 ? 'epic' : roll < 20 ? 'rare' : roll < 45 ? 'uncommon' : 'common'
+}
+/** How full a section is, for the seat bar: "full" with no open seats, "almost" with 15% or fewer open, else "open".
+ *  `filled` is the share of seats taken (0–1); unknown capacity counts as 0 unless the section is full. */
+export function seatLevel(open: number, capacity?: number) {
+  const filled = open <= 0 ? 1 : capacity ? Math.min(1, Math.max(0, (capacity - open) / capacity)) : 0
+  const level: 'full' | 'almost' | 'open' = open <= 0 ? 'full' : capacity && open / capacity <= 0.15 ? 'almost' : 'open'
+  return { level, filled }
+}
+/** Which reviews the professor page lists: BYE first, then RMP ("both"), or one source. */
+export type ReviewSource = 'both' | 'bye' | 'rmp'
+/** The BYE filter for the page's one course filter: "this" and "all" pass through, a course label becomes the BYE course
+ *  with the same code, and null means BYE has no reviews for that course. */
+export function byeFilter(filter: string, courses: readonly { id: string; code: string }[]) {
+  if (filter === 'this' || filter === 'all') return filter
+  let wanted: Course; try { wanted = course(filter) } catch { return courses.find(c => c.code === filter)?.id ?? null }
+  return courses.find(c => c.code === filter || sameCourse(wanted, c.code))?.id ?? null
+}
+/** The source label the RMP host requests for a filter; all courses requests none. */
 export const requestLabel = (c: Course, filter: string) => filter === 'all' ? undefined : filter === 'this' ? c.key : filter
 export function filterFinished(profile: Profile, c: Course, filter: string) {
   const label = requestLabel(c, filter), coverage = profile.coverage[label === undefined ? 'all' : 'course|' + label]

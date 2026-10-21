@@ -7,7 +7,7 @@ React screens shared by the web app (`apps/web`, demo and live) and the Windows 
 | `SurfaceProvider`, `useSurface`, `SampleTag` | Tells the screens whether they show the sample-data demo; `SampleTag` renders only there |
 | `ProfessorCard` | One professor in the results list |
 | `ProfessorRow` | The Mac app's row: scores and counts, with Choose profile, Try again and Check on RMP actions under it (Windows) |
-| `Report`, `ReportState` | A professor's page: scores, sections, reviews. Takes the class-days rule as `matches` and an optional `byeReviews` block. Optional Mac extras: `reviewFilter="select"` (course menu with RMP counts), `findMore`, `checking`, `writeReview`, a `summary` slot, `reviewPage` and `initial`/`onChange` to keep each professor's choices. Without `back` it has no phone header |
+| `Report`, `ReportState` | A professor's page: scores, sections, reviews. Takes the class-days rule as `matches` and optional `bye` reviews (host state + `load`/`write`): BYE scores above RMP, one Reviews list with BYE first, a Both · BYE · RMP toggle, an RMP tag or a collectible BYE stamp (`ByeStamp`, tier from `stampTier(review ID)`, never scores) on every card. Optional Mac extras: `reviewFilter="select"` (course menu with RMP counts), `preloaded` (reviews load on open; filters use saved reviews), `checking`, `writeReview`, a `summary` slot, `reviewPage` and `initial`/`onChange` to keep each professor's choices. Without `back` it has no phone header |
 | `SectionCard` | One PCC section with seats; stale schedules hide seats |
 | `Chooser` | Explicit RMP profile choice; BYE never guesses |
 | `DayBubbles`, `Segmented` | "I'm free" class-day toggles; sliding segmented control |

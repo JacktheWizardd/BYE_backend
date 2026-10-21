@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Professor, Snapshot, Weekday } from '../../../shared/types'
 import { availabilityDeadline, openSeatTotal } from '../../../../vendor/bye-shared/core/freshness'
 import { fits } from '../../../../vendor/bye-shared/core/domain'
-import { ByeReviewPanel, DayBubbles, EmptyDetail, LoadingRows, ProfessorList, ProfessorRow, Report, Segmented, plural, type ReportState } from '../../../../vendor/bye-shared/ui'
+import { DayBubbles, EmptyDetail, LoadingRows, ProfessorList, ProfessorRow, Report, Segmented, plural, type ReportState } from '../../../../vendor/bye-shared/ui'
 import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_UNAVAILABLE_NOTE } from '../../../shared/features'
 import { Chooser, DISCLAIMER, Summary } from './report'
 import type { Run } from './types'
@@ -60,8 +60,8 @@ export function Results(props: {
         <p className="muted small">{DISCLAIMER}</p>
       </aside>
       <div className="detail">
-        {p && course ? <Report p={p} course={course} matches={s => fits(s, days)} command={run} reviewFilter="select" findMore writeReview reviewPage={[3, 5]}
-            byeReviews={<ByeReviewPanel state={p.bye} load={(filter,sort,more) => run({kind:'byeReviews',professorId:p.id,filter,sort,more})} write={() => run({kind:'source',target:'review',professorId:p.id})} />}
+        {p && course ? <Report p={p} course={course} matches={s => fits(s, days)} command={run} reviewFilter="select" preloaded reviewPage={[3, 5]}
+            bye={{ state: p.bye, external: true, load: (filter,sort,more) => run({kind:'byeReviews',professorId:p.id,filter,sort,more}), write: () => run({kind:'source',target:'review',professorId:p.id}) }}
             checking={state.loading || state.previewPending > 0} initial={props.reportState(p.id)} onChange={value => props.saveReport(p.id, value)}
             summary={AI_SUMMARIES_ENABLED ? <Summary p={p} course={course} run={run} /> : <p className="panel small muted" role="status">{AI_SUMMARIES_UNAVAILABLE_NOTE}</p>} />
           : !filtered.length ? !state.loading && <div className="empty-detail">
