@@ -1,5 +1,8 @@
 # UI parity: web, Windows and Mac
 
+> **Migration note (2026-10-20):** This page describes the existing v3 cross-platform UI implementation and differences, not an approved future framework. BYE is evaluating [shared React desktop consolidation, Tauri versus Electron, and optional mobile Capacitor](cross-platform-migration-proposal.md). Until a migration is verified and released, keep documenting differences in the existing Windows Electron, macOS SwiftUI and browser clients.
+
+
 The approved v3 design (playful, search-first; plan in the website repository's `docs/APP_REDESIGN_PLAN.md`, mockup in [design/app-mockup-v3.html](design/app-mockup-v3.html)) is built three ways:
 
 - **Shared React screens** live in the website repository (`BYE_website/packages/ui`). The web app uses them directly, and the Windows app gets a copy through `node scripts/sync-bye-shared.mjs` (into `apps/cross-platform/vendor/bye-shared/`, with the website commit in `SOURCE.json`).
