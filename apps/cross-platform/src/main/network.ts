@@ -1,10 +1,13 @@
 import { setTimeout as delay } from 'node:timers/promises'
 import type { Profile, Review, Row, Term } from '../shared/types'
 import { eligible, suggestions } from '../shared/domain'
+import { NETWORK_RETIRED_MESSAGE } from '../shared/features'
 export class IdentityError extends Error { constructor() { super('The returned profile identity could not be verified. Choose a profile again.'); this.name = 'IdentityError' } }
 export const check = (signal: AbortSignal) => signal.throwIfAborted()
 const malformed = () => new Error('The source returned an unsupported response. Please try again later.')
 export type Fetcher = typeof fetch
+/** Used by the final, offline release: every request is refused before it leaves the app. */
+export const offlineFetch: Fetcher = async () => { throw new Error(NETWORK_RETIRED_MESSAGE) }
 export async function jsonResponse(response: Response, limit: number, signal: AbortSignal): Promise<any> {
   if (!response.body || !response.ok) throw new Error(`Source unavailable (HTTP ${response.status}). Please try again.`)
   const reader = response.body.getReader(), chunks: Uint8Array[] = []; let size = 0

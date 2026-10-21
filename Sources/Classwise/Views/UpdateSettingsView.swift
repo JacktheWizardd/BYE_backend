@@ -22,6 +22,10 @@ struct UpdateSettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Button("Check for Updates…") { updater.checkForUpdates() }
                     .disabled(!updater.canCheckForUpdates)
+            } else if NetworkShutdown.isActive {
+                Text("This is BYE’s final version. It no longer checks for updates or connects to the internet.")
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("Updates are not available in this build.")
                     .font(.system(size: 12)).foregroundStyle(Palette.secondary)

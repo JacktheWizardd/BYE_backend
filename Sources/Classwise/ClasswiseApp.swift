@@ -9,7 +9,8 @@ struct ClasswiseApp: App {
     // Measurement builds never contact the update feed.
     @StateObject private var updater = AppUpdater(info: nil)
     #else
-    @StateObject private var updater = AppUpdater()
+    // The final release never contacts the update feed either.
+    @StateObject private var updater = AppUpdater(info: NetworkShutdown.isActive ? nil : Bundle.main.infoDictionary)
     #endif
     init() {
         #if BYE_MODEL_EVAL
@@ -71,7 +72,9 @@ struct ClasswiseApp: App {
     }
     var body: some Scene {
         WindowGroup("BYE", id: "main") {
-            ContentView(model: model)
+            Group {
+                if NetworkShutdown.isActive { RetiredView() } else { ContentView(model: model) }
+            }
                 .background(MainWindowRegistration(owner: applicationDelegate))
                 .frame(minWidth: 1000, minHeight: 700)
                 .preferredColorScheme(.light)
@@ -94,8 +97,10 @@ struct ClasswiseApp: App {
                 }
             }
             CommandGroup(replacing: .newItem) {
-                Button("New search") { model.changeSearch(); applicationDelegate.reopenMainWindow() }.keyboardShortcut("n")
-                Button("Refresh results") { model.refresh() }.keyboardShortcut("r").disabled(!model.showingResults || model.busy)
+                if !NetworkShutdown.isActive {
+                    Button("New search") { model.changeSearch(); applicationDelegate.reopenMainWindow() }.keyboardShortcut("n")
+                    Button("Refresh results") { model.refresh() }.keyboardShortcut("r").disabled(!model.showingResults || model.busy)
+                }
             }
         }
         Settings {
