@@ -173,6 +173,14 @@ Development principles include:
 
 Existing tests and audits document specific protections; they are not a guarantee that the application is free of vulnerabilities.
 
+## Agreed shared application architecture
+
+React + TypeScript is the shared frontend; Tauri 2 is the desktop candidate and Capacitor follows desktop validation. Electron is legacy only, with no role or fallback in the target architecture.
+
+BYE_website owns the shared frontend workspace and wrappers. BYE_Before_You_Enroll owns backend contracts and ultimately services. Repository names stay unchanged. Existing apps, server deployments and release tooling remain available through validation.
+
+See the [migration sequence and acceptance gates](docs/cross-platform-migration-proposal.md). Backend relocation follows actual Windows and Mac preview acceptance. No merge, production deployment, release or legacy removal is authorized.
+
 ## Documentation
 
 Start with the [engineering documentation index](docs/README.md).
@@ -181,6 +189,7 @@ Important references:
 
 - [Project status](docs/PROJECT_STATUS.md)
 - [Architecture](docs/architecture.md)
+- [Cross-platform proposal and repository options](docs/cross-platform-migration-proposal.md)
 - [Development setup](docs/development.md)
 - [Testing](docs/testing.md)
 - [Review database](docs/review-database-explained.md)
