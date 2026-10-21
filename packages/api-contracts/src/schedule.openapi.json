@@ -1,0 +1,1236 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "BYE schedule API",
+    "version": "1.0.0",
+    "description": "Independent read-only PCC schedule API. v1 changes are additive; breaking changes require v2 while v1 remains available. Unknown counts remain null. PCC status is independent of seats. Availability is observed, not a registration guarantee. Source HTML must remain inert. Stale availability is null after 15 minutes."
+  },
+  "servers": [
+    {
+      "url": "https://nahvhampsxtasfwvvfei.supabase.co/functions/v1/bye-schedule-api"
+    }
+  ],
+  "security": [
+    {
+      "ClientKey": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ClientKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "apikey",
+        "description": "Public app identification, not a secret or a student identity."
+      }
+    },
+    "schemas": {
+      "Course": {
+        "type": "object",
+        "required": [
+          "key",
+          "subject",
+          "number",
+          "title"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "Term": {
+        "type": "object",
+        "required": [
+          "termCode",
+          "name"
+        ],
+        "properties": {
+          "termCode": {
+            "type": "string",
+            "enum": [
+              "202670"
+            ]
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Availability": {
+        "type": "object",
+        "required": [
+          "statusCode",
+          "enrolled",
+          "capacity",
+          "seatsAvailable",
+          "waitlistCount",
+          "waitlistCapacity",
+          "waitlistAvailable"
+        ],
+        "properties": {
+          "statusCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enrolled": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "capacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "seatsAvailable": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "waitlistCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "waitlistCapacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "waitlistAvailable": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "Meeting": {
+        "type": "object",
+        "required": [
+          "startDate",
+          "endDate",
+          "days",
+          "beginTime",
+          "endTime",
+          "formatCode",
+          "formatDescription",
+          "campus",
+          "building",
+          "room",
+          "sourceFields"
+        ],
+        "properties": {
+          "startDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "endDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "beginTime": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endTime": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "formatCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "formatDescription": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "campus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "building": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "room": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceFields": {
+            "type": "object",
+            "description": "Allowlisted PCC meeting fields, retained as data."
+          }
+        }
+      },
+      "Instructor": {
+        "type": "object",
+        "required": [
+          "assignmentId",
+          "role",
+          "name"
+        ],
+        "properties": {
+          "assignmentId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "secondary"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Section": {
+        "type": "object",
+        "required": [
+          "crn",
+          "courseKey",
+          "units",
+          "information",
+          "notesFormat",
+          "meetings",
+          "instructors",
+          "availability"
+        ],
+        "properties": {
+          "crn": {
+            "type": "string",
+            "pattern": "^[0-9]{5}$"
+          },
+          "courseKey": {
+            "type": "string"
+          },
+          "units": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "information": {
+            "type": "object",
+            "description": "PCC notes, prerequisites, restrictions, deadlines and attributes. HTML is inert data: render as text or sanitize before display."
+          },
+          "notesFormat": {
+            "const": "source-html-inert"
+          },
+          "meetings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Meeting"
+            }
+          },
+          "instructors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Instructor"
+            }
+          },
+          "availability": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Availability"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "AvailabilityItem": {
+        "type": "object",
+        "required": [
+          "crn",
+          "availability"
+        ],
+        "properties": {
+          "crn": {
+            "type": "string",
+            "pattern": "^[0-9]{5}$"
+          },
+          "availability": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Availability"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "Metadata": {
+        "type": "object",
+        "required": [
+          "term",
+          "catalogVersion",
+          "availabilityVersion",
+          "sourceCheckedAt",
+          "availabilityChangedAt",
+          "stale",
+          "source",
+          "collectionTargetSeconds"
+        ],
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "catalogVersion": {
+            "type": "string"
+          },
+          "availabilityVersion": {
+            "type": "string"
+          },
+          "sourceCheckedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "availabilityChangedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "collectionTargetSeconds": {
+            "const": 300
+          }
+        }
+      },
+      "CatalogMetadata": {
+        "type": "object",
+        "required": [
+          "term",
+          "catalogVersion",
+          "catalogPublishedAt"
+        ],
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "catalogVersion": {
+            "type": "string"
+          },
+          "catalogPublishedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Manifest": {
+        "type": "object",
+        "required": [
+          "apiVersion",
+          "catalogVersion",
+          "availabilityVersion",
+          "sourceCheckedAt",
+          "availabilityChangedAt",
+          "stale",
+          "capabilities"
+        ],
+        "properties": {
+          "apiVersion": {
+            "const": "v1"
+          },
+          "catalogVersion": {
+            "type": "string"
+          },
+          "availabilityVersion": {
+            "type": "string"
+          },
+          "sourceCheckedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "availabilityChangedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "capabilities": {
+            "type": "object",
+            "required": [
+              "conditionalReads",
+              "maxAvailabilityCrns",
+              "suggestionLimit",
+              "clientPollSeconds"
+            ],
+            "properties": {
+              "conditionalReads": {
+                "const": true
+              },
+              "maxAvailabilityCrns": {
+                "const": 100
+              },
+              "suggestionLimit": {
+                "const": 20
+              },
+              "clientPollSeconds": {
+                "const": 60
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "UNAUTHORIZED",
+                  "INVALID_QUERY",
+                  "UNSUPPORTED_TERM",
+                  "NOT_FOUND",
+                  "RATE_LIMITED",
+                  "NOT_READY",
+                  "DATABASE_UNAVAILABLE"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/terms": {
+      "get": {
+        "operationId": "listTerms",
+        "summary": "listTerms",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Representation validator for catalog, search, sections and availability. Revalidate; do not cache errors."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Term"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Metadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Retry-After is seconds.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until retry."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms/{term}/manifest": {
+      "get": {
+        "operationId": "getManifest",
+        "summary": "getManifest",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "202670"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Representation validator for catalog, search, sections and availability. Revalidate; do not cache errors."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Manifest"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Metadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Retry-After is seconds.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until retry."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms/{term}/catalog": {
+      "get": {
+        "operationId": "getCatalog",
+        "summary": "getCatalog",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "202670"
+              ]
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Representation validator for catalog, search, sections and availability. Revalidate; do not cache errors."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Course"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/CatalogMetadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; retain the cached representation."
+          },
+          "400": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Retry-After is seconds.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until retry."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms/{term}/courses": {
+      "get": {
+        "operationId": "searchCourses",
+        "summary": "searchCourses",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "202670"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": "Maximum 20 results; exact official/normalized match first. All supported spelling variants preserve suffix distinctions."
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Representation validator for catalog, search, sections and availability. Revalidate; do not cache errors."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Course"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/CatalogMetadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; retain the cached representation."
+          },
+          "400": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Retry-After is seconds.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until retry."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms/{term}/courses/{courseKey}/sections": {
+      "get": {
+        "operationId": "getSections",
+        "summary": "getSections",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "202670"
+              ]
+            }
+          },
+          {
+            "name": "courseKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "MATH 005A",
+            "description": "URL-encode the complete official course key; preserve prefixes, zeros and all suffix letters."
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Representation validator for catalog, search, sections and availability. Revalidate; do not cache errors."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Section"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Metadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; retain the cached representation."
+          },
+          "400": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Retry-After is seconds.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until retry."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/terms/{term}/availability": {
+      "get": {
+        "operationId": "getAvailability",
+        "summary": "getAvailability",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "202670"
+              ]
+            }
+          },
+          {
+            "name": "crns",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated five-digit CRNs, maximum 100 unique values. Unknown CRNs return 404."
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful read",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Representation validator for catalog, search, sections and availability. Revalidate; do not cache errors."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AvailabilityItem"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/Metadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; retain the cached representation."
+          },
+          "400": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited. Retry-After is seconds.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until retry."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request error",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
