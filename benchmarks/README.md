@@ -1,7 +1,7 @@
 # BYE experiment tooling
 
-Start with the [experiment record](../docs/experiments/2026-10-11-local-summarization/README.md)
-and [recorded results](../docs/experiments/2026-10-11-local-summarization/RESULTS.md).
+Start with the [experiment record](../docs/history/experiments/2026-10-11-local-summarization/README.md)
+and [recorded results](../docs/history/experiments/2026-10-11-local-summarization/RESULTS.md).
 The stopped experiment selected no release model. Commands are historical tooling,
 not authorization for live collection or further inference.
 

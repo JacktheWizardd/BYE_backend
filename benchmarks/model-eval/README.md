@@ -4,7 +4,7 @@
 256-token development matrix completed; the 384-token comparison is partial.
 Held-out inference and the remaining integration/energy phases did not run.
 Commands below describe the tooling, not authorization to restart this experiment.
-See the [experiment record](../../docs/experiments/2026-10-11-local-summarization/README.md)
+See the [experiment record](../../docs/history/experiments/2026-10-11-local-summarization/README.md)
 for completed work, limitations, and the commit scope.
 
 The real-review corpus and source-linked `expected-facts.json` are intentionally
