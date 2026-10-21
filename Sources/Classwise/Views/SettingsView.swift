@@ -70,6 +70,9 @@ struct SettingsContent: View {
                     .buttonStyle(StickerButtonStyle()).disabled(!updater.canCheckForUpdates).padding(.top, 4)
                 Text("BYE checks the BYE website about once a day. The website’s host, Cloudflare, sees your IP address and app version; no other information is sent.")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+            } else if NetworkShutdown.isActive {
+                Text("This is BYE’s final version. It no longer checks for updates or connects to the internet.")
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("Updates are not available in this build.").font(.system(size: 12)).foregroundStyle(Palette.secondary)
             }

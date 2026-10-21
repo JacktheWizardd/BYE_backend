@@ -4,12 +4,13 @@ import type { Snapshot, Term, Weekday } from '../../shared/types'
 import type { AppSettings } from '../../shared/app'
 import { WEEKDAYS, displayTitle, filterSections, orderProfessors } from '../../../vendor/bye-shared/core/domain'
 import { SurfaceProvider, type ReportState } from '../../../vendor/bye-shared/ui'
-import { AI_SUMMARIES_ENABLED } from '../../shared/features'
+import { AI_SUMMARIES_ENABLED, NETWORK_ENABLED } from '../../shared/features'
 import { CommandMenu, type Action } from './app/command-menu'
 import { confetti } from './app/confetti'
 import { Home } from './app/home'
 import { Onboarding } from './app/onboarding'
 import { Results } from './app/results'
+import { Retired } from './app/retired'
 import { SettingsSheet, type SettingsTab } from './app/settings-sheet'
 import { isMac, shortcut, type Run } from './app/types'
 import '../../../vendor/bye-shared/ui/styles.css'
@@ -181,4 +182,5 @@ function Sidebar({ name, recent, active, onHome, onClass, onMenu, onRemove, onSe
   </aside>
 }
 
-createRoot(document.getElementById('root')!).render(<App />)
+// The final release shows only the retired notice; App (and its PCC/RMP requests) never mounts.
+createRoot(document.getElementById('root')!).render(NETWORK_ENABLED ? <App /> : <Retired />)

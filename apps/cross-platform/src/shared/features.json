@@ -1,3 +1,4 @@
 {
-  "aiSummariesEnabled": false
+  "aiSummariesEnabled": false,
+  "networkEnabled": false
 }
