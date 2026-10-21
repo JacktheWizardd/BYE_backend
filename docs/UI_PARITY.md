@@ -1,5 +1,9 @@
 # UI parity: web, Windows and Mac
 
+> **Migration direction:** [Agreed React/TypeScript migration](cross-platform-migration-proposal.md), Tauri desktop candidate and later Capacitor. Electron is legacy only. This page records existing platform differences; actual Windows and Mac preview acceptance must precede replacement.
+
+> **Legacy inventory:** Current main retires the existing desktop apps and disables their network/update features. The implementation details below describe retained source and previous parity behavior; this migration does not reactivate those features.
+
 The approved v3 design (playful, search-first; plan in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md`, mockup in [design/app-mockup-v3.html](design/app-mockup-v3.html)) is built three ways:
 
 - **Shared React screens** live in the website repository (`BYE_website/packages/ui`). The web app uses them directly, and the Windows app gets a copy through `node scripts/sync-bye-shared.mjs` (into `apps/cross-platform/vendor/bye-shared/`, with the website commit in `SOURCE.json`).
