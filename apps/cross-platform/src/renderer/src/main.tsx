@@ -48,6 +48,20 @@ function App() {
     window.byeApp.info().then(i => setVersion(i.version)).catch(() => {})
     return unsubscribe
   }, [])
+  // Discover new terms while retaining the student's selected semester.
+  useEffect(() => {
+    let checked=Date.now(),running=false,stopped=false
+    const refresh=async()=>{
+      if(stopped || running || document.hidden || !navigator.onLine || Date.now()-checked<3_600_000) return
+      running=true
+      try {const result=await window.bye.command({kind:'terms'}) as Term[];if(!stopped){setTerms(result);checked=Date.now()}}
+      catch {checked=Date.now()-3_300_000}
+      finally {running=false}
+    }
+    const timer=setInterval(()=>{void refresh()},60_000)
+    window.addEventListener('focus',refresh);window.addEventListener('online',refresh)
+    return ()=>{stopped=true;clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('online',refresh)}
+  }, [])
   // Ctrl K / ⌘K opens the command menu from anywhere (not during first-run setup).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === 'k' && !onboarding) { e.preventDefault(); setSheet(false); setMenu(true) } }

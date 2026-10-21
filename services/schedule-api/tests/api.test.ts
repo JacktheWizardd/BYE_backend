@@ -24,7 +24,7 @@ test("keys, methods, terms, paths, sizes, and availability CRNs bounded before D
   );
   for (
     const path of [
-      "/v1/terms/202630/catalog",
+      "/v1/terms/invalid/catalog",
       "/v2/terms",
       "/v1/terms/202670/availability?crns=bad",
       "/v1/terms/202670/courses?q=" + "a".repeat(101),

@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import path from 'node:path'
 import { Engine } from './engine'
+import { scheduleLifecycle } from './schedule-lifecycle'
 import { Store } from './storage'
 import type { SummaryProvider } from './summary'
 import type { Command, Term } from '../shared/types'
@@ -39,6 +40,7 @@ export function startApplication(options: StartupOptions) {
   function createWindow() {
     window = new BrowserWindow({ width: 1180, height: 800, minWidth: 1000, minHeight: 700, title: 'BYE — Before You Enroll', backgroundColor: '#faf8f3', show: false,
       webPreferences: { preload: options.preload, sandbox: true, contextIsolation: true, nodeIntegration: false, spellcheck: false } })
+    if (options.pcc.courseSections) scheduleLifecycle(engine,window)
     window.removeMenu()
     window.once('ready-to-show', () => window?.show())
     window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
@@ -73,7 +75,7 @@ export function startApplication(options: StartupOptions) {
       switch (c.kind) {
         case 'terms': return engine.pcc.terms()
         case 'suggest': return engine.pcc.suggest(c.term, c.query)
-        case 'search': void engine.search(c.query, c.term, c.refresh); return undefined
+        case 'search': if(c.refresh && engine.pcc.courseSections && engine.state.course?.display===c.query && engine.state.term?.termCode===c.term.termCode) {void engine.refreshSchedule().catch(()=>engine.expireAvailability())} else {void engine.search(c.query,c.term,c.refresh)}; return undefined
         case 'stop': engine.stop(); return undefined
         case 'retry': void engine.retry(c.professorId); return undefined
         case 'discover': void engine.discover(c.professorId); return undefined

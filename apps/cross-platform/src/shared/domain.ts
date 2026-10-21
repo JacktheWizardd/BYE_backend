@@ -1,7 +1,7 @@
 import type { Course, Profile, Professor, Review, Row, Section, SectionDetails, Suggestion, Weekday } from './types'
 export const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 export function course(input: string): Course {
-  const match = input.trim().toUpperCase().match(/^([A-Z]{2,8})\s*([A-Z]?\d{1,4}[A-Z]?)$/)
+  const match = input.trim().toUpperCase().match(/^([A-Z]{2,8})\s*([A-Z]?\d{1,4}[A-Z]*)$/)
   if (!match) throw new Error('Enter a subject and course number, such as ETH 014 or POLS C1000.')
   const [, subject, number] = match
   return { subject, number, key: subject + number, display: `${subject} ${number}`, matchingKey: subject + number.replace(/\d+/, n => String(Number(n))) }
@@ -11,7 +11,7 @@ const value = (r: Row, k: string) => typeof r[k] === 'string' || typeof r[k] ===
 export function catalog(rows: Row[]): Suggestion[] {
   const result = new Map<string, Suggestion>()
   for (const row of rows) {
-    if (['R', 'X'].includes(value(row, 'fwSectOpenInd')) || !value(row, 'crn')) continue
+    if (!value(row, 'crn')) continue
     try {
       const c = course(value(row, 'subjCode') + value(row, 'courseNumbDisplay')), title = value(row, 'courseTitle').trim()
       const old = result.get(c.key)
@@ -82,7 +82,7 @@ function meeting(r: Row) {
 export function professors(rows: Row[], c: Course): Professor[] {
   const groups = new Map<string, Map<string, Row[]>>(), byCRN = new Map<string, Row[]>()
   for (const row of rows) {
-    if (!sameCourse(c, value(row, 'subjCode') + value(row, 'courseNumbDisplay')) || ['R', 'X'].includes(value(row, 'fwSectOpenInd')) || !value(row, 'crn')) continue
+    if (!sameCourse(c, value(row, 'subjCode') + value(row, 'courseNumbDisplay')) || !value(row, 'crn')) continue
     const name = value(row, 'pfaName').trim() || 'Instructor to be announced', crn = value(row, 'crn')
     const group = groups.get(name) ?? new Map<string, Row[]>(); group.set(crn, [...(group.get(crn) ?? []), row]); groups.set(name, group)
     byCRN.set(crn, [...(byCRN.get(crn) ?? []), row])

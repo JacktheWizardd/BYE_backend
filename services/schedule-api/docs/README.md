@@ -48,3 +48,7 @@ own guides are in the separate `BYE_website` repository.
 Maintain this index and the handoff when accepted behavior changes. Add dated
 records for milestones, preserve historical evidence, and keep future work clearly
 separate from delivered features.
+
+## Local multi-semester implementation — October 20, 2026
+
+See [reliable schedule updates](reliable-updates.md) for prepared changes, local benchmarks, configuration, verification and deployment boundaries. Nothing in that record activates production.

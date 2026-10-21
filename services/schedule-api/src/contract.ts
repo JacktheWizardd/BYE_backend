@@ -1,4 +1,3 @@
-import { TERM } from "./domain.ts";
 const text = { type: "string" },
   nullableText = { type: ["string", "null"] },
   count = { type: ["integer", "null"] };
@@ -10,7 +9,7 @@ const ref = (name: string) => ({ $ref: "#/components/schemas/" + name });
 const array = (items: unknown) => ({ type: "array", items });
 const definitions: Record<string, unknown> = {
   Course: object({ key: text, subject: text, number: text, title: text }),
-  Term: object({ termCode: { type: "string", enum: [TERM] }, name: text }),
+  Term: object({ termCode: { type: "string", pattern: "^[0-9]{6}$" }, name: text }),
   Availability: object({
     statusCode: nullableText,
     enrolled: count,
@@ -107,6 +106,10 @@ const definitions: Record<string, unknown> = {
     }),
   }),
 };
+// Optional v1 additions: old reader required fields remain unchanged.
+definitions.RefreshPolicy = object({targetSeconds:{type:"integer"},aggregateMinimumSeconds:{const:300},nextEligibleAt:{type:"string",format:"date-time"},published:{type:"boolean"},datesVerified:{type:"boolean"}});
+(definitions.Metadata as {properties:Record<string,unknown>}).properties.refreshPolicy=ref("RefreshPolicy");
+(definitions.Term as {properties:Record<string,unknown>}).properties.published={type:"boolean"};
 const routes = [
   ["/v1/terms", "listTerms", array(ref("Term")), "Metadata"],
   ["/v1/terms/{term}/manifest", "getManifest", ref("Manifest"), "Metadata"],
@@ -173,7 +176,7 @@ export const OPENAPI = {
               name: "term",
               in: "path",
               required: true,
-              schema: { type: "string", enum: [TERM] },
+              schema: { type: "string", pattern: "^[0-9]{6}$" },
             }]
             : []),
           ...(path.includes("{courseKey}")

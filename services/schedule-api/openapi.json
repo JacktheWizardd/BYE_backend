@@ -57,12 +57,13 @@
         "properties": {
           "termCode": {
             "type": "string",
-            "enum": [
-              "202670"
-            ]
+            "pattern": "^[0-9]{6}$"
           },
           "name": {
             "type": "string"
+          },
+          "published": {
+            "type": "boolean"
           }
         }
       },
@@ -356,6 +357,9 @@
           },
           "collectionTargetSeconds": {
             "const": 300
+          },
+          "refreshPolicy": {
+            "$ref": "#/components/schemas/RefreshPolicy"
           }
         }
       },
@@ -477,6 +481,34 @@
             }
           }
         }
+      },
+      "RefreshPolicy": {
+        "type": "object",
+        "required": [
+          "targetSeconds",
+          "aggregateMinimumSeconds",
+          "nextEligibleAt",
+          "published",
+          "datesVerified"
+        ],
+        "properties": {
+          "targetSeconds": {
+            "type": "integer"
+          },
+          "aggregateMinimumSeconds": {
+            "const": 300
+          },
+          "nextEligibleAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "datesVerified": {
+            "type": "boolean"
+          }
+        }
       }
     }
   },
@@ -596,9 +628,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "202670"
-              ]
+              "pattern": "^[0-9]{6}$"
             }
           }
         ],
@@ -709,9 +739,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "202670"
-              ]
+              "pattern": "^[0-9]{6}$"
             }
           },
           {
@@ -835,9 +863,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "202670"
-              ]
+              "pattern": "^[0-9]{6}$"
             }
           },
           {
@@ -972,9 +998,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "202670"
-              ]
+              "pattern": "^[0-9]{6}$"
             }
           },
           {
@@ -1108,9 +1132,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": [
-                "202670"
-              ]
+              "pattern": "^[0-9]{6}$"
             }
           },
           {

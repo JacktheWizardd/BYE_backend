@@ -17,7 +17,9 @@
     "verify:hosted": "node scripts/verify-hosted.mjs",
     "admin:build": "wrangler deploy --config dashboard/hosted/wrangler.jsonc --dry-run --outdir .deploy/hosted-admin",
     "admin:deploy": "wrangler deploy --config dashboard/hosted/wrangler.jsonc",
-    "test:admin:runtime": "npm run admin:build && node tests/hosted-runtime.mjs"
+    "test:admin:runtime": "npm run admin:build && node tests/hosted-runtime.mjs",
+    "benchmark:local": "node scripts/benchmark-local.mjs",
+    "test:postgres": "node scripts/test-postgres-concurrency.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",

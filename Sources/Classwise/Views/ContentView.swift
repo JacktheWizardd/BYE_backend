@@ -49,6 +49,12 @@ struct ContentView: View {
                 if let course = model.course { CourseChip(text: course.display) }
                 Text(courseTitle).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                 Text(searchSummary).font(.system(size: 13)).foregroundStyle(Palette.secondary).lineLimit(1)
+                if let metadata = model.scheduleMetadata {
+                    TimelineView(.periodic(from: .now, by: 10)) { context in
+                        Text(metadata.expired(at: context.date) ? "Older schedule · seat counts hidden" : "Checked \(max(0, Int(context.date.timeIntervalSince(metadata.checkedAt ?? context.date) / 60))) min ago")
+                            .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                    }
+                }
                 Spacer()
                 Button("Refresh") { model.refresh() }.buttonStyle(PillStyle()).disabled(model.busy)
                 Button("Change search") { model.changeSearch() }.buttonStyle(PillStyle())

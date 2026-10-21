@@ -146,3 +146,7 @@ No commit or upload was performed.
 ## Separate Windows cross-platform beta — October 10, 2026
 
 `apps/cross-platform` now contains an independent Electron/React/TypeScript 0.1.0-beta.1 application with direct PCC/RMP requests, explicit profile selection, separate job queues, persistent evidence-aware caches and bundled CPU Qwen3-4B inference. Swift application files remain unchanged. Windows ZIP packaging includes the model and licenses; see `apps/cross-platform/VERIFICATION.md` for measured results and limitations. The initial packaged startup failure was corrected by preserving required inference metadata and deferring native AI imports. The Windows beta remains unsigned and requires clean-machine acceptance before being described as release-ready. No Mac package of this separate application is claimed.
+
+## Schedule update implementation — October 20, 2026
+
+Multi-term backend, shared Windows/web adapters, native Mac source integration and a network-isolated benchmark are prepared locally. See [verification and limits](../services/schedule-api/docs/reliable-updates.md). Prepared for the GitHub source handoff and not deployed; the hosted synchronization failure cause is still unconfirmed. Mac tests/build/relaunch and independent PostgreSQL concurrency await compatible machines.

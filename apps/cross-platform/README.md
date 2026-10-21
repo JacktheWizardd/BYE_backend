@@ -70,3 +70,7 @@ The offline commands build and use the production startup, Engine, renderer, pre
 - The retained local AI implementation uses a non-thinking Qwen chat template with JSON grammar and distinct supplied source-ID pairs. Whole recent reviews fit within the evidence budget. Conservative corroboration/sentiment checks can omit useful feedback and do not prove general semantic correctness. Generation is currently disabled before model verification or runtime loading.
 
 See [verification results and limitations](VERIFICATION.md).
+
+## Shared schedule integration — local preparation, October 20, 2026
+
+The production entry uses the typed shared schedule adapter. Configure `BYE_SCHEDULE_API_URL` and `BYE_SCHEDULE_API_KEY` in its launch environment or `.env.local` for a desktop build; `BYE_CLIENT_KEY` remains a supported alias; missing configuration fails closed. Demo startup stays offline. Course-only caches retain at most three terms; visible online clients poll versions with jitter and backoff. New terms do not change the selected semester. See [backend verification](../../services/schedule-api/docs/reliable-updates.md) before rollout.

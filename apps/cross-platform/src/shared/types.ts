@@ -24,7 +24,7 @@ export interface Professor {
   state: 'pending' | 'loading' | 'ready' | 'choose' | 'unavailable'; profile?: Profile; candidates: Profile[];
   issue?: string; reviewIssue?: string; summaryIssue?: string; summary?: Summary; detailLoading?: boolean; summaryLoading?: boolean; choosing?: boolean; discoveryLoading?: boolean
 }
-export interface Snapshot { operationId: string; course?: Course; term?: Term; professors: Professor[]; loading: boolean; previewPending: number; issue?: string }
+export interface Snapshot { scheduleSource?: import('./schedule-api').ScheduleMeta; operationId: string; course?: Course; term?: Term; professors: Professor[]; loading: boolean; previewPending: number; issue?: string }
 export type Command =
   | { kind: 'terms' }
   | { kind: 'suggest'; term: string; query: string }

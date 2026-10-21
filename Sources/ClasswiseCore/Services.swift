@@ -3,6 +3,15 @@ import Foundation
 public final class PCCClient {
     private let session: URLSession
     private let scheduleCache = ScheduleCache()
+    private var sharedSchedule: ScheduleAPIClient?
+    public static func sharedBackend(session: URLSession = .shared) -> PCCClient {
+        let client = PCCClient(session: session); client.sharedSchedule = ScheduleAPIClient.configured(session: session); return client
+    }
+    public var usesSharedSchedule: Bool { sharedSchedule != nil }
+    public func courseRows(term: Term, query: String) async throws -> SharedCourseSchedule? {
+        guard let sharedSchedule else { return nil }
+        return try await sharedSchedule.courseRows(term: term.termCode, query: query)
+    }
     public init(session: URLSession = .shared) { self.session = session }
     private func fetch<T: Decodable>(_ path: String) async throws -> T {
         let url = URL(string: "https://prod-apiweb.pasadena.edu/api/" + path)!
@@ -23,16 +32,19 @@ public final class PCCClient {
         return try JSONDecoder().decode(T.self, from: data)
     }
     public func terms() async throws -> [Term] {
+        if let sharedSchedule { return try await sharedSchedule.terms() }
         let all: [Term] = try await fetch("getClassScheduleTerms")
         return all.filter { $0.termDisplayControl == "Y" }.sorted { $0.termCode > $1.termCode }
     }
     public func schedule(term: Term, force: Bool = false) async throws -> [ScheduleRow] {
+        if let sharedSchedule { return try await sharedSchedule.catalogRows(term: term.termCode) }
         guard term.termCode.allSatisfy(\.isNumber), term.termCode.count == 6 else { throw AppError.message("Choose a published PCC semester.") }
         return try await scheduleCache.rows(termCode: term.termCode, force: force) { [self] in
             try await fetch("classSchedule/" + term.termCode)
         }
     }
     public func professors(course: Course, term: Term, force: Bool = false) async throws -> [Professor] {
+        if let sharedSchedule { return ScheduleParser.professors(rows: try await sharedSchedule.courseRows(term: term.termCode, query: course.display).rows, course: course) }
         ScheduleParser.professors(rows: try await schedule(term: term, force: force), course: course)
     }
     public static func scheduleURL(term: Term, course: Course) -> URL {

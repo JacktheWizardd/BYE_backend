@@ -72,6 +72,7 @@ struct ClasswiseApp: App {
     var body: some Scene {
         WindowGroup("BYE", id: "main") {
             ContentView(model: model)
+                .modifier(ScheduleLifecycle(model: model))
                 .background(MainWindowRegistration(owner: applicationDelegate))
                 .frame(minWidth: 1000, minHeight: 700)
                 .preferredColorScheme(.light)

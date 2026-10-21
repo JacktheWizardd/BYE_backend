@@ -5,7 +5,9 @@ import {
   prepare,
   type Prepared,
   sha,
-  SOURCE,
+  sourceURL,
+  TERM,
+  publishedTerms,
   TERMS,
   validateTerms,
 } from "./domain.ts";
@@ -17,10 +19,13 @@ export async function upload(
   retrievedAt: string,
   metadata: unknown,
   daily: boolean,
+  term = TERM,
+  phase: (value: string) => void = () => {},
 ) {
   const call = (op: string, args: Record<string, unknown>) =>
-    db.rpc("bye_schedule_backend", { op, args });
+    db.rpc("bye_schedule_backend", { op, args: { ...args, term } });
   async function stage(kind: string, records: unknown[]) {
+    phase("STAGING_FAILED");
     let part = 0, batch: unknown[] = [], bytes = 0;
     for (const record of records) {
       const n = JSON.stringify(record).length * 3;
@@ -59,6 +64,7 @@ export async function upload(
     }
     await stage("availability", changed);
   }
+  phase("PUBLICATION_FAILED");
   return call("publish", {
     token,
     catalogHash: p.catalogHash,
@@ -100,6 +106,8 @@ export function worker(
       return reply({ error: "INVALID_QUERY" }, 400);
     }
     let token: string | undefined;
+    let term = TERM, phase = "DATABASE_FAILED", discovery = false;
+    let sourceStatus: number | undefined;
     try {
       let input: Record<string, unknown>;
       try {
@@ -121,63 +129,71 @@ export function worker(
         const result = await call(action, {userId: input.userId});
         return reply(result, result.error ? 400 : 200);
       }
+      if (action === "term-dates") {
+        if (typeof input.term !== "string" || !/^\d{6}$/.test(input.term) || typeof input.reference !== "string" || !/^https:\/\/([a-zA-Z0-9-]+\.)*pasadena\.edu\//.test(input.reference)) return reply({error:"INVALID_QUERY"},400);
+        return reply(await call(action,{term:input.term,reference:input.reference,startDate:input.startDate,endDate:input.endDate}));
+      }
       if (["state", "cleanup", "rollback"].includes(action)) {
         return reply(
           await call(
             action,
-            action === "rollback" ? { target: input.target } : {},
+            {...(input.term ? {term:input.term} : {}), ...(action === "rollback" ? {target:input.target} : {})},
           ),
         );
       }
       if (action === "enable" || action === "disable") {
-        return reply(await call("enable", { enabled: action === "enable" }));
+        return reply(await call("enable", { enabled: action === "enable", ...(input.term ? {term:input.term} : {}) }));
       }
       if (!["scheduled", "run", "bootstrap"].includes(action)) {
         return reply({ error: "INVALID_QUERY" }, 400);
       }
+      if (input.term !== undefined && (typeof input.term !== "string" || !/^\d{6}$/.test(input.term))) return reply({error:"INVALID_QUERY"},400);
+      term = typeof input.term === "string" ? input.term : TERM;
+      const get = async (url: string, max?: number) => {
+        phase = "SOURCE_FETCH_FAILED";
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 40000);
+        try {
+          const response = await request(url, {headers: {Accept:"application/json", "User-Agent":"BYE-Schedule-API/1.1 (shared schedule cache)"},redirect:"error",signal:controller.signal});
+          sourceStatus = response.status;
+          if (response.ok) phase = "SOURCE_DECODE_FAILED";
+          return await boundedJSON(response,max);
+        } finally { clearTimeout(timer); }
+      };
       await call("cleanup");
+      if (action === "scheduled") {
+        const claim = await call("discover-claim");
+        if (claim.token) {
+          discovery = true; token = claim.token;
+          const source = await get(TERMS,1024*1024);
+          phase = "TERMS_VALIDATION_FAILED";
+          const terms = publishedTerms(source.data);
+          phase = "DISCOVERY_PUBLICATION_FAILED";
+          return reply(await call("discover-publish",{token,terms}));
+        }
+      }
       const claim = await call("claim", {
         mode: action === "run" ? "owner" : action,
+        ...(action !== "scheduled" || input.term ? {term} : {}),
       });
       if (!claim.token) return reply(claim);
       token = claim.token;
+      term = claim.term ?? term;
       const start = performance.now();
       let rows: unknown,
         metadata: unknown,
         retrievedAt: string,
         sourceHash: string | undefined;
       if (action === "bootstrap") {
-        const source = await call("bootstrap_source");
+        const source = await call("bootstrap_source", {term});
         rows = source.rows;
         metadata = source.term;
         retrievedAt = source.retrievedAt;
       } else {
-        const get = async (url: string, max?: number) => {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 40000);
-          try {
-            return await boundedJSON(
-              await request(url, {
-                headers: {
-                  Accept: "application/json",
-                  "User-Agent": "BYE-Schedule-API/1.0 (shared Fall-2026 cache)",
-                },
-                redirect: "error",
-                signal: controller.signal,
-              }),
-              max,
-            );
-          } finally {
-            clearTimeout(timer);
-          }
-        };
-        if (claim.daily) {
-          metadata = validateTerms((await get(TERMS, 1024 * 1024)).data);
-        } else {
-          metadata = (await call("state")).metadata;
-          validateTerms([metadata]);
-        }
-        const source = await get(SOURCE);
+        metadata = claim.metadata ?? (await call("state",{term})).metadata;
+        phase = "TERMS_VALIDATION_FAILED";
+        validateTerms([metadata],term);
+        const source = await get(sourceURL(term));
         rows = source.data;
         sourceHash = source.rawHash;
         retrievedAt = new Date().toISOString();
@@ -192,9 +208,10 @@ export function worker(
           totalBytes: m.heapUsed + m.external,
         };
       };
+      phase = "SCHEDULE_VALIDATION_FAILED";
       const afterReadMemory = memory();
       const before = performance.now(),
-        p = await prepare(rows, sourceHash),
+        p = await prepare(rows, sourceHash, term),
         normalizationMs = performance.now() - before;
       const afterPrepareMemory = memory();
       const result = await upload(
@@ -205,6 +222,8 @@ export function worker(
         retrievedAt,
         metadata,
         claim.daily,
+        term,
+        value => { phase = value; },
       );
       return reply({
         ...result,
@@ -226,15 +245,17 @@ export function worker(
         if (raw && !Number.isFinite(retrySeconds)) {
           retrySeconds = Math.max(0, (Date.parse(raw) - Date.now()) / 1000);
         }
-        await call("fail", {
+        await call(discovery ? "discover-fail" : "fail", {
+          term,
           token,
-          code: "SYNC_FAILED",
+          code: phase,
+          sourceStatus,
           retrySeconds: Number.isFinite(retrySeconds)
             ? Math.ceil(Math.min(86400, Math.max(0, retrySeconds)))
             : 0,
         }).catch(() => {});
       }
-      return reply({ error: "SYNC_FAILED", previousRetained: true }, 503);
+      return reply({ error: "SYNC_FAILED", diagnosticCode: phase, sourceStatus, previousRetained: true }, 503);
     }
   };
 }

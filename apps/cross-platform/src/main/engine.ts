@@ -4,6 +4,8 @@ import type { Course, Profile, Professor, Snapshot, Term } from '../shared/types
 import { eligible, identity, orderReviews, professors, resolve } from '../shared/domain'
 import { check, IdentityError, PCC, RMP } from './network'
 import { Store } from './storage'
+import { expired, type ScheduleMeta } from '../shared/schedule-api'
+import type { CourseSchedule } from './schedule-pcc'
 import type { SummaryProvider } from './summary'
 import { AI_SUMMARIES_ENABLED, AI_SUMMARIES_DISABLED_MESSAGE } from '../shared/features'
 const message = (e: unknown) => e instanceof Error ? e.message : 'This operation could not finish. Try again.'
@@ -30,7 +32,7 @@ export class Engine {
   private summaries = new Queue(1, () => this.previews.pending > 0)
   private tasks = new Set<Promise<unknown>>()
   private jobs = new Map<string, Promise<void>>()
-  constructor(readonly pcc: Pick<PCC, 'terms' | 'schedule' | 'suggest'>, readonly rmp: Pick<RMP, 'candidates' | 'page'>, readonly store: Store, readonly ai: SummaryProvider, private publish: (state: Snapshot) => void, private summariesEnabled = () => AI_SUMMARIES_ENABLED) {}
+  constructor(readonly pcc: Pick<PCC, 'terms' | 'schedule' | 'suggest'> & {courseSections?:(term:string,query:string,signal:AbortSignal)=>Promise<CourseSchedule>}, readonly rmp: Pick<RMP, 'candidates' | 'page'>, readonly store: Store, readonly ai: SummaryProvider, private publish: (state: Snapshot) => void, private summariesEnabled = () => AI_SUMMARIES_ENABLED) {}
   emit() { this.state.previewPending = this.previews.pending; this.publish(structuredClone(this.state)) }
   private launch(key: string, task: () => Promise<void>) {
     if (this.jobs.has(key)) return this.jobs.get(key)!
@@ -66,7 +68,9 @@ export class Engine {
         const terms = await this.pcc.terms(); check(signal)
         const published = terms.find(t => t.termCode === term.termCode)
         if (!published) throw new Error('Choose a published PCC semester.')
-        const rows = await this.pcc.schedule(published.termCode, refresh); check(signal)
+        const result = this.pcc.courseSections ? await this.pcc.courseSections(published.termCode,query,signal) : undefined
+        const rows = result?.rows ?? await this.pcc.schedule(published.termCode, refresh); check(signal)
+        if(result) this.state.scheduleSource=result.meta
         const c = resolve(query, rows); this.state.course = c; this.state.term = published; this.state.professors = professors(rows, c)
         if (!this.state.professors.length) this.state.issue = 'No matching sections were published for this course and semester.'
         this.emit()
@@ -74,6 +78,31 @@ export class Engine {
       } catch (e) { if (!signal.aborted) this.state.issue = message(e) }
       finally { if (!signal.aborted) { this.state.loading = false; this.emit() } }
     })
+  }
+  private refreshingSchedule=false
+  async refreshSchedule(externalSignal?:AbortSignal) {
+    const {term,course,operationId}=this.state;
+    if(!this.pcc.courseSections || !term || !course || this.state.loading || this.refreshingSchedule) return;
+    this.refreshingSchedule=true;
+    try {
+    const signal=externalSignal ? AbortSignal.any([this.run.signal,externalSignal]) : this.run.signal;
+    const result=await this.pcc.courseSections(term.termCode,course.display,signal);check(signal);
+    if(operationId!==this.state.operationId) return;
+    const next=professors(result.rows,course), old=new Map(this.state.professors.map(p=>[p.id,p]));
+    this.state.professors=next.map(p=>{const existing=old.get(p.id);if(existing && existing.name===p.name) {existing.sections=p.sections;return existing;} p.state='unavailable';p.issue='PCC updated the instructor assignment. Retrieve a verified profile when ready.';return p;});
+    const retained=new Set(this.state.professors.map(p=>p.id));
+    for(const [id,controller] of this.versions) if(!retained.has(id)) {controller.abort();this.versions.delete(id);}
+    this.state.scheduleSource=result.meta;this.emit();
+    } finally {this.refreshingSchedule=false}
+  }
+  expireAvailability() {
+    const meta=this.state.scheduleSource;
+    if(!meta || !expired(meta)) return;
+    let changed=false;
+    for(const p of this.state.professors) for(const s of p.sections) if(s.details && [s.details.seatsOpen,s.details.capacity,s.details.waitlistCount,s.details.waitlistCapacity].some(x=>x!==undefined)) {
+      s.details={...s.details,seatsOpen:undefined,capacity:undefined,waitlistCount:undefined,waitlistCapacity:undefined};changed=true;
+    }
+    if(changed) this.emit();
   }
   private async save(p: Professor, signal: AbortSignal) {
     check(signal)

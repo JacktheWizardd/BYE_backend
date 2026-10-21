@@ -2,11 +2,11 @@ const action = process.argv[2] === "rollback-catalog"
   ? "rollback"
   : process.argv[2] ?? "state";
 if (
-  !["state", "run", "bootstrap", "cleanup", "rollback", "enable", "disable", "owner-add", "owner-remove"]
+  !["state", "run", "bootstrap", "cleanup", "rollback", "enable", "disable", "owner-add", "owner-remove", "term-dates"]
     .includes(action)
 ) {
   throw Error(
-    "Use state, run, bootstrap, cleanup, rollback, enable, disable, owner-add UUID, or owner-remove UUID",
+    "Use state, run, bootstrap, cleanup, rollback, enable, disable, owner-add UUID, owner-remove UUID, or term-dates START END OFFICIAL_URL (BYE_TERM selects the semester)",
   );
 }
 if (!process.env.BYE_SERVER_KEY && !process.env.BYE_JOB_TOKEN) {
@@ -27,6 +27,8 @@ const response = await fetch(url, {
   },
   body: JSON.stringify({
     action,
+    ...(process.env.BYE_TERM ? {term:process.env.BYE_TERM} : {}),
+    ...(action === 'term-dates' ? {startDate:process.argv[3],endDate:process.argv[4],reference:process.argv[5]} : {}),
     ...(["owner-add","owner-remove"].includes(action)?{userId:process.argv[3]}:{}),
     ...(process.argv[2] === "rollback-catalog" ? { target: "catalog" } : {}),
   }),

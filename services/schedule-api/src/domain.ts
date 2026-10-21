@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 export const TERM = "202670";
+export const sourceURL = (term: string) => {
+  if (!/^\d{6}$/.test(term)) throw new Error("INVALID_TERM");
+  return "https://prod-apiweb.pasadena.edu/api/classSchedule/" + term;
+};
 export const SOURCE = "https://prod-apiweb.pasadena.edu/api/classSchedule/" +
   TERM;
 export const TERMS =
@@ -114,10 +118,21 @@ function date(value: unknown): string | null {
   ) throw new Error("Invalid meeting date");
   return d;
 }
-export function validateTerms(data: unknown): Row {
+export function publishedTerms(data: unknown): Row[] {
+  if (!Array.isArray(data) || data.length > 100) throw new Error("Malformed terms");
+  const terms = data.filter(t => t && t.termDisplayControl === "Y");
+  const seen = new Set<string>();
+  for (const t of terms) {
+    if (!/^\d{6}$/.test(t.termCode) || typeof t.termName !== "string" || !t.termName.trim() || t.termName.length > 100 || seen.has(t.termCode)) throw new Error("Malformed terms");
+    seen.add(t.termCode);
+  }
+  if (!terms.length || terms.length > 32) throw new Error("Malformed terms");
+  return terms.map(t => ({ termCode: t.termCode, termName: t.termName, termDisplayControl: "Y" }));
+}
+export function validateTerms(data: unknown, term = TERM): Row {
   if (!Array.isArray(data)) throw new Error("Malformed terms");
   const found = data.filter((t) =>
-    t && t.termCode === TERM && t.termDisplayControl === "Y"
+    t && t.termCode === term && t.termDisplayControl === "Y"
   );
   if (found.length !== 1 || !str(found[0].termName)) {
     throw new Error("Requested term is not published");
@@ -127,6 +142,7 @@ export function validateTerms(data: unknown): Row {
 export async function prepare(
   input: unknown,
   sourceHash?: string,
+  term = TERM,
 ): Promise<Prepared> {
   if (!Array.isArray(input) || !input.length || input.length > 25000) {
     throw new Error("Malformed schedule");
@@ -139,7 +155,7 @@ export async function prepare(
   for (const row of rows) {
     if (
       !row || typeof row !== "object" || Array.isArray(row) ||
-      row.termCode !== TERM || !/^\d{5}$/.test(String(row.crn))
+      row.termCode !== term || !/^\d{5}$/.test(String(row.crn))
     ) throw new Error("Invalid section identity");
     for (const key of ["subjCode", "courseNumbDisplay", "crn"]) {
       if (

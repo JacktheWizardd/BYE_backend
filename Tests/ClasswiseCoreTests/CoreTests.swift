@@ -37,7 +37,8 @@ final class CoreTests: XCTestCase {
         ]
         """
         let result = ScheduleParser.professors(rows: try JSONDecoder().decode([ScheduleRow].self, from: Data(json.utf8)), course: course)
-        XCTAssertEqual(result.count, 1); XCTAssertEqual(result[0].sections.count, 1)
+        XCTAssertEqual(result.count, 1); XCTAssertEqual(result[0].sections.count, 2)
+        XCTAssertEqual(result[0].sections[1].status, "X", "Unknown PCC statuses are retained without interpreting cancellation")
         XCTAssertFalse(result[0].sections[0].fullyOnline)
         XCTAssertEqual(result[0].sections[0].meetings, ["Mon 9:00 AM"])
     }

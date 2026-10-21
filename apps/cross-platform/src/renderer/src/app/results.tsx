@@ -1,3 +1,5 @@
+import {useEffect,useState} from 'react'
+import {expired} from '../../../shared/schedule-api'
 import type { Professor, Snapshot, Weekday } from '../../../shared/types'
 import { fits } from '../../../../vendor/bye-shared/core/domain'
 import { DayBubbles, EmptyDetail, LoadingRows, ProfessorList, ProfessorRow, Report, Segmented, plural, type ReportState } from '../../../../vendor/bye-shared/ui'
@@ -15,7 +17,17 @@ export function Results(props: {
   selected: string; select: (id: string) => void; run: Run
   reportState: (professorId: string) => ReportState | undefined; saveReport: (professorId: string, value: ReportState) => void; refresh: () => void; changeSearch: () => void; stop: () => void; error: string
 }) {
-  const { state, filtered, displayed, days, onlineOnly, run } = props, course = state.course
+  const {state,days,onlineOnly,run}=props,course=state.course
+  const [clock,setClock]=useState(Date.now)
+  useEffect(()=>{
+    const deadline=state.scheduleSource?.sourceCheckedAt ? Date.parse(state.scheduleSource.sourceCheckedAt)+900_000 : 0
+    if(!deadline || deadline<=Date.now())return
+    const timer=setTimeout(()=>setClock(Date.now()),deadline-Date.now()+1)
+    return ()=>clearTimeout(timer)
+  },[state.scheduleSource?.sourceCheckedAt])
+  const stale=!!state.scheduleSource && expired(state.scheduleSource,Math.max(clock,Date.now()))
+  const safe=(p:Professor)=>!stale?p:{...p,sections:p.sections.map(s=>({...s,details:s.details?{...s.details,seatsOpen:undefined,capacity:undefined,waitlistCount:undefined,waitlistCapacity:undefined}:undefined}))}
+  const filtered=props.filtered.map(safe),displayed=props.displayed.map(safe)
   const p = filtered.find(x => x.id === props.selected), chooser = state.professors.find(x => x.choosing)
   const checked = state.professors.filter(x => x.state !== 'pending' && x.state !== 'loading').length
   const sections = filtered.flatMap(x => x.sections), sectionCount = new Set(sections.map(s => s.crn)).size
@@ -26,6 +38,7 @@ export function Results(props: {
       {course && <span className="chip ink">{course.display}</span>}
       <strong className="truncate results-title">{props.title}</strong>
       <span className="muted truncate small">{props.summary}</span>
+      {state.scheduleSource && <span className="muted small" role="status">{!state.scheduleSource.sourceCheckedAt || state.scheduleSource.stale || Date.now()-Date.parse(state.scheduleSource.sourceCheckedAt)>=900_000 ? 'Availability unavailable · schedule is older' : 'Checked '+Math.max(0,Math.floor((Date.now()-Date.parse(state.scheduleSource.sourceCheckedAt))/60_000))+' min ago'}</span>}
       <span className="spacer" />
       <button className="pill" disabled={state.loading} onClick={props.refresh}>Refresh</button>
       <button className="pill" onClick={props.changeSearch}>Change search</button>

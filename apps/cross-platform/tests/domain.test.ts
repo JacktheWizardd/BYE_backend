@@ -32,7 +32,7 @@ test('official resolution, exact precedence and ambiguous aliases', () => {
   assert.throws(() => resolve('math05a', rows), /More than one/)
   assert.equal(resolve('math05a', rows.slice(0, 1)).key, 'MATH005A')
   assert.equal(suggestions('math5a', rows)[0].course.key, 'MATH5A')
-  assert.equal(catalog([{ ...rows[0], fwSectOpenInd: 'R' }]).length, 0)
+  for(const status of ['R','X']) assert.equal(catalog([{ ...rows[0], fwSectOpenInd: status }]).length,1,'Uninterpreted source statuses must remain visible')
 })
 test('PCC fixture retains closed sections, deduplicates CRNs and groups meetings', async () => {
   const rows = JSON.parse(await readFile(new URL('../../../Tests/ClasswiseCoreTests/Fixtures/pcc-summer-2026-eth014.json', import.meta.url), 'utf8'))

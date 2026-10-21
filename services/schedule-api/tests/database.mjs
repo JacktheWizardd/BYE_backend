@@ -131,7 +131,7 @@ await check(
     const before = await query(
       "select crn,xmin::text from bye_schedule.availability order by crn",
     );
-    await db.exec("update bye_schedule.state set next_fetch='-infinity'");
+    await db.exec("update bye_schedule.state set next_fetch='-infinity';update bye_schedule.collection_control set next_fetch='-infinity'");
     claim = await call("claim", { mode: "owner" });
     await upload(
       rpc,
@@ -159,7 +159,7 @@ changed[0].seatsAvail = "6";
 await check(
   "seat changes modify only changed rows and preserve catalog identity",
   async () => {
-    await db.exec("update bye_schedule.state set next_fetch='-infinity'");
+    await db.exec("update bye_schedule.state set next_fetch='-infinity';update bye_schedule.collection_control set next_fetch='-infinity'");
     claim = await call("claim", { mode: "owner" });
     await upload(
       rpc,
@@ -208,7 +208,7 @@ await check(
   },
 );
 await check(
-  "stale counts suppressed, daily/idle scheduling and shared cooldown",
+  "stale counts suppressed, daily/background scheduling and shared cooldown",
   async () => {
     const stale = await call("read", {
       route: "availability",
@@ -219,9 +219,11 @@ await check(
     assert.equal(stale.data[0].availability, null);
     await call("enable", { enabled: true });
     await db.exec(
-      "update bye_schedule.state set daily_date=(now()-interval '10 hours')::date,active_until=now()-interval '1 minute',next_fetch='-infinity'",
+      "update bye_schedule.state set daily_date=(now()-interval '10 hours')::date,active_until=now()-interval '1 minute',next_fetch='-infinity';update bye_schedule.collection_control set next_fetch='-infinity'",
     );
+    await db.exec("update bye_schedule.state set listed=false");
     assert.equal((await call("claim", { mode: "scheduled" })).skipped, "IDLE");
+    await db.exec("update bye_schedule.state set listed=true");
     await db.exec(
       "update bye_schedule.state set active_until=now()+interval '10 minutes'",
     );
@@ -284,6 +286,7 @@ await check(
       401,
     );
     await call("enable", { enabled: false });
+    await db.exec("update bye_schedule.collection_control set discovery_checked_at=now()");
     const result = await handler(
       new Request("https://worker", {
         method: "POST",
@@ -291,7 +294,7 @@ await check(
         body: JSON.stringify({ action: "scheduled" }),
       }),
     );
-    assert.equal((await result.json()).skipped, "DISABLED");
+    assert.equal((await result.json()).skipped, "IDLE");
     assert.equal(hits, 0);
   },
 );
@@ -302,7 +305,7 @@ await check(
       const rows = structuredClone(changed);
       rows[0].courseTitle = "TITLE " + i;
       if (i === 3) rows.pop();
-      await db.exec("update bye_schedule.state set next_fetch='-infinity'");
+      await db.exec("update bye_schedule.state set next_fetch='-infinity';update bye_schedule.collection_control set next_fetch='-infinity'");
       claim = await call("claim", { mode: "owner" });
       await upload(
         rpc,
@@ -377,7 +380,7 @@ await check(
   "expired workers recover with cooldown; repeated failures trip the circuit",
   async () => {
     await db.exec(
-      "update bye_schedule.state set lock_token=gen_random_uuid(),lock_until=now()-interval '1 minute',next_fetch='-infinity',failures=0",
+      "update bye_schedule.state set lock_token=gen_random_uuid(),lock_until=now()-interval '1 minute',next_fetch='-infinity',failures=0;update bye_schedule.collection_control set next_fetch='-infinity'",
     );
     assert.equal(
       (await call("claim", { mode: "owner" })).skipped,
@@ -385,7 +388,7 @@ await check(
     );
     assert.equal((await call("claim", { mode: "owner" })).skipped, "COOLDOWN");
     for (let i = 0; i < 2; i++) {
-      await db.exec("update bye_schedule.state set next_fetch='-infinity'");
+      await db.exec("update bye_schedule.state set next_fetch='-infinity';update bye_schedule.collection_control set next_fetch='-infinity'");
       const c = await call("claim", { mode: "owner" });
       await call("fail", { token: c.token, retrySeconds: 0 });
     }
@@ -400,7 +403,7 @@ await check(
 await check(
   "future retrieval times cannot publish over validated data",
   async () => {
-    await db.exec("update bye_schedule.state set next_fetch='-infinity'");
+    await db.exec("update bye_schedule.state set next_fetch='-infinity';update bye_schedule.collection_control set next_fetch='-infinity'");
     const c = await call("claim", { mode: "owner" });
     await assert.rejects(
       call("publish", {
@@ -418,5 +421,6 @@ await check(
   },
 );
 await (await import("./key-scenarios.mjs")).keyScenarios(db,check,query,call,rpc);
+await (await import("./multi-term-scenarios.mjs")).multiTermScenarios(db,check,query,call,rpc,fixture);
 await db.close();
 console.log(`${checks} database scenarios passed`);

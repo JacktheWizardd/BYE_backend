@@ -1,6 +1,6 @@
 import { type Database, database } from "./database.ts";
 import { OPENAPI } from "./contract.ts";
-import { type Course, search, sha, TERM } from "./domain.ts";
+import { type Course, search, sha } from "./domain.ts";
 const errors: Record<string, number> = {
   UNAUTHORIZED: 401,
   INVALID_QUERY: 400,
@@ -71,7 +71,7 @@ export function api(db: Database, salt: string) {
       else if (path === "/v1/terms") route = "terms";
       else if (parts[0] === "v1" && parts[1] === "terms" && parts.length >= 4) {
         term = parts[2];
-        if (term !== TERM) return fail("UNSUPPORTED_TERM");
+        if (!/^\d{6}$/.test(term)) return fail("UNSUPPORTED_TERM");
         route = parts[3];
         if (
           route === "courses" && parts.length === 6 && parts[5] === "sections"

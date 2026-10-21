@@ -36,6 +36,7 @@ final class AppModel: ObservableObject {
     var auditPreviewLimit: Int? = nil
     var auditSummariesEnabled = true
     #endif
+    @Published var scheduleMetadata: ScheduleMetadata?
     private let pcc: PCCClient
     let summariesEnabled: Bool
     private let summaryProvider: (any SummaryProvider)?
@@ -76,7 +77,7 @@ final class AppModel: ObservableObject {
     private(set) var quickPassSnapshot: [Professor] = []
     #endif
 
-    init(pcc: PCCClient = PCCClient(), ollama: OllamaClient? = nil, summaryProvider: (any SummaryProvider)? = nil, cache: ReportCache? = nil,
+    init(pcc: PCCClient = PCCClient.sharedBackend(), ollama: OllamaClient? = nil, summaryProvider: (any SummaryProvider)? = nil, cache: ReportCache? = nil,
          choices: ProfileChoiceStore? = nil, summariesEnabled: Bool = false,
          makeReader: @escaping @MainActor () -> any ProfileReader = { RMPAPIReader() }) {
         self.pcc = pcc; self.summariesEnabled = summariesEnabled
@@ -247,11 +248,12 @@ final class AppModel: ObservableObject {
         // if filters hide it, return to the course overview rather than opening someone else.
         if !filtered.contains(where: { $0.id == selectedID }) { selectedID = nil }
     }
-    func loadTerms() async {
-        guard terms.isEmpty, !loadingTerms else { return }
+    private var termsCheckedAt = Date.distantPast
+    func loadTerms(refresh: Bool = false) async {
+        guard (terms.isEmpty || refresh), !loadingTerms else { return }
         loadingTerms = true; error = nil
         defer { loadingTerms = false }
-        do { terms = try await pcc.terms(); termID = terms.first?.id ?? "" }
+        do { terms = try await pcc.terms(); if termID.isEmpty { termID = terms.first?.id ?? "" }; termsCheckedAt = Date() }
         catch { self.error = "Couldn’t load PCC semesters. Check your connection and try again." }
     }
     func updateCourseSuggestions() {
@@ -294,7 +296,10 @@ final class AppModel: ObservableObject {
                 }
             }
             do {
-                let rows = try await pcc.schedule(term: term, force: force)
+                let shared = try await pcc.courseRows(term: term, query: input)
+                let rows: [ScheduleRow]
+                if let shared { rows = shared.rows; scheduleMetadata = shared.metadata }
+                else { rows = try await pcc.schedule(term: term, force: force) }
                 try Task.checkCancellation(); guard runID == run else { return }
                 let parsed = try CourseSuggestions.resolve(parsed, rows: rows)
                 course = parsed
@@ -524,8 +529,39 @@ final class AppModel: ObservableObject {
         busy = false; progress = ""
     }
     func changeSearch() { cancel(); showingResults = false; error = nil }
+    @Published private(set) var scheduleRetrySeconds = 60.0
+    private var scheduleFailures = 0
+    private var refreshingSchedule = false
+    func refreshSchedule() async {
+        if pcc.usesSharedSchedule, Date().timeIntervalSince(termsCheckedAt) >= 3600 { await loadTerms(refresh: true) }
+        guard pcc.usesSharedSchedule, !refreshingSchedule, !busy, showingResults, let course, let searchedTerm else { return }
+        refreshingSchedule = true; let operation = runID
+        defer { refreshingSchedule = false }
+        do {
+            guard let shared = try await pcc.courseRows(term: searchedTerm, query: course.display) else { return }
+            try Task.checkCancellation(); guard operation == runID else { return }
+            let previous = Dictionary(uniqueKeysWithValues: professors.map { ($0.id, $0) })
+            professors = ScheduleParser.professors(rows: shared.rows, course: course).map { item in
+                if var old = previous[item.id], old.name == item.name { old.sections = item.sections; return old }
+                var next = item; next.state = .unavailable; next.issue = "PCC updated the instructor assignment. Retrieve a verified profile when ready."; return next
+            }
+            scheduleMetadata = shared.metadata; scheduleFailures = 0; scheduleRetrySeconds = 60
+            if let selectedID, !professors.contains(where: { $0.id == selectedID }) { self.selectedID = nil }
+            if let chooserID, !professors.contains(where: { $0.id == chooserID }) { self.chooserID = nil }
+        } catch { scheduleFailures = min(scheduleFailures + 1, 4); scheduleRetrySeconds = min(900, 60 * pow(2, Double(scheduleFailures))); expireAvailability() }
+    }
+    func expireAvailability() {
+        guard let metadata = scheduleMetadata, metadata.expired() else { return }
+        for index in professors.indices { for section in professors[index].sections.indices {
+            professors[index].sections[section].details?.seatsOpen = nil
+            professors[index].sections[section].details?.capacity = nil
+            professors[index].sections[section].details?.waitlistCount = nil
+            professors[index].sections[section].details?.waitlistCapacity = nil
+        } }
+    }
     func refresh() {
         guard let course, let searchedTerm else { return }
+        if pcc.usesSharedSchedule { Task { await refreshSchedule() }; return }
         input = course.display; termID = searchedTerm.id; start(force: true)
     }
 }
