@@ -12,10 +12,29 @@ struct ProfessorReport: View {
     let retrying: Bool
     let canRetry: Bool
     let retry: () -> Void
-    @State private var reviewFilter: ReviewFilter = .thisCourse
-    @State private var filterChosenByUser = false
-    @State private var reviewSort: ReviewSort = .recent
-    @State private var reviewLimit = 3
+    @State private var reviewFilter: ReviewFilter
+    @State private var filterChosenByUser: Bool
+    @State private var reviewSort: ReviewSort
+    @State private var reviewLimit: Int
+    private let restoredChoice: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(model: AppModel, professor: Professor, course: Course, scheduleURL: URL?, checkingRatings: Bool, loadingDetails: Bool,
+         detailCancelled: Bool, retrying: Bool, canRetry: Bool, retry: @escaping () -> Void) {
+        self.model = model; self.professor = professor; self.course = course; self.scheduleURL = scheduleURL
+        self.checkingRatings = checkingRatings; self.loadingDetails = loadingDetails; self.detailCancelled = detailCancelled
+        self.retrying = retrying; self.canRetry = canRetry; self.retry = retry
+        // Coming back to a professor this session restores how their reviews were left.
+        let saved = model.reviewChoice(for: professor.id)
+        restoredChoice = saved != nil
+        _reviewFilter = State(initialValue: saved?.filter ?? .thisCourse)
+        _filterChosenByUser = State(initialValue: saved?.chosenByUser ?? false)
+        _reviewSort = State(initialValue: saved?.sort ?? .recent)
+        _reviewLimit = State(initialValue: saved?.limit ?? 3)
+    }
+    private var reviewChoice: ReviewChoice {
+        ReviewChoice(filter: reviewFilter, chosenByUser: filterChosenByUser, sort: reviewSort, limit: reviewLimit)
+    }
     private var reviews: [Review] {
         guard let profile = professor.profile else { return [] }
         return Ordering.reviews(reviewFilter.reviews(in: profile, course: course), by: reviewSort)
@@ -34,77 +53,112 @@ struct ProfessorReport: View {
         professor.profile.map { reviewFilter.finished(in: $0, course: course) } ?? false
     }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                header
-                sections
-                if let profile = professor.profile {
-                    HStack(spacing: 14) {
-                        ScoreCard(value: profile.rating, title: "Student rating", helper: "Higher means better rated")
-                        ScoreCard(value: profile.difficulty, title: "Difficulty", helper: "Lower means easier")
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 26) {
+                    header.id("top")
+                    if let profile = professor.profile {
+                        scores(profile)
+                    } else {
+                        unavailable
                     }
-                    HStack {
-                        Text(profile.ratingCount.map { "Based on \($0) RMP ratings across courses" } ?? "Overall rating count unavailable")
-                        Spacer()
-                        if let percent = profile.wouldTakeAgain { Text("\(Int(percent.rounded()))% would take again") }
-                    }.font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                    if model.summariesEnabled { summary } else {
-                        Text("AI summaries are temporarily unavailable. Read the original student reviews below.")
-                            .font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                            .sunkenPanel(padding: 17)
-                    }
-                    studentReviews
-                } else {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text(professor.state == .selectionRequired ? "Choose profile" : professor.state == .unavailable ? "Cannot retrieve RMP info" : professor.state == .searching ? "Finding student feedback…" : "Student feedback hasn’t been checked yet.")
-                            .font(BYEFont.display(22))
-                        Text(professor.issue ?? "PCC sections are available above. Ratings and reviews will appear here when retrieved.")
-                            .foregroundStyle(Palette.secondary).font(.system(size: 14)).lineSpacing(4)
-                        if professor.state == .unavailable { Tag(text: "Unavailable", kind: .signal) }
-                        if professor.state == .selectionRequired {
-                            Button("Choose profile") { model.openChooser(id: professor.id) }.buttonStyle(PillStyle(primary: true))
+                    sections
+                    if professor.profile != nil {
+                        if model.summariesEnabled { summary } else {
+                            Text("AI summaries are temporarily unavailable. Read the original student reviews below.")
+                                .font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                                .sunkenPanel(padding: 14)
                         }
-                        if professor.state == .unavailable || professor.state == .pending || (professor.state == .selectionRequired && professor.candidates.isEmpty) {
-                            Button("Try again") { model.retryProfessor(id: professor.id) }
-                                .buttonStyle(PillStyle()).disabled(model.isPreviewing(professor.id))
-                        }
-                        Link("Check on RMP ↗", destination: professor.searchURL).buttonStyle(PillStyle())
-                    }.sunkenPanel()
-                }
-                HStack(spacing: 12) {
-                    Link("Rate My Professors ↗", destination: professor.sourceURL).buttonStyle(PillStyle())
-                    if let url = ReviewLink.url(professor: professor.name, course: course) {
-                        Link("Write a review ↗", destination: url).buttonStyle(PillStyle())
+                        studentReviews
                     }
+                    sourceLinks
                 }
-                if let date = professor.checkedAt {
-                    Text("RMP checked \(date.formatted(date: .abbreviated, time: .shortened)). Refresh to check again.")
-                        .font(.system(size: 11)).foregroundStyle(Palette.secondary)
-                }
-            }.padding(.horizontal, 38).padding(.vertical, 34).frame(maxWidth: 850, alignment: .leading).frame(maxWidth: .infinity)
+                .padding(.horizontal, 32).padding(.vertical, 28).frame(maxWidth: 900, alignment: .leading).frame(maxWidth: .infinity)
+            }
+            // The page stays mounted while the student switches professors: it scrolls to the top and
+            // restores how that professor's reviews were left this session.
+            .onChange(of: professor.id) { _, id in
+                if let saved = model.reviewChoice(for: id) {
+                    reviewFilter = saved.filter; filterChosenByUser = saved.chosenByUser; reviewSort = saved.sort; reviewLimit = saved.limit
+                } else { reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
+                proxy.scrollTo("top", anchor: .top)
+            }
         }
-        .accessibilityLabel("Professor report")
+        .accessibilityLabel("Report for \(professor.profile?.name ?? professor.name)")
         .onChange(of: professor.profile?.id) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
-        .onChange(of: professor.id) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
         .onChange(of: course) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
         .onChange(of: reviewFilter) { _, _ in reviewLimit = 3 }
         .onChange(of: professor.profile?.reviews.count) { _, _ in if !filterChosenByUser { applyPreferredFilter() } }
-        .onAppear { applyPreferredFilter() }
+        .onAppear { if !restoredChoice { applyPreferredFilter() } }
         .onChange(of: reviewSort) { _, _ in reviewLimit = 3 }
+        .onChange(of: reviewChoice) { _, choice in model.saveReviewChoice(choice, for: professor.id) }
     }
     private var header: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Avatar(name: professor.profile?.name ?? professor.name, accent: true, size: 48)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(professor.profile?.name ?? professor.name).font(BYEFont.display(26, bold: true))
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                HStack(spacing: 10) {
+                    Text([professor.profile?.department ?? "", "Pasadena City College"].filter { !$0.isEmpty }.joined(separator: " · "))
+                        .font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                    if professor.profile != nil {
+                        Button("Change profile") { model.openChooser(id: professor.id) }
+                            .buttonStyle(TextLinkStyle()).disabled(model.isPreviewing(professor.id))
+                    }
+                }
+                if let profile = professor.profile, profile.name != professor.name {
+                    Text("Listed at PCC as \(professor.name)").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                }
+                if professor.profile != nil, let issue = professor.issue {
+                    Text(issue).font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                }
+            }
+        }
+    }
+    private func scores(_ profile: RMPProfile) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                StatTile(value: profile.rating, suffix: "/5", label: "RMP rating", bar: profile.rating)
+                StatTile(value: profile.difficulty, suffix: "/5", label: "Difficulty", bar: profile.difficulty)
+                StatTile(value: profile.wouldTakeAgain.map { $0.rounded() }, digits: 0, suffix: "%", label: "Would take again")
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Text("\(profile.ratingCount.map { plural($0, "rating") } ?? "Rating count unavailable") across all courses · higher rating is better rated · lower difficulty means easier")
+                .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+        }
+    }
+    /// Before RMP has a verified profile: what is happening and what the student can do.
+    private var unavailable: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(title: "Professor profile")
-            Text(professor.profile?.name ?? professor.name).font(BYEFont.display(38))
-            if let profile = professor.profile {
-                Text([profile.department, profile.school].filter { !$0.isEmpty }.joined(separator: " · "))
-                    .font(.system(size: 14)).foregroundStyle(Palette.secondary)
-                Button("Change profile") { model.openChooser(id: professor.id) }
-                    .buttonStyle(TextLinkStyle()).disabled(model.isPreviewing(professor.id))
-                if let issue = professor.issue { Text(issue).font(.system(size: 12)).foregroundStyle(Palette.secondary) }
-                if profile.name != professor.name { Text("Listed at PCC as \(professor.name)").font(.system(size: 11)).foregroundStyle(Palette.secondary) }
-            } else {
-                Text("Teaching \(course.display) at Pasadena City College").font(.system(size: 14)).foregroundStyle(Palette.secondary)
+            Text(professor.reportStatusTitle)
+                .font(BYEFont.display(19, bold: true))
+            Text(professor.issue ?? "PCC sections are available below. Ratings and reviews will appear here when retrieved.")
+                .foregroundStyle(Palette.body).font(.system(size: 13)).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                if professor.state == .selectionRequired {
+                    Button("Choose profile →") { model.openChooser(id: professor.id) }.buttonStyle(StickerButtonStyle())
+                }
+                if professor.state == .unavailable || professor.state == .pending || (professor.state == .selectionRequired && professor.candidates.isEmpty) {
+                    Button("Try again") { model.retryProfessor(id: professor.id) }
+                        .buttonStyle(StickerButtonStyle(kind: .secondary)).disabled(model.isPreviewing(professor.id))
+                }
+                Link("Check on RMP ↗", destination: professor.searchURL).font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.ink)
+            }
+        }
+        .sunkenPanel(padding: 18)
+    }
+    private var sourceLinks: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 16) {
+                if let scheduleURL { Link("PCC schedule ↗", destination: scheduleURL) }
+                if professor.profile != nil { Link("Rate My Professors ↗", destination: professor.sourceURL) }
+                if let url = ReviewLink.url(professor: professor.name, course: course) { Link("Write a review ↗", destination: url) }
+            }
+            .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.ink)
+            if let date = professor.checkedAt {
+                Text("RMP checked \(date.formatted(date: .abbreviated, time: .shortened)). Refresh to check again.")
+                    .font(.system(size: 11)).foregroundStyle(Palette.secondary)
             }
         }
     }
@@ -129,20 +183,20 @@ struct ProfessorReport: View {
                 Text("Experimental Apple AI summary of student opinions. Check the original reviews for context.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 #endif
                 if summary.positives.isEmpty && summary.concerns.isEmpty && canRetry && !loadingDetails {
-                    Button("Retry summary", action: retry).buttonStyle(PillStyle()).disabled(checkingRatings || retrying)
+                    Button("Retry summary", action: retry).buttonStyle(StickerButtonStyle(kind: .secondary)).disabled(checkingRatings || retrying)
                 }
             } else {
                 Text(summaryStatus)
                     .font(.system(size: 14)).foregroundStyle(Palette.secondary).lineSpacing(4)
                 if canRetry && !loadingDetails && (professor.summaryIssue != nil || detailCancelled) {
                     Button(professor.reviewIssue != nil ? "Retry report" : "Retry summary", action: retry)
-                        .buttonStyle(PillStyle()).disabled(retrying || (professor.profile?.reviews.isEmpty ?? true))
+                        .buttonStyle(StickerButtonStyle(kind: .secondary)).disabled(retrying || (professor.profile?.reviews.isEmpty ?? true))
                     if professor.summaryIssue != nil { Button("Apple Intelligence settings") {
                         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Siri-Settings.extension")!)
                     }.buttonStyle(TextLinkStyle()) }
                 }
             }
-        }.sunkenPanel(padding: 25)
+        }.sunkenPanel(padding: 20)
     }
     /// Opens on this course when a downloaded review is about it, otherwise on all courses.
     private func applyPreferredFilter() {
@@ -167,8 +221,8 @@ struct ProfessorReport: View {
         }
     }
     private var studentReviews: some View {
-        VStack(alignment: .leading, spacing: 17) {
-            Eyebrow(title: "Student reviews")
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Rate My Professors reviews").font(BYEFont.display(19, bold: true)).accessibilityAddTraits(.isHeader)
             if !professor.reviewsComplete {
                 HStack(alignment: .top, spacing: 8) {
                     if loadingDetails { ProgressView().controlSize(.small) }
@@ -176,7 +230,7 @@ struct ProfessorReport: View {
                         .font(.system(size: 11)).foregroundStyle(Palette.secondary).lineSpacing(4)
                 }
                 if canRetry && !loadingDetails && (professor.reviewIssue != nil || detailCancelled) {
-                    Button(professor.reviewIssue != nil ? "Retry reviews" : "Load more reviews") { model.retryReviews(id: professor.id) }.buttonStyle(PillStyle())
+                    Button(professor.reviewIssue != nil ? "Retry reviews" : "Load more reviews") { model.retryReviews(id: professor.id) }.buttonStyle(StickerButtonStyle(kind: .secondary))
                 }
             }
             HStack {
@@ -213,7 +267,7 @@ struct ProfessorReport: View {
                 }
                 if !filterFinished {
                     Button("Find more for this class") { model.findMoreReviews(id: professor.id, filter: reviewFilter) }
-                        .buttonStyle(PillStyle()).disabled(model.busy || model.loadingDetailsID != nil)
+                        .buttonStyle(StickerButtonStyle(kind: .secondary)).disabled(model.busy || model.loadingDetailsID != nil)
                     Text(reviewFilter == .thisCourse ? "Requests equivalent course labels reported by this professor’s RMP profile." : "Requests this class label from RMP. Reviews for other classes and overall scores stay separate.")
                         .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 } else {
@@ -222,21 +276,31 @@ struct ProfessorReport: View {
                 }
             }
             if reviews.isEmpty { Text("No review text available for this filter.").font(.system(size: 14)).foregroundStyle(Palette.secondary).padding(.vertical, 10) }
-            ForEach(Array(reviews.prefix(reviewLimit))) { review in
-                ReviewCard(review: review, sourceURL: professor.sourceURL)
+            // Two columns once the page is wide enough; changing the sort glides each review to its new place.
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 320), spacing: 12, alignment: .top)], alignment: .leading, spacing: 12) {
+                ForEach(Array(reviews.prefix(reviewLimit))) { review in
+                    ReviewCard(review: review, sourceURL: professor.sourceURL)
+                }
             }
+            .animation(BYEMotion.spring(reduce: reduceMotion), value: reviews.prefix(reviewLimit).map(\.id))
             if reviews.count > reviewLimit {
-                Button("View more reviews") { reviewLimit += 5 }.buttonStyle(PillStyle()).frame(maxWidth: .infinity)
+                Button("View more reviews") { reviewLimit += 5 }.buttonStyle(StickerButtonStyle(kind: .secondary)).frame(maxWidth: .infinity)
             }
             Text("Excerpts from accessible reviews, not the complete RMP review history. Dates indicate when reviews were posted.")
                 .font(.system(size: 11)).foregroundStyle(Palette.secondary).lineSpacing(4)
         }
     }
+    /// Every section this professor teaches; ones that miss the picked filters are tagged "Other days".
+    private var allSections: [ClasswiseCore.Section] {
+        model.professors.first { $0.id == professor.id }?.sections ?? professor.sections
+    }
     private var sections: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(title: "PCC class sections")
-            ForEach(professor.sections) { ClassCard(section: $0) }
-            if let scheduleURL { Link("PCC schedule ↗", destination: scheduleURL).buttonStyle(PillStyle()) }
+            (Text("Sections ") + Text("· \(allSections.count)").foregroundStyle(Palette.secondary))
+                .font(BYEFont.display(19, bold: true)).accessibilityAddTraits(.isHeader)
+            ForEach(allSections) { section in
+                ClassCard(section: section, matches: (!model.onlineOnly || section.fullyOnline) && section.fits(availableDays: model.availableDays))
+            }
         }
     }
 }

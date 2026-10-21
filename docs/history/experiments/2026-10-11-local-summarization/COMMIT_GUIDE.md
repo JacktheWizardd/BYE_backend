@@ -37,7 +37,7 @@ git add -A -- .gitignore AGENTS.md README.md \
   Tests/ClasswiseCoreTests/ScheduleAvailabilityTests.swift \
   scripts/build-test-app.sh test/README.md \
   benchmarks/datasets/bye-summary-2026-10-11/README.md \
-  docs/experiments/2026-10-11-local-summarization/COMMIT_GUIDE.md
+  docs/history/experiments/2026-10-11-local-summarization/COMMIT_GUIDE.md
 git diff --cached --stat
 git diff --cached --check
 ```

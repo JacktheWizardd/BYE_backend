@@ -1,5 +1,7 @@
 # BYE review database explained
 
+> October 20, 2026: a private-mailbox replacement is implemented locally but has not been migrated or deployed. See [private review verification](private-review-verification.md) for the staged migration and operator workflow. The email Auth explanations below describe the deployed legacy system.
+
 What we built and what happens next | October 16 2026
 
 BYE now has a working database for its own professor reviews. We loaded the PCC professor and course lists, added rules for submitting and reporting reviews, tested those rules, and removed the test data. The website login, review reading, submission and reporting are implemented locally. Jack completed a real email-code submission and we verified its saved answers. Hosted deployment remains pending.

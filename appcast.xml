@@ -3,6 +3,15 @@
   <channel>
     <title>BYE Updates</title>
     <item>
+      <title>BYE 0.4.1</title>
+      <pubDate>Wed, 21 Oct 2026 06:15:00 GMT</pubDate>
+      <sparkle:version>9</sparkle:version>
+      <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description>&lt;ul&gt;&lt;li&gt;&lt;strong&gt;BYE has been retired, and this is its final version.&lt;/strong&gt; BYE no longer connects to the internet: class searches, professor ratings and reviews, and update checks are all turned off. The app opens to a short notice instead of search. Thanks to everyone who tested BYE.&lt;/li&gt;&lt;li&gt;BYE won’t check for or install any more updates after this one. You can quit BYE Beta and move it to the Trash whenever you like.&lt;/li&gt;&lt;/ul&gt;</description>
+      <enclosure url="https://bye-before-you-enroll.pages.dev/updates/BYE-0.4.1-AppleSilicon.zip" length="2257655" type="application/octet-stream" sparkle:edSignature="fbGdC6yPL1UoORkBm16vblTeg+hWTnVKpLTu5upePzNZhR1YcTceaKnukG9104ZfjuFWsGMVJa4m6mR1Xhl2CQ==" />
+    </item>
+    <item>
       <title>BYE 0.4.0-beta.1</title>
       <pubDate>Thu, 15 Oct 2026 07:13:36 GMT</pubDate>
       <sparkle:version>8</sparkle:version>

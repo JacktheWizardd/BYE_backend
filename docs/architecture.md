@@ -4,6 +4,10 @@ This guide describes existing client boundaries. The owner has agreed to [one Re
 
 ## Current application boundaries
 
+Current main retires the legacy applications and disables their network/update
+features. The retained source inventory below does not indicate active access
+or authorize reactivation; the new shared app remains a separate preview trial.
+
 ### Native macOS application (primary Mac track)
 
 - `Package.swift` defines the Swift executable target `Classwise`, the `ClasswiseCore` domain target, the `BYEAPI` library target, and associated tests.

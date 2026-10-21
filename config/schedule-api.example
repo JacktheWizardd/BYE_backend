@@ -1,0 +1,6 @@
+# Copy to config/schedule-api.local (ignored by Git) and paste the BYE application key
+# from the owner dashboard. The key starts with bye_pk_ and identifies the app, not a student.
+# Never use a Supabase publishable or secret key, a service-role JWT or a job token here.
+KEY=bye_pk_paste_the_key_from_the_dashboard
+# Optional: another schedule API base (https, or http on localhost for fixtures).
+# URL=https://nahvhampsxtasfwvvfei.supabase.co/functions/v1/bye-schedule-api

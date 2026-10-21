@@ -1,20 +1,13 @@
-# BYE Beta 0.4.0-beta.1
+# BYE Beta 0.4.1
 
-Find PCC classes that fit your available days and compare professor ratings and original student reviews.
+BYE has been retired. This final version turns off every network feature.
 
-**Download `BYE-0.4.0-beta.1-AppleSilicon.dmg` from this release’s Assets.** The `BYE-0.4.0-beta.1-AppleSilicon.zip` file is the in-app update package; you do not need to download it. The source-code ZIP and tar.gz files are for developers, not installers. The `.sha256` assets contain SHA-256 checksums.
+**Download `BYE-0.4.1-AppleSilicon.dmg` from this release’s Assets.** The `BYE-0.4.1-AppleSilicon.zip` file is the in-app update package; you do not need to download it. The source-code ZIP and tar.gz files are for developers, not installers. The `.sha256` assets contain SHA-256 checksums.
 
 ## What changed
 
-- **A new look.** BYE is redesigned around a warm ivory page, black type and buttons, and one yellow highlight. Headlines and scores use Libre Baskerville, and the app has a new wordmark icon.
-- **More about each class.** Class cards now show the format (in person, hybrid, online live or online async), the term (full term or 8-week sessions), the campus, units, and open seats with the waitlist, all from PCC’s schedule. Full sections are marked.
-- **Clearer filters.** Pick class days with one-tap day buttons: BYE shows classes that meet on every day you pick (picking Monday shows all Monday classes; Monday and Tuesday shows classes that meet on both). Fully online classes still show. Turn on “Fully online only” from the search screen or the results sidebar.
-- **Results open on a course overview.** Instead of jumping straight to one professor, BYE shows the class at a glance (sections, professors, open seats, formats and terms) and lets you pick who to look at.
-- **Reviews open on something useful.** When none of a professor’s downloaded reviews mention the class you searched, the report shows reviews from all their courses, with a one-tap way to look for reviews of your class.
-- Rating bars and the progress bar while ratings load are shown in yellow. BYE doesn’t label any professor as the best pick; you compare and decide.
-- Fixes: new course numbers like STAT C1000 no longer show as "STATC 1000"; hybrid meeting times read clearly ("Online, no set meeting time", "Time TBA · R 218", "room TBA") instead of PCC's raw building codes; review text shows punctuation like — and & instead of codes such as `&#8212;`; course suggestions no longer push the Find button off-screen.
-- **In-app updates.** BYE Beta now checks for new versions about once a day and installs them when you quit. Every update is signature-checked before it installs. You can turn automatic checks off in Settings or use **Check for Updates…** in the app menu. (This shipped in 0.3.0-beta.5 on the BYE website and is new on GitHub.)
-- AI summaries stay paused, as in beta.4.
+- **BYE has been retired, and this is its final version.** BYE no longer connects to the internet: class searches, professor ratings and reviews, and update checks are all turned off. The app opens to a short notice instead of search. Thanks to everyone who tested BYE.
+- BYE won’t check for or install any more updates after this one. You can quit BYE Beta and move it to the Trash whenever you like.
 
 ## Install or update
 
