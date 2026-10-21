@@ -173,15 +173,13 @@ Development principles include:
 
 Existing tests and audits document specific protections; they are not a guarantee that the application is free of vulnerabilities.
 
-## Cross-platform direction (proposal, October 20, 2026)
+## Agreed shared application architecture
 
-BYE is evaluating a move from independent Windows Electron/React and macOS SwiftUI frontends toward **one shared React + TypeScript application**. This is a proposal, **not an implemented framework migration**. The existing Windows v3 redesign is the working reference; the macOS app and its update flow remain supported in their current form while alternatives are tested.
+React + TypeScript is the shared frontend; Tauri 2 is the desktop candidate and Capacitor follows desktop validation. Electron is legacy only, with no role or fallback in the target architecture.
 
-The proposed candidate is **Tauri 2 for Windows and macOS**, with **Capacitor considered later for iOS and Android**. Using shared React with Electron on both desktop systems is also an important lower-risk alternative. BYE will compare actual application behavior, startup/resource usage, native integration, accessibility, security, packaging, updates and rollback before selecting a runtime.
+BYE_website owns the shared frontend workspace and wrappers. BYE_Before_You_Enroll owns backend contracts and ultimately services. Repository names stay unchanged. Existing apps, server deployments and release tooling remain available through validation.
 
-The project already shares React screens, domain helpers and tokens from `BYE_website` through a vendored snapshot in Windows. We are also evaluating whether to keep the two repositories with clearer versioned handoffs or eventually put client apps together in a single frontend workspace. **No repository consolidation, app replacement, AI reactivation or public rollout has been approved.** The schedule backend and student review service remain separate, and deployed API services do not mean all clients are integrated.
-
-See the [cross-platform migration proposal and repository options](docs/cross-platform-migration-proposal.md) and the [current UI parity record](docs/UI_PARITY.md).
+See the [migration sequence and acceptance gates](docs/cross-platform-migration-proposal.md). Backend relocation follows actual Windows and Mac preview acceptance. No merge, production deployment, release or legacy removal is authorized.
 
 ## Documentation
 

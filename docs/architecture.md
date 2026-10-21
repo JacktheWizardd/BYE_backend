@@ -1,6 +1,6 @@
 # BYE architecture
 
-This guide describes the currently checked-in **client application** boundaries. For the October 20, 2026 proposal to consolidate desktop UI and revisit repository layout, see [cross-platform migration proposal](cross-platform-migration-proposal.md). **The proposed Tauri/Capacitor architecture is not implemented.** For delivered backend behavior see the [schedule API documentation](../services/schedule-api/docs/README.md) and [review launch record](review-launch-record.md); older sections below describe the legacy client integrations.
+This guide describes existing client boundaries. The owner has agreed to [one React/TypeScript frontend, Tauri desktop trial, later Capacitor and frontend/backend ownership](cross-platform-migration-proposal.md). The architecture decision is accepted; actual replacement is gated on validation. Current source and deployed behavior must be verified separately.
 
 ## Current application boundaries
 
@@ -55,7 +55,7 @@ The Mac beta uses Sparkle with an EdDSA-verified update feed hosted on the separ
 
 The hosted PCC schedule API has been deployed separately from the student-review service. The BYE student review submission flow is live on the website, while the Windows and macOS desktop clients have not yet completed migration to the centralized schedule API. The native `BYEAPI` RMP client remains a Swift library, not a hosted BYE API. Do not assume that deployed backend functionality automatically replaces direct PCC/RMP access or existing app caches.
 
-For the next desktop architecture, the shared React frontend is a **candidate** to replace duplicated SwiftUI/Electron feature screens; Tauri for desktop and Capacitor for future mobile remain evaluation options. Keep existing releases and backend boundaries during the proof of concept.
+The target uses one React/TypeScript application in BYE_website, with Tauri 2 as the desktop candidate and Capacitor later. Electron has no role in that target. BYE_Before_You_Enroll owns backend contracts and ultimately server services; actual backend relocation follows Windows and Mac trial acceptance. Preserve legacy apps and release channels until replacement and rollback gates pass.
 
 ## Historical proposals (some now delivered)
 

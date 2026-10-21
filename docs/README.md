@@ -15,12 +15,10 @@ does not mean the clients have been connected.
 | [API commit preparation](../services/schedule-api/docs/commit-guide.md) | Pending change groups, checks and ready-to-paste Summary/Description |
 | [API and external integrations](api.md) | Distinguish the hosted schedule service, direct client integrations and RMP module |
 
-## Cross-platform architecture decision (proposed)
+## Shared application architecture
 
-- [Cross-platform consolidation and repository options](cross-platform-migration-proposal.md) — why Windows/macOS UI drift matters, the Tauri/Electron/Capacitor alternatives, shared-code plan, benchmarks, safety gates, and the open repository-layout decision.
-- [UI parity map](UI_PARITY.md) — what currently differs among web, Windows, and native Mac, before any migration.
-
-The proposal does **not** assert that Tauri, Capacitor, a new monorepo, or new AI features have been implemented. The existing apps and release channels remain unchanged.
+- [Agreed migration and acceptance gates](cross-platform-migration-proposal.md) — React/TypeScript, Tauri desktop candidate, later Capacitor, frontend/backend ownership and gated cutover. Electron is legacy only.
+- [Existing UI parity](UI_PARITY.md) — legacy platform differences to validate before replacement.
 
 ## Application development
 
