@@ -56,4 +56,7 @@ Canonical web frontend, React components, shared domain helpers and design token
 
 ## Phase 1 result and limits
 
+For the subsequent physical record moves, exact old-to-new mapping, compatibility
+pointers, checks and deferred work, see [Phase 2 cleanup](maintenance/phase-2-cleanup.md).
+
 This phase is an **index and archive classification**, not a source tree restructure: no tracked application files have been deleted, moved or renamed; no configuration, endpoint, database migration, dependency, user data, build, release, or Cloudflare/Supabase deployment has changed. Future cleanup batches must carry their own verification and rollback notes.
