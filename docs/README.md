@@ -1,6 +1,10 @@
 # BYE documents
 
-Start with an area below. Each overview explains **what we built, why we chose it, how it works, and what remains**. These are private engineering documents, not release announcements.
+This repository owns backend contracts and the standalone schedule service;
+`BYE_website` owns the shared frontend and Tauri preview. Website API and source
+Worker implementations remain there during the transition. Start with the
+[current repository map](REPOSITORY_MAP.md) and [contract workspace](../packages/api-contracts/README.md).
+Backend deployment does not imply that legacy clients have been connected.
 
 | Area | What you will find |
 | --- | --- |
@@ -13,7 +17,12 @@ Start with an area below. Each overview explains **what we built, why we chose i
 | [AI experiments](experiments/README.md) | Preserved summary research; AI summaries remain disabled |
 | [Verification records](verification/README.md) | Dated test evidence and its limitations |
 
-For current implementation, start with [Project status](project/PROJECT_STATUS.md). For future capabilities, see the [roadmap](project/roadmap.md). Dated evidence describes the version tested at that time; implementation, deployment and release are separate milestones.
+## Shared application architecture
+
+- [Agreed migration and acceptance gates](cross-platform-migration-proposal.md) — React/TypeScript, Tauri desktop candidate, later Capacitor, frontend/backend ownership and gated cutover. Electron is legacy only.
+- [Existing UI parity](windows/UI_PARITY.md) — legacy platform differences to validate before replacement.
+
+## Application development
 
 The [sibling website documentation](../../BYE_website/docs/README.md) owns the landing page, browser app, shared React packages and public review routes. Service-specific docs remain [beside the schedule API](../services/schedule-api/docs/README.md); app and package READMEs remain beside their code.
 

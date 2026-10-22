@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import type { UpdateCheck } from '../../../shared/app'
+import type { ByeNumber, UpdateCheck } from '../../../shared/app'
+import { ByeNumberForm, numberLabel } from './number'
 import { Segmented } from '../../../../vendor/bye-shared/ui'
 import { NAME_LIMIT, validName } from './types'
 
 export type SettingsTab = 'general' | 'updates' | 'about'
 // Settings: your name, the update check (Windows checks the BYE website when you ask), and about.
-export function SettingsSheet({ open, tab, setTab, name, version, onClose, onSaveName, onWelcome }: {
-  open: boolean; tab: SettingsTab; setTab: (t: SettingsTab) => void; name: string; version: string
-  onClose: () => void; onSaveName: (name: string) => Promise<void>; onWelcome: () => void
+export function SettingsSheet({ open, tab, setTab, name, version, number, onClose, onSaveName, onNumber, onWelcome }: {
+  open: boolean; tab: SettingsTab; setTab: (t: SettingsTab) => void; name: string; version: string; number?: ByeNumber
+  onClose: () => void; onSaveName: (name: string) => Promise<void>; onNumber: (n: ByeNumber) => void; onWelcome: () => void
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [draft, setDraft] = useState(name), [note, setNote] = useState(''), [bad, setBad] = useState(false)
@@ -38,6 +39,16 @@ export function SettingsSheet({ open, tab, setTab, name, version, onClose, onSav
           <button className="pill" type="submit">Save</button>
         </form>
         <p id="settings-name-note" className={`small ${bad ? 'signal' : 'muted'}`} role="status">{note || 'Stays on this computer.'}</p>
+        {/* The student's BYE number, or the optional way to get one (as in the Mac's Settings). */}
+        <h3 className="field-label settings-number">Your BYE number</h3>
+        {number ? <>
+          <p className="number-badge" aria-label={`BYE number ${number.number}, student ${number.number} of ${number.total}`}>
+            <span className="mono">{numberLabel(number)}</span><span className="muted small">· Student {number.number} of {number.total}</span></p>
+          <p className="muted small">Linked to your school email, so it stays yours on any computer.</p>
+        </> : <>
+          <p className="muted small">Optional and just for fun: verify your PCC school email to get your own number on your student card. BYE keeps your school email and number.</p>
+          <ByeNumberForm onNumber={onNumber} />
+        </>}
         <button className="text-link" onClick={onWelcome}>Show welcome again</button>
       </>}
       {tab === 'updates' && <>

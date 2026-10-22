@@ -1,0 +1,18 @@
+{
+  "about": "Collectible stamp tier for a BYE review, from its ID only (never its scores). FNV-1a 32-bit over UTF-16 code units, then h % 100: <2 legendary, <8 epic, <20 rare, <45 uncommon, else common. TypeScript: stampTier(id).",
+  "cases": [
+    { "id": "11111111-1111-4111-8111-000000000000", "expected": "uncommon" },
+    { "id": "11111111-1111-4111-8111-000000000001", "expected": "epic" },
+    { "id": "11111111-1111-4111-8111-000000000002", "expected": "common" },
+    { "id": "11111111-1111-4111-8111-000000000003", "expected": "uncommon" },
+    { "id": "11111111-1111-4111-8111-000000000004", "expected": "common" },
+    { "id": "11111111-1111-4111-8111-000000000010", "expected": "rare" },
+    { "id": "11111111-1111-4111-8111-000000000015", "expected": "rare" },
+    { "id": "11111111-1111-4111-8111-000000000020", "expected": "epic" },
+    { "id": "11111111-1111-4111-8111-000000000070", "expected": "legendary" },
+    { "id": "11111111-1111-4111-8111-000000000091", "expected": "legendary" },
+    { "id": "bye-51-0", "expected": "rare" },
+    { "id": "", "expected": "common" },
+    { "id": "é-review", "expected": "common" }
+  ]
+}

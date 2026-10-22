@@ -1,15 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Snapshot, Term, Weekday } from '../../shared/types'
-import type { AppSettings } from '../../shared/app'
+import type { AppSettings, ByeNumber } from '../../shared/app'
 import { WEEKDAYS, displayTitle, filterSections, orderProfessors } from '../../../vendor/bye-shared/core/domain'
 import { SurfaceProvider, type ReportState } from '../../../vendor/bye-shared/ui'
-import { AI_SUMMARIES_ENABLED } from '../../shared/features'
+import { AI_SUMMARIES_ENABLED, NETWORK_ENABLED } from '../../shared/features'
 import { CommandMenu, type Action } from './app/command-menu'
 import { confetti } from './app/confetti'
 import { Home } from './app/home'
 import { Onboarding } from './app/onboarding'
 import { Results } from './app/results'
+import { Retired } from './app/retired'
 import { SettingsSheet, type SettingsTab } from './app/settings-sheet'
 import { isMac, shortcut, type Run } from './app/types'
 import '../../../vendor/bye-shared/ui/styles.css'
@@ -45,7 +46,11 @@ function App() {
   }
   useEffect(() => {
     const unsubscribe = window.bye.subscribe(setState); void loadTerms()
-    window.byeApp.getSettings().then(s => { setSettings(s); setOnboarding(!s.onboarded) }).catch(() => setSettings({ name: '', onboarded: true, recent: [] }))
+    window.byeApp.getSettings().then(s => {
+      setSettings(s); setOnboarding(!s.onboarded)
+      // Keeps "Student 12 of 40" current (main checks at most once a day).
+      if (s.byeNumber) window.byeApp.refreshNumberTotal().then(setSettings).catch(() => {})
+    }).catch(() => setSettings({ name: '', onboarded: true, recent: [] }))
     window.byeApp.info().then(i => setVersion(i.version)).catch(() => {})
     return unsubscribe
   }, [])
@@ -144,9 +149,13 @@ function App() {
 
 
   if (!settings) return <div className="app-loading" aria-busy="true" />
-  if (onboarding) return <Onboarding initialName={settings.name} term={termName} onDone={async name => {
-    await save({ name, onboarded: true }); setOnboarding(false); setView('home'); setHomeFocus(n => n + 1); confetti()
-  }} />
+  // Main saves a confirmed number itself; the renderer only mirrors it.
+  const gotNumber = (byeNumber: ByeNumber) => setSettings(s => s && { ...s, byeNumber })
+  if (onboarding) return <Onboarding initialName={settings.name} term={termName} number={settings.byeNumber}
+    onName={async name => { await save({ name }) }}
+    // A new number gets its confetti the moment it arrives; skipping gets it on the way in.
+    onNumber={n => { gotNumber(n); confetti() }}
+    onDone={celebrate => { void save({ onboarded: true }).catch(() => {}); setOnboarding(false); setView('home'); setHomeFocus(n => n + 1); if (celebrate) confetti() }} />
   const active = navTarget ?? (view === 'home' ? 'home' : course?.display ?? '')
   const reportRun: Run = command => { if (!liveMatches && command.kind !== 'stop') { setError('This saved class is reconnecting. Retry the search before requesting more data.'); return }; run(command) }
   return <SurfaceProvider demo={false}><div className="app-frame">
@@ -161,8 +170,8 @@ function App() {
             selected={selected} select={id => { setSelected(id); setError('') }} run={reportRun} reportState={reportState} saveReport={saveReport} refresh={() => course && search(true, course.display)} changeSearch={goHome} stop={stop} error={error} />}
     </main>
     <CommandMenu open={menu} termCode={termCode} recent={settings.recent} onClose={() => setMenu(false)} onClass={display => openClass(display,termCode)} onAction={action} />
-    <SettingsSheet open={sheet} tab={tab} setTab={setTab} name={settings.name} version={version} onClose={() => setSheet(false)}
-      onSaveName={async name => { await save({ name }) }} onWelcome={() => action('welcome')} />
+    <SettingsSheet open={sheet} tab={tab} setTab={setTab} name={settings.name} version={version} number={settings.byeNumber} onClose={() => setSheet(false)}
+      onSaveName={async name => { await save({ name }) }} onNumber={n => { gotNumber(n); confetti() }} onWelcome={() => action('welcome')} />
   </div></SurfaceProvider>
 }
 
@@ -193,4 +202,5 @@ function Sidebar({ name, recent, active, onHome, onClass, onMenu, onRemove, onSe
   </aside>
 }
 
-createRoot(document.getElementById('root')!).render(<App />)
+// The final release shows only the retired notice; App (and its PCC/RMP requests) never mounts.
+createRoot(document.getElementById('root')!).render(NETWORK_ENABLED ? <App /> : <Retired />)

@@ -2,6 +2,8 @@
 // Copies the shared BYE packages from the website repository into the Windows app:
 //   ../BYE_website/packages/{tokens,core,ui}  ->  apps/cross-platform/vendor/bye-shared/
 //   ../BYE_website/public/fonts (Schibsted Grotesk, JetBrains Mono woff2) -> vendor/bye-shared/fonts/
+// and the Mac app's tokens:
+//   ../BYE_website/packages/tokens/generated/BYETokens.swift  ->  Sources/Classwise/Views/BYETokens.swift
 // and records the website commit in vendor/bye-shared/SOURCE.json. The website is the source of truth for these
 // files: edit them there, commit, then run `node scripts/sync-bye-shared.mjs` here. Never edit vendor/ by hand.
 // Usage: node scripts/sync-bye-shared.mjs [path-to-website] [--allow-dirty]
@@ -28,9 +30,11 @@ await rm(target, { recursive: true, force: true })
 for (const name of packages) await cp(path.join(website, 'packages', name), path.join(target, name), { recursive: true })
 await mkdir(path.join(target, 'fonts'), { recursive: true })
 for (const font of fonts) await cp(path.join(website, 'public', 'fonts', font), path.join(target, 'fonts', font))
+// The Mac app compiles its own copy; TokenDriftTests checks it against the vendored one.
+await cp(path.join(target, 'tokens', 'generated', 'BYETokens.swift'), path.join(repo, 'Sources', 'Classwise', 'Views', 'BYETokens.swift'))
 await writeFile(path.join(target, 'SOURCE.json'), JSON.stringify({
   about: 'Copied from the BYE website repository by scripts/sync-bye-shared.mjs. Do not edit; change the website and sync again.',
   repository: 'JacktheWizardd/BYE_website', branch, commit, uncommittedChanges: Boolean(dirty), packages, fonts,
 }, null, 2) + '\n')
 const count = async dir => (await readdir(dir, { recursive: true, withFileTypes: true })).filter(e => e.isFile()).length
-console.log(`Synced ${await count(target)} files from BYE_website ${branch}@${commit.slice(0, 7)}${dirty ? ' (with uncommitted changes)' : ''} into apps/cross-platform/vendor/bye-shared.`)
+console.log(`Synced ${await count(target)} files from BYE_website ${branch}@${commit.slice(0, 7)}${dirty ? ' (with uncommitted changes)' : ''} into apps/cross-platform/vendor/bye-shared and Sources/Classwise/Views/BYETokens.swift.`)

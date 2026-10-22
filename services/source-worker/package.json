@@ -1,0 +1,10 @@
+{
+  "name": "@bye/source-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@bye/contracts": "workspace:*",
+    "@bye/source-domain": "workspace:*"
+  }
+}

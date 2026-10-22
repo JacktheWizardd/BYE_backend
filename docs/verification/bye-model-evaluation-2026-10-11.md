@@ -10,7 +10,7 @@ The isolated comparison uses all twelve pinned GGUF variants, llama.cpp b11559 w
 
 The mandatory installed `.app` logical-size cap is strictly below **1,500,000,000 bytes**. Model weights, compressed ZIP size, allocated blocks, runtime RSS and physical footprint are separate measurements.
 
-The GitHub-ready [experiment record](../experiments/2026-10-11-local-summarization/README.md) includes the process, [recorded results](../experiments/2026-10-11-local-summarization/RESULTS.md), and [numeric data](../experiments/2026-10-11-local-summarization/data/README.md).
+The GitHub-ready [experiment record](../history/experiments/2026-10-11-local-summarization/README.md) includes the process, [recorded results](../history/experiments/2026-10-11-local-summarization/RESULTS.md), and [numeric data](../history/experiments/2026-10-11-local-summarization/data/README.md).
 
 Complete raw evidence remains in ignored `.local-docs/model-eval-2026-10-11/20261012T040851Z/`, with per-case judgments, raw outputs, events and resource logs. The separate local archive is `.local-docs/experiment-records/2026-10-11-bye-local-models/`. See the [tooling README](../../benchmarks/model-eval/README.md) and [conditional integration proposal](../../benchmarks/model-eval/production-integration-proposal.md).
 

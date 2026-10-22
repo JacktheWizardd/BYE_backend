@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, session, shell } from 'electron'
 import path from 'node:path'
 import { Engine } from './engine'
 import { Store } from './storage'
@@ -8,6 +8,10 @@ import { reviewURL } from '../shared/domain'
 import { SettingsStore, checkForUpdate, isUpdateLink } from './settings'
 import { SchedulePoll } from './schedule-poll'
 import type { ByeReviewProvider } from './bye-reviews'
+import { ByeNumberClient, refreshedNumber } from './bye-numbers'
+import { NETWORK_ENABLED, NETWORK_RETIRED_MESSAGE } from '../shared/features'
+// Commands that would reach PCC or RMP. The final release refuses them in the main process, whatever the renderer sends.
+export const NETWORK_COMMANDS: ReadonlySet<Command['kind']> = new Set(['terms', 'suggest', 'search', 'retry', 'discover', 'select', 'details', 'summary', 'source'])
 function validate(raw: unknown): Command {
   if (!raw || typeof raw !== 'object') throw new Error('Unsupported command.')
   const c = raw as Record<string, unknown>, kinds = ['terms', 'suggest', 'search', 'stop', 'retry', 'discover', 'dismiss', 'summary', 'select', 'details', 'source', 'byeReviews', 'scheduleView']
@@ -29,7 +33,7 @@ function validate(raw: unknown): Command {
 
 export interface StartupOptions {
   storage: string; preload: string; renderer: string; rendererURL?: string
-  pcc: Engine['pcc']; rmp: Engine['rmp']; ai: SummaryProvider; bye?: ByeReviewProvider
+  pcc: Engine['pcc']; rmp: Engine['rmp']; ai: SummaryProvider; bye?: ByeReviewProvider; numbers?: ByeNumberClient
   beforeWindow?: () => void
 }
 // Shared internal startup keeps verification on the production security and IPC path.
@@ -39,6 +43,7 @@ export function startApplication(options: StartupOptions) {
   const ai = options.ai
   const settings = new SettingsStore(path.join(options.storage, 'settings.json'))
   let offeredDownload = ''
+  const numbers = options.numbers ?? new ByeNumberClient()
   const engine = new Engine(options.pcc, options.rmp, new Store(path.join(options.storage, 'reports')), ai, state => window?.webContents.send('bye:state', state), undefined, options.bye)
   let viewActive = false, visibleCRNs: string[] = []
   const poll = new SchedulePoll(signal => engine.refreshSchedule(visibleCRNs,signal))
@@ -59,18 +64,49 @@ export function startApplication(options: StartupOptions) {
   }
   const trusted = (event: Electron.IpcMainInvokeEvent) => { if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) throw new Error('Untrusted command sender.') }
   app.whenReady().then(() => {
+    if (!NETWORK_ENABLED) {
+      // Defense in depth: cancel any http(s) request from the app's own window session (the packaged UI loads from file://).
+      session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (details, callback) => {
+        callback({ cancel: !(options.rendererURL && details.url.startsWith(options.rendererURL)) })
+      })
+    }
     // App preferences and the on-demand update check. Settings stay on this PC; the update check is the only new network request.
     ipcMain.handle('bye:app:info', event => { trusted(event); return { version: app.getVersion() } })
     ipcMain.handle('bye:settings:get', event => { trusted(event); return settings.get() })
     ipcMain.handle('bye:settings:set', (event, raw) => { trusted(event); return settings.set(raw) })
+    // BYE number: email a code, verify it, claim the number. Main keeps only the number and total; the email and the
+    // website session never reach the settings file.
+    ipcMain.handle('bye:number:send', async (event, email) => {
+      trusted(event)
+      if (!NETWORK_ENABLED) return { ok: false, message: NETWORK_RETIRED_MESSAGE }
+      return numbers.sendCode(email)
+    })
+    ipcMain.handle('bye:number:verify', async (event, email, code) => {
+      trusted(event)
+      if (!NETWORK_ENABLED) return { ok: false, message: NETWORK_RETIRED_MESSAGE }
+      const result = await numbers.verify(email, code)
+      if (result.ok) await settings.set({ byeNumber: result.number, byeNumberCheckedAt: new Date().toISOString() }, 'main')
+      return result
+    })
+    // Keeps "Student 12 of 40" current, at most once a day. Sends nothing about the student.
+    ipcMain.handle('bye:number:refresh', async event => {
+      trusted(event)
+      const current = await settings.get(), checked = Date.parse(current.byeNumberCheckedAt ?? '')
+      if (!NETWORK_ENABLED || !current.byeNumber || (Number.isFinite(checked) && Date.now() - checked < 86_400_000)) return current
+      await settings.set({ byeNumberCheckedAt: new Date().toISOString() }, 'main')
+      const updated = refreshedNumber(current.byeNumber, await numbers.total())
+      return updated ? settings.set({ byeNumber: updated }, 'main') : settings.get()
+    })
     ipcMain.handle('bye:update:check', async event => {
       trusted(event)
+      if (!NETWORK_ENABLED) { offeredDownload = ''; return { status: 'error', version: app.getVersion(), message: NETWORK_RETIRED_MESSAGE } }
       const result = await checkForUpdate(app.getVersion())
       offeredDownload = result.status === 'available' ? result.downloadUrl : ''
       return result
     })
     ipcMain.handle('bye:update:open', async (event, raw) => {
       trusted(event)
+      if (!NETWORK_ENABLED) throw new Error(NETWORK_RETIRED_MESSAGE)
       // Opens only the link the last check returned, and only on the BYE website.
       if (typeof raw !== 'string' || raw !== offeredDownload || !isUpdateLink(raw)) throw new Error('Check for updates first.')
       await shell.openExternal(raw)
@@ -78,6 +114,7 @@ export function startApplication(options: StartupOptions) {
     ipcMain.handle('bye:command', async (event, raw) => {
       trusted(event)
       const c = validate(raw)
+      if (!NETWORK_ENABLED && NETWORK_COMMANDS.has(c.kind)) throw new Error(NETWORK_RETIRED_MESSAGE)
       switch (c.kind) {
         case 'terms': return engine.pcc.terms()
         case 'suggest': return engine.pcc.suggest(c.term, c.query)

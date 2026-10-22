@@ -89,7 +89,7 @@ test('0.4.0 section details, meeting places, day filter and format labels match 
   assert.equal(fits(hybrid, WEEKDAYS.map(d => d.key).filter(d => !hybrid.days!.includes(d)).slice(0, 1)), false)
   const unscheduled = { ...hybrid, formats: ['LE'], days: [] }
   assert.equal(fits(unscheduled, ['Mon']), false); assert.equal(scheduleNotAnnounced(unscheduled), true)
-  assert.equal(formatLabel({ ...hybrid, formats: ['OL'] }), 'Online · live'); assert.equal(formatLabel({ ...hybrid, formats: ['LE'] }), 'In person')
+  assert.equal(formatLabel({ ...hybrid, formats: ['OL'] }), 'Online · live'); assert.equal(formatLabel({ ...hybrid, formats: ['LE'] }), 'In person'); assert.equal(formatLabel({ ...hybrid, formats: [] }), 'Format not announced')
   const row: Row = { subjCode: 'ETH', courseNumbDisplay: '014', crn: '1', pfaName: 'Ada Lovelace', schdCode: 'LE', monDay: 'M', wedDay: 'W', beginTime: '0800', endTime: '0925', bldgDesc: 'C', roomCode: '323',
     seatsAvail: '-2', maxEnrl: '40', waitCount: '6', waitCapacity: '10', ptrmDesc: 'Full term', campDesc: 'Main campus', creditHrLow: '3', subjDesc: 'Ethnic Studies' }
   const [ada] = professors([row, { ...row, pfaName: 'Grace Hopper', monDay: '', wedDay: '', friDay: 'F' }], course('ETH14'))

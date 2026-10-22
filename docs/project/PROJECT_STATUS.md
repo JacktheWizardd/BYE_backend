@@ -1,11 +1,19 @@
 # BYE development handoff
 
-**Documentation organization — October 20, 2026:** General guides now live in area folders under [Documents](../README.md). Service-owned guides, experiments and dated verification retain their ownership. This reorganization changes no application behavior or release state. See the [roadmap](roadmap.md) for future transfer/educational plans and disabled AI summaries.
+Updated October 20, 2026. Earlier dated entries remain historical records.
 
+## Native schedule integration — October 20, 2026
 
-Updated October 18, 2026. Earlier dated entries remain historical records.
+The native portion of schedule handoff `2497c4b` is now integrated locally on this
+Mac, with compilation, contract mapping, freshness and refresh-race corrections.
+The current SwiftUI design is preserved. The app requires a configured shared
+schedule API and never falls back to direct PCC after a service failure.
+See [Mac schedule integration](../mac-schedule-integration.md) for tests, local test-app
+acceptance, configuration, changed files and GitHub Desktop handoff. The compatible
+hosted rollout and production client configuration remain pending; nothing was
+committed, pushed, deployed or released by this task.
 
-## App redesign v3 — October 19, 2026 (in progress, not released)
+## App redesign v3 — October 19–20, 2026 (in progress, not released)
 
 The owner approved a playful, search-first redesign for both apps (interactive mockup: [design/app-mockup-v3.html](../design/app-mockup-v3.html); plan in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md`). The approach:
 - One token file (`BYE_website/packages/tokens/tokens.json`) drives the website, the web app, Windows and the Mac.
@@ -15,7 +23,24 @@ The owner approved a playful, search-first redesign for both apps (interactive m
 Progress:
 - Website Phases 1–2 are committed on the website branch `redesign/shared-foundations`.
 - Windows Phase 3 is on branch `redesign/windows-app-v3`: first run with the name and student ID card, sidebar frame, search-first home, Ctrl K command menu, settings with a check-only update, and the v3 results and professor page. The offline UI verification passes.
-- The Mac (Phase 4) has not started. Nothing is released; the Windows ZIP was not rebuilt.
+- The Mac (Phase 4) is implemented locally and uncommitted (October 20), matching the Windows polish where it differs from the mockup:
+  - shared tokens and motion that turn off with Reduce Motion;
+  - first run: welcome, then the name step with the student ID card and confetti;
+  - a sidebar frame with Search ⌘K, Home, Your classes and the profile row;
+  - a search-first Home and the ⌘K command menu;
+  - v3 results: "I'm free" day bubbles, Online only, segmented sort, sliding list highlight with ↑ ↓, and a neutral overview;
+  - a professor page that stays mounted with count-up scores, "Other days" section tags and two-column reviews;
+  - Settings as a sheet and as the ⌘, window.
+- On-device state (name, the finished welcome, up to five recent classes) uses `UserDefaults`; each recent class keeps its filters, open professor and review choices for the session.
+- Overview numbers, seat levels and status text moved into `ClasswiseCore` (`Presentation.swift`).
+- Checks: `swift test` 229 passed, including `TokenDriftTests`, `SharedVectorTests` (the shared vectors), `PresentationTests` and `AppRouteTests`. Each screen was rendered offscreen with fictional data and compared with the mockup. `test/BYE Test.app` was rebuilt and relaunched.
+- Not verified yet:
+  - motion, keyboard and VoiceOver passes in the real window;
+  - Instruments while scrolling;
+  - the Sparkle controls (test builds have no update feed);
+  - live results (the test app has no schedule service configured).
+- Sections without format codes now show "Format not announced" in every app and in the shared vector. The Windows vendored copy follows after the website commit and a sync (see [UI parity](../windows/UI_PARITY.md)).
+- Open: Codex review of the on-device preferences was requested. Nothing is committed or released; the Windows ZIP was not rebuilt.
 
 ## Windows API integration — October 20, 2026
 

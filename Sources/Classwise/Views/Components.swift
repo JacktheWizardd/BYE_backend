@@ -2,27 +2,31 @@ import SwiftUI
 import CoreText
 import ClasswiseCore
 
-// Colours from the BYE design system (light only): ivory and stone grounds, Jet Black type and
-// buttons, warm grey secondary text, and yellow reserved for the wordmark, rating bars and the progress meter.
+// Colours from the BYE design system (light only), read from the shared tokens in BYETokens.swift:
+// ivory and stone grounds, Jet Black type and buttons, warm grey secondary text, and restrained yellow.
+// Older names are kept so existing views read the tokens without a rename.
 enum Palette {
-    static let paper = Color(hex: 0xFAF8F3)
-    static let paper2 = Color(hex: 0xF2EEE6)
-    static let card = Color.white
-    static let tile = Color(hex: 0xEAE5DB)
-    static let tileLine = Color(hex: 0xDDD6C9)
-    static let ink = Color(hex: 0x161618)
-    static let secondary = Color(hex: 0x6B665E)
-    static let line = Color(hex: 0xE2DCD0)
-    static let lineStrong = Color(hex: 0x8C857A)
-    static let brandSoft = Color(hex: 0xEFE9DD)
-    static let highlight = Color(hex: 0xF2C14E)
-    static let signal = Color(hex: 0xB8401A)
+    static let paper = BYEColor.paper
+    static let paper2 = BYEColor.linen
+    static let card = BYEColor.card
+    static let tile = BYEColor.tile
+    static let tileLine = BYEColor.tileLine
+    static let ink = BYEColor.ink
+    static let body = BYEColor.ink2
+    static let secondary = BYEColor.ink3
+    static let line = BYEColor.line
+    static let lineStrong = BYEColor.lineStrong
+    static let brandSoft = BYEColor.brandSoft
+    static let highlight = BYEColor.accent
+    static let signal = BYEColor.signal
 }
 
-extension Color {
-    init(hex: UInt32) {
-        self.init(.sRGB, red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255, opacity: 1)
+extension View {
+    /// Applies token shadow layers in order (for example the hard `BYEShadow.sticker` offset).
+    func byeShadow(_ layers: [BYEShadowLayer]) -> some View {
+        layers.reduce(AnyView(self)) { view, layer in
+            AnyView(view.shadow(color: layer.color, radius: layer.radius, x: layer.x, y: layer.y))
+        }
     }
 }
 
@@ -52,28 +56,57 @@ enum BYEFont {
     static func mono(_ size: CGFloat) -> Font { .system(size: size, weight: .medium, design: .monospaced) }
 }
 
-struct PillStyle: ButtonStyle {
-    var primary = false
-    func makeBody(configuration: Configuration) -> some View { PillBody(configuration: configuration, primary: primary) }
-    private struct PillBody: View {
+/// The v3 pill: primary is Jet Black with a yellow offset shadow that turns yellow on hover;
+/// ghost is plain text that gains a stone fill on hover. Pressing pushes it into its shadow.
+struct StickerButtonStyle: ButtonStyle {
+    enum Kind { case primary, secondary, ghost }
+    var kind: Kind = .primary
+    func makeBody(configuration: Configuration) -> some View { StickerBody(configuration: configuration, kind: kind) }
+    private struct StickerBody: View {
         let configuration: ButtonStyle.Configuration
-        let primary: Bool
+        let kind: Kind
         @Environment(\.isEnabled) private var enabled
         @State private var hovering = false
         var body: some View {
-            let shape = Capsule()
-            configuration.label.font(.system(size: 13, weight: .semibold))
-                .padding(.horizontal, 17).frame(minHeight: 34)
-                .foregroundStyle(!enabled ? Palette.secondary : primary && !hovering ? Palette.paper : Palette.ink)
-                .background(!enabled ? Color.clear : primary ? (hovering ? Palette.highlight : Palette.ink) : Palette.card, in: shape)
-                .overlay {
-                    if !enabled { shape.strokeBorder(Palette.lineStrong, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])) }
-                    else if !primary { shape.strokeBorder(hovering ? Palette.ink : Palette.lineStrong, lineWidth: 1.5) }
+            let shape = Capsule(), pressed = configuration.isPressed
+            let fill: Color = switch kind {
+            case _ where !enabled: kind == .ghost ? .clear : Palette.tile
+            case .primary: hovering ? Palette.highlight : Palette.ink
+            case .secondary: Palette.card
+            case .ghost: hovering ? Palette.tile : .clear
+            }
+            // Disabled buttons go flat stone with no shadow, so they never read as a muddy primary.
+            configuration.label.font(.system(size: 14, weight: .bold))
+                .foregroundStyle(!enabled ? Palette.secondary : kind == .primary && !hovering ? Palette.paper : Palette.ink)
+                .padding(.horizontal, 18).frame(minHeight: 44)
+                .background(fill, in: shape)
+                .overlay { if kind != .ghost { shape.strokeBorder(enabled ? Palette.ink : Palette.tileLine, lineWidth: BYEBorder.control) } }
+                .background {
+                    if kind == .primary && enabled && !pressed {
+                        shape.fill(hovering ? Palette.ink : Palette.highlight).offset(x: 3, y: 3)
+                    }
                 }
-                .opacity(configuration.isPressed ? 0.7 : 1)
+                .offset(x: pressed && kind == .primary ? 2 : 0, y: pressed && kind == .primary ? 2 : 0)
                 .contentShape(shape)
-                .onHover { hovering = $0 }
+                .onHover { hovering = $0 && enabled }
+                .animation(.easeOut(duration: BYEDuration.fast), value: hovering)
         }
+    }
+}
+
+/// A short tilted label with a hard ink shadow, like a sticker on a notebook. Only short stickers tilt.
+struct Sticker: View {
+    let text: String
+    var tilt: Double = BYETilt.sticker
+    var weight: Font.Weight = .bold
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 8)
+        Text(text).font(.system(size: 11, weight: weight)).foregroundStyle(Palette.ink).lineLimit(1)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Palette.card, in: shape)
+            .overlay(shape.strokeBorder(Palette.ink, lineWidth: BYEBorder.sticker))
+            .background(shape.fill(Palette.ink).offset(x: 2, y: 2))
+            .rotationEffect(.degrees(tilt))
     }
 }
 
@@ -91,6 +124,8 @@ struct Eyebrow: View {
 }
 
 func score(_ value: Double?) -> String { value.map { String(format: "%.1f", $0) } ?? "—" }
+/// BYE scores are whole numbers from 1 to 5.
+func whole(_ value: Double?) -> String { value.map { String(format: "%.0f", $0) } ?? "—" }
 
 /// The BYE wordmark: Libre Baskerville Bold over a yellow highlighter swipe.
 struct Brand: View {
@@ -104,16 +139,6 @@ struct Brand: View {
                 }
             if !compact { Text("Before You Enroll").font(.system(size: 13)).foregroundStyle(Palette.secondary) }
         }.accessibilityElement(children: .ignore).accessibilityLabel("BYE, Before You Enroll")
-    }
-}
-
-/// Words with a highlighter swipe behind their lower half.
-struct Highlighted: View {
-    let text: String
-    let font: Font
-    var body: some View {
-        Text(text).font(font).padding(.horizontal, 2)
-            .background(alignment: .bottom) { Rectangle().fill(Palette.highlight).frame(height: 18).offset(y: -6) }
     }
 }
 
@@ -141,9 +166,11 @@ struct Tag: View {
     }
 }
 
+/// A yellow bar out of five that glides to a new value.
 struct RatingBar: View {
     let value: Double?
     var track: Color = Palette.card
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -151,6 +178,52 @@ struct RatingBar: View {
                 Capsule().fill(Palette.highlight).frame(width: geometry.size.width * min(1, max(0, (value ?? 0) / 5)))
             }
         }.frame(height: 6).accessibilityHidden(true)
+            .animation(BYEMotion.bars(reduce: reduceMotion), value: value)
+    }
+}
+
+/// Initials in a circle: stone in list rows, yellow on the professor page.
+struct Avatar: View {
+    let name: String
+    var accent = false
+    var size: CGFloat = 30
+    private var initials: String {
+        name.split(separator: " ").compactMap(\.first).prefix(2).map { String($0).uppercased() }.joined()
+    }
+    var body: some View {
+        Text(initials).font(accent ? BYEFont.display(size * 0.34, bold: true) : .system(size: size * 0.36, weight: .bold))
+            .foregroundStyle(Palette.ink)
+            .frame(width: size, height: size)
+            .background(accent ? Palette.highlight : Palette.tile, in: Circle())
+            .accessibilityHidden(true)
+    }
+}
+
+/// A labelled number on a stone tile that counts to its new value, with an optional bar out of five.
+struct StatTile: View {
+    let value: Double?
+    var digits = 1
+    var suffix: String?
+    let label: String
+    var bar: Double?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var text: String { value.map { String(format: "%.\(digits)f", $0) } ?? "—" }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.system(size: 11)).foregroundStyle(Palette.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(text).font(BYEFont.display(24, bold: true)).monospacedDigit()
+                    .contentTransition(.numericText(value: value ?? 0))
+                    .animation(BYEMotion.count(reduce: reduceMotion), value: value)
+                if let suffix, value != nil { Text(suffix).font(.system(size: 11)).foregroundStyle(Palette.secondary) }
+            }
+            if let bar { RatingBar(value: bar, track: Palette.tile).frame(height: 4) }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Palette.paper2, in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value == nil ? "not available" : text + (suffix ?? ""))")
     }
 }
 
@@ -168,9 +241,9 @@ struct SeatMeter: View {
                 // The bar fills as seats are taken, so a full class reads as a full bar.
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Palette.card)
-                        Capsule().fill(barColor(open: open))
-                            .frame(width: geometry.size.width * takenFraction(open: open))
+                        Capsule().fill(Palette.tile)
+                        Capsule().fill(barColor)
+                            .frame(width: geometry.size.width * (details?.takenFraction ?? 0))
                     }
                 }.frame(height: 6)
                 Text(waitlist).font(.system(size: 11, weight: details?.isFull == true ? .semibold : .regular))
@@ -184,67 +257,71 @@ struct SeatMeter: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(details?.seatsOpen.map { "\($0) seats open. \(waitlist)" } ?? "Seats unavailable")
     }
-    /// Black while seats are plentiful, yellow at 10 or fewer, red at 5 or fewer (including full).
-    private func barColor(open: Int) -> Color {
-        open <= 5 ? Palette.signal : open <= 10 ? Palette.highlight : Palette.ink
+    /// Colour follows SectionDetails.seatLevel.
+    private var barColor: Color {
+        switch details?.seatLevel {
+        case .critical: Palette.signal
+        case .low: Palette.highlight
+        default: Palette.ink
+        }
     }
-    private func takenFraction(open: Int) -> Double {
-        guard let capacity = details?.capacity, capacity > 0 else { return 0 }
-        return min(1, max(0, Double(capacity - open) / Double(capacity)))
-    }
-    private var waitlist: String {
-        let count = details?.waitlistCount, capacity = details?.waitlistCapacity
-        let text = count.map { c in capacity.map { "Waitlist \(c) of \($0)" } ?? "Waitlist \(c)" } ?? ""
-        if details?.isFull == true { return text.isEmpty ? "Full" : "Full · " + text.lowercased() }
-        return text
-    }
+    private var waitlist: String { details?.waitlistLabel ?? "" }
 }
 
-struct ScoreCard: View {
-    let value: Double?
-    let title: String
-    let helper: String
+/// The plain outline tag that ends an RMP review's score line. BYE reviews carry a stamp instead.
+struct SourceTag: View {
+    let text: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(score(value)).font(BYEFont.display(48)).foregroundStyle(Palette.ink)
-                if value != nil { Text("/ 5").font(.system(size: 17)).foregroundStyle(Palette.secondary) }
-            }
-            Text(title).font(.system(size: 14, weight: .semibold))
-            Text(value == nil ? "Not available" : helper).font(.system(size: 11)).foregroundStyle(Palette.secondary)
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(24)
-            .background(Palette.paper2, in: RoundedRectangle(cornerRadius: 16))
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(title): \(value.map { String(format: "%.1f out of 5", $0) } ?? "not available"). \(helper)")
+        Text(text).font(.system(size: 10, weight: .bold)).tracking(0.6).foregroundStyle(Palette.ink)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Palette.lineStrong))
+            .accessibilityLabel(text == "RMP" ? "From Rate My Professors" : text)
     }
 }
 
+/// One review card. RMP reviews end their score line with an `RMP` tag and link to the original;
+/// BYE reviews show Quality and Difficulty and end with their collectible stamp.
 struct ReviewCard: View {
     let review: Review
-    let sourceURL: URL
+    /// The RMP profile for "Original on RMP ↗"; nil for BYE reviews.
+    var sourceURL: URL?
+    /// Set for BYE reviews.
+    var stamp: StampTier?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(spacing: 8) {
                 if review.course.isEmpty { Text("Course not specified").font(.system(size: 12, weight: .semibold)) }
                 else { CourseChip(text: review.course) }
                 Spacer()
-                Text("Rating \(score(review.rating))/5 · Difficulty \(score(review.difficulty))/5").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                if let stamp {
+                    Text("Quality \(whole(review.rating))/5 · Difficulty \(whole(review.difficulty))/5").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                    ByeStamp(tier: stamp)
+                } else {
+                    Text("Rating \(score(review.rating))/5 · Difficulty \(score(review.difficulty))/5").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                    SourceTag(text: "RMP")
+                }
             }
-            Text(review.excerpt).font(.system(size: 14)).lineSpacing(5).textSelection(.enabled)
+            Text(review.excerpt).font(.system(size: 13)).foregroundStyle(Palette.body).lineSpacing(4).textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
             HStack {
                 Text(review.postedLabel).font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 Spacer()
-                Link("Original on RMP ↗", destination: sourceURL).font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.ink)
+                if let sourceURL {
+                    Link("Original on RMP ↗", destination: sourceURL).font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.ink)
+                }
             }
-        }.padding(22).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.card, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.line))
+        }.padding(16).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Palette.card, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.line))
     }
 }
 
 /// One PCC section: CRN, format and term tags, schedule, location and units, and open seats.
+/// A section that misses the picked class days is tagged "Other days".
 struct ClassCard: View {
     let section: ClasswiseCore.Section
+    var matches = true
     var body: some View {
         HStack(alignment: .center, spacing: 22) {
             VStack(alignment: .leading, spacing: 7) {
@@ -252,6 +329,7 @@ struct ClassCard: View {
                     CourseChip(text: "CRN \(section.crn)")
                     Tag(text: section.formatLabel)
                     if let term = section.details?.termPart, !term.isEmpty { Tag(text: term, kind: .term) }
+                    if !matches { Tag(text: "Other days", kind: .term) }
                 }.padding(.bottom, 2)
                 if section.fullyOnline {
                     Text("No scheduled meetings").font(.system(size: 14, weight: .semibold))
@@ -267,8 +345,11 @@ struct ClassCard: View {
             }.frame(maxWidth: .infinity, alignment: .leading)
             SeatMeter(details: section.details).frame(width: 178, alignment: .leading)
         }
-        .padding(.horizontal, 18).padding(.vertical, 16)
-        .background(Palette.paper2, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        // A section on other days steps back: a soft outline and no hard shadow.
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(matches ? Palette.ink : Palette.tileLine, lineWidth: BYEBorder.sticker))
+        .background { if matches { RoundedRectangle(cornerRadius: 12).fill(Palette.ink).offset(x: 2, y: 2) } }
         .accessibilityElement(children: .combine)
     }
     private var detailLine: String {
@@ -288,12 +369,3 @@ extension View {
     }
 }
 
-/// PCC prints titles in capitals; show them in title case but keep Roman numerals.
-func displayTitle(_ raw: String) -> String {
-    raw.split(separator: " ").enumerated().map { index, word in
-        let upper = word.uppercased()
-        if ["I", "II", "III", "IV", "V", "VI"].contains(upper) { return upper }
-        if index > 0, ["AND", "OF", "TO", "THE", "FOR", "IN"].contains(upper) { return upper.lowercased() }
-        return word.prefix(1).uppercased() + word.dropFirst().lowercased()
-    }.joined(separator: " ")
-}

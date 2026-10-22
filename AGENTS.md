@@ -16,6 +16,7 @@ Claude Code and Codex may both be working in this checkout at the same time. The
 - Claude Code does some of this automatically through hooks in `.claude/settings.json`: it reads its inbox on
   every prompt and logs each file it edits. Codex runs the commands above by hand, at the start and end of each task.
 - Never edit, delete or reset `.agents/` by hand, and never revert the other agent's uncommitted changes.
+- In temporary worktrees, coordinate through the existing board in the original `BYE_Before_You_Enroll` checkout rather than creating a separate worktree board.
 
 # Local Mac testing workflow
 
@@ -33,6 +34,15 @@ Claude Code and Codex may both be working in this checkout at the same time. The
   from earlier recorded verification.
 - State whether changes were committed or remain uncommitted. Preparing a
   handoff does not by itself request a Git commit or push.
+
+# Backend workspace and repository ownership
+
+- This repository owns backend contracts, the schedule service and its owner dashboard, and database migration records. Website API/source implementations remain in `BYE_website` until desktop acceptance; future destinations here are `services/web-api/` and `services/source-worker/`. Those directories now contain the prepared backend relocation; production still uses the website implementation until a separately approved service deployment and frontend cutover.
+- New shared frontend work belongs in `BYE_website` (`packages/app`, `apps/preview`, `apps/desktop`, UI/core/tokens and client adapters). Keep retained SwiftUI/Electron code and release tooling here intact; Electron is legacy only.
+- The root pnpm workspace covers `packages/*`, `services/web-api` and `services/source-worker`. Use Node 22.16+, pnpm 11.25.0, `pnpm install --frozen-lockfile` and `pnpm typecheck`. TypeScript is pinned to 5.9.3.
+- Run `pnpm contracts:check <explicit-frontend-contract-directory>` to verify an existing snapshot without writing it. `pnpm contracts:export <explicit-frontend-contract-directory>` intentionally writes a snapshot; do not run it as a routine check. Runtime code must not import from a sibling checkout.
+- `services/schedule-api/` is outside this workspace and retains npm, its own lockfile and Node 24.3+ requirement. Root typecheck verifies the contract, source-domain and relocated Worker TypeScript; it does not verify the schedule service, Swift or Electron. Read [the repository map](docs/REPOSITORY_MAP.md) before changing ownership or paths.
+- **2026-10-21 structure preparation:** Backend root contract tooling and frontend/backend ownership guides are prepared locally. No API implementation, Worker, migration, service identity or release asset was relocated. Desktop acceptance and subsequent staging/rollback remain prerequisites for relocation/cutover.
 
 # Area guides
 
@@ -128,3 +138,12 @@ Current explicit user instructions take precedence over these role preferences.
   ready-to-paste GitHub Desktop Summary and Description for each changed
   repository. Leave changes uncommitted unless explicitly authorized otherwise.
 <!-- END shared development policy -->
+
+## Backend relocation prepared
+
+`services/web-api` includes the BYE review and student-number routes; `services/source-worker`
+contains the source Worker and `packages/source-domain` contains extracted parsing helpers.
+Run `pnpm test`, `pnpm typecheck`, `pnpm build:check` (dry-runs only), and
+`pnpm test:runtime <absolute-frontend-relocation-directory>` for fixture acceptance
+through the real frontend Pages forwarder. See `services/web-api/README.md`.
+Merging these sources does not deploy Workers, rebind Pages or install production SQL.

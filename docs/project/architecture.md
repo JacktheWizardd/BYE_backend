@@ -1,8 +1,12 @@
 # BYE architecture
 
-This guide describes the checked-in application structure as of October 2026. See [Project Status](PROJECT_STATUS.md) for the latest verified implementation details. Local client integration and independently deployed backend services are described separately; neither implies a new installed-app release.
+This guide describes existing client boundaries. The owner has agreed to [one React/TypeScript frontend, Tauri desktop trial, later Capacitor and frontend/backend ownership](../cross-platform-migration-proposal.md). The architecture decision is accepted; actual replacement is gated on validation. Current source and deployed behavior must be verified separately.
 
 ## Current application boundaries
+
+Current main retires the legacy applications and disables their network/update
+features. The retained source inventory below does not indicate active access
+or authorize reactivation; the new shared app remains a separate preview trial.
 
 ### Native macOS application (primary Mac track)
 
@@ -53,8 +57,17 @@ Windows source uses the independently deployed schedule backend and public BYE r
 
 The Mac beta uses Sparkle with an EdDSA-verified update feed hosted on the separate BYE website (Cloudflare Pages). The source repository is private, so the feed/ZIP must be accessible to already-installed applications without GitHub authentication. Signing material must never be committed. Follow [Releasing](../releases/RELEASING.md) for build, verification, and publishing steps.
 
-## Backend and future product boundaries
+## Delivered backend services versus current client integration
 
-The standalone schedule service lives in `services/schedule-api/`; its [canonical documentation](../../services/schedule-api/docs/README.md) covers storage and synchronization. The website owns student review routes and writing. BYE reviews remain separate from RMP evidence.
+The hosted PCC schedule API has been deployed separately from the student-review service. The BYE student review submission flow is live on the website, while the Windows and macOS desktop clients have not yet completed migration to the centralized schedule API. The native `BYEAPI` RMP client remains a Swift library, not a hosted BYE API. Do not assume that deployed backend functionality automatically replaces direct PCC/RMP access or existing app caches.
+
+The target uses one React/TypeScript application in BYE_website, with Tauri 2 as the desktop candidate and Capacitor later. Electron has no role in that target. BYE_Before_You_Enroll owns backend contracts and ultimately server services; actual backend relocation follows Windows and Mac trial acceptance. Preserve legacy apps and release channels until replacement and rollback gates pass.
+
+## Historical proposals (some now delivered)
+
+
+1. **Student-submitted review service:** A BYE-owned review/rating dataset, independent of RMP data; this service is now live on the website. See [review database explained](../reviews/review-database-explained.md).
+2. **PCC schedule API and cache:** The standalone backend has been deployed, but client integration is pending. See [schedule API documentation](../../services/schedule-api/docs/README.md) and [API and integrations](../schedules/api.md).
+3. **Education-plan and transfer evaluation:** Upload/parse plans, check official articulation/transfer sources, and display missing or strongly recommended requirements. This is a product roadmap direction, not a supported current feature.
 
 Educational plans and transfer evaluation remain future goals. AI summaries remain disabled; see the [roadmap](roadmap.md). Keep credentials, permissions, deployment paths and release gates distinct.

@@ -22,7 +22,7 @@ enum AppAudit {
             let client = RMPClient(transport: RMPTransport(protocolClasses: [AuditURLProtocol.self], spacing: 0, maximumAttempts: 1))
             let storage = directory.appendingPathComponent("Reports")
             let model = AppModel(pcc: pcc, cache: ReportCache(directory: storage), choices: ProfileChoiceStore(directory: storage),
-                                 summariesEnabled: true, makeReader: { RMPAPIReader(client: client) })
+                                 summariesEnabled: true, makeReader: { RMPAPIReader(client: client) }, byeReviews: nil, byeNumbers: nil)
             model.auditPreviewLimit = 2; model.auditSummariesEnabled = false
             log.event("app_initialized", ["pid":getpid(),"mode":offlineOnly ? "offline" : "live", "optimized":true,
                                           "request_limit":AuditSettings.maximum,"spacing_s":2,"live_deadline_s":AuditSettings.duration,"summaries_during_collection":false])

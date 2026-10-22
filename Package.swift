@@ -13,7 +13,7 @@ let package = Package(
                           // Packaged apps embed Sparkle.framework in Contents/Frameworks.
                           linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]),
         .testTarget(name: "BYEAPITests", dependencies: ["BYEAPI", "ClasswiseCore"]),
-        .testTarget(name: "ClasswiseCoreTests", dependencies: ["ClasswiseCore"], resources: [.process("Fixtures")]),
+        .testTarget(name: "ClasswiseCoreTests", dependencies: ["ClasswiseCore"], exclude: ["Vectors"], resources: [.process("Fixtures")]),
         .testTarget(name: "ClasswiseAppTests", dependencies: ["Classwise", "ClasswiseCore", "BYEAPI"])
     ]
 )

@@ -17,7 +17,7 @@ struct ProfileChooser: View {
                 }
                 if let issue = model.chooserIssue {
                     Text(issue).foregroundStyle(Palette.secondary)
-                    Button("Try again") { model.openChooser(id: professor.id) }.buttonStyle(PillStyle()).disabled(model.isPreviewing(professor.id))
+                    Button("Try again") { model.openChooser(id: professor.id) }.buttonStyle(StickerButtonStyle(kind: .secondary)).disabled(model.isPreviewing(professor.id))
                 }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
@@ -29,7 +29,7 @@ struct ProfileChooser: View {
                                 HStack {
                                     Link("View on RMP ↗", destination: candidate.url).font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.ink)
                                     Spacer()
-                                    Button("Use this profile") { model.chooseProfile(id: professor.id, profileID: candidate.id) }.buttonStyle(PillStyle(primary: true))
+                                    Button("Use this profile") { model.chooseProfile(id: professor.id, profileID: candidate.id) }.buttonStyle(StickerButtonStyle())
                                         .disabled(model.isPreviewing(professor.id))
                                         .accessibilityLabel("Use \(candidate.name), \(candidate.department.isEmpty ? "department unavailable" : candidate.department), profile \(candidate.id)")
                                 }
@@ -43,7 +43,7 @@ struct ProfileChooser: View {
                     Link("Check on RMP ↗", destination: professor.searchURL)
                 }
             }
-            HStack { Spacer(); Button("Close") { model.chooserID = nil }.buttonStyle(PillStyle()).keyboardShortcut(.cancelAction) }
+            HStack { Spacer(); Button("Close") { model.chooserID = nil }.buttonStyle(StickerButtonStyle(kind: .secondary)).keyboardShortcut(.cancelAction) }
         }.padding(26).frame(width: 560, height: 560).background(Palette.paper)
     }
 }
