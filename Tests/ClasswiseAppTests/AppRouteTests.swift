@@ -33,6 +33,13 @@ final class AppPreferencesTests: XCTestCase {
         XCTAssertEqual(preferences.recentClasses.map(\.display), ["ENGL 001A", "CHEM 001A", "PSYC 001", "HIST 007A", "ETH 014"])
     }
 
+    func testForgetRemovesOneClassAndKeepsTheOrder() throws {
+        let preferences = AppPreferences(defaults: defaults)
+        for code in ["MATH 005A", "ENGL 001A", "CHEM 001A"] { preferences.remember(try Course(code)) }
+        XCTAssertEqual(preferences.forget(try Course("ENGL 001A")).map(\.display), ["MATH 005A", "CHEM 001A"])
+        XCTAssertEqual(preferences.recentClasses.map(\.display), ["MATH 005A", "CHEM 001A"])
+    }
+
     func testUnreadableStoredClassesAreIgnored() {
         defaults.set(["MATH 005A", "not a class!!", "MATH 005A"], forKey: "bye.recentClasses")
         XCTAssertEqual(AppPreferences(defaults: defaults).recentClasses.map(\.display), ["MATH 005A"])
@@ -55,10 +62,11 @@ final class AppRouteTests: XCTestCase {
         try? FileManager.default.removeItem(at: directory); session.invalidateAndCancel()
     }
     private func preferences() -> AppPreferences { AppPreferences(defaults: UserDefaults(suiteName: suite)!) }
-    private func model() throws -> AppModel {
+    private func model(numbers: ByeNumberClient? = nil) throws -> AppModel {
         let hub = RecoveryHub()
         let model = AppModel(pcc: PCCClient(session: session), cache: ReportCache(directory: directory),
-                             choices: ProfileChoiceStore(directory: directory), preferences: preferences(), makeReader: { hub.reader() })
+                             choices: ProfileChoiceStore(directory: directory), preferences: preferences(), makeReader: { hub.reader() },
+                             byeReviews: nil, byeNumbers: numbers)
         model.terms = try JSONDecoder().decode([Term].self, from: Data(#"[{"termCode":"202710","termName":"Fictional Term","termDisplayControl":"Y"}]"#.utf8))
         model.termID = "202710"
         return model
@@ -86,6 +94,73 @@ final class AppRouteTests: XCTestCase {
         XCTAssertEqual(relaunched.displayName, "Alex")
         relaunched.showWelcomeAgain()
         XCTAssertEqual(relaunched.route, .welcome)
+    }
+
+    private final class NumberSite: @unchecked Sendable {
+        private let lock = NSLock(); private var routes: [String] = []
+        var total = 57
+        func add(_ route: String) { lock.lock(); routes.append(route); lock.unlock() }
+        var all: [String] { lock.lock(); defer { lock.unlock() }; return routes }
+        func client() -> ByeNumberClient {
+            ByeNumberClient(site: "https://bye.example", fetch: { [self] request in
+                let route = request.url!.path.replacingOccurrences(of: "/api/reviews/", with: "")
+                add(route)
+                let (body, headers): (String, [String: String]) = switch route {
+                case "auth/send": (#"{"data":{"sent":true}}"#, [:])
+                case "auth/verify": (#"{"data":{"signedIn":true}}"#, ["Set-Cookie": "__Secure-bye-review=a.b.c; Path=/api/reviews/"])
+                case "number": (#"{"data":{"number":42,"total":56}}"#, [:])
+                default: (#"{"data":{"total":\#(total)}}"#, [:])
+                }
+                return (Data(body.utf8), HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: headers)!)
+            })
+        }
+    }
+
+    func testNumberStepFollowsTheNameOnlyWhenNumbersAreAvailable() throws {
+        let offline = try model()
+        offline.continueFromWelcome(); offline.continueFromName("Alex")
+        XCTAssertEqual(offline.route, .home, "Builds without BYE numbers skip the step")
+        UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+        let online = try model(numbers: NumberSite().client())
+        online.continueFromWelcome(); online.continueFromName("Alex")
+        XCTAssertEqual(online.route, .number); XCTAssertTrue(online.isFirstRun)
+        XCTAssertEqual(online.displayName, "Alex")
+        online.commandMenuOpen = true
+        XCTAssertFalse(online.commandMenuOpen, "No command menu during the first run")
+        online.finishOnboarding(name: online.displayName)
+        XCTAssertEqual(online.route, .home); XCTAssertNil(online.byeNumber, "Skipping leaves no number")
+    }
+
+    func testVerifiedNumberIsKeptOnThisMacButTheEmailIsNot() async throws {
+        let site = NumberSite()
+        let model = try model(numbers: site.client())
+        model.requestNumberCode(email: "jdoe+1@go.pasadena.edu")
+        XCTAssertEqual(model.numberError, "Use your PCC school email, ending in @go.pasadena.edu.")
+        XCTAssertTrue(site.all.isEmpty)
+        model.requestNumberCode(email: " JDoe@go.pasadena.edu ")
+        try await wait("code step") { model.numberStep == .code(email: "jdoe@go.pasadena.edu") }
+        model.verifyNumberCode("12")
+        XCTAssertEqual(model.numberError, "Enter the complete numeric code from your email.")
+        model.verifyNumberCode("123456")
+        try await wait("number") { model.byeNumber != nil }
+        XCTAssertEqual(model.byeNumber, ByeNumber(number: 42, total: 56))
+        XCTAssertEqual(model.numberStep, .email)
+        XCTAssertEqual(try self.model().byeNumber, ByeNumber(number: 42, total: 56), "Kept across launches")
+        let stored = UserDefaults(suiteName: suite)!.persistentDomain(forName: suite) ?? [:]
+        XCTAssertFalse(stored.values.contains { "\($0)".contains("@") }, "The email is never stored")
+    }
+
+    func testStudentTotalRefreshesAtMostOnceADay() async throws {
+        let site = NumberSite()
+        preferences().byeNumber = ByeNumber(number: 42, total: 50)
+        let model = try model(numbers: site.client())
+        model.refreshNumberTotal()
+        try await wait("total") { model.byeNumber?.total == 57 }
+        site.total = 60
+        model.refreshNumberTotal()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(model.byeNumber?.total, 57, "Checked again only after a day")
+        XCTAssertEqual(site.all, ["numbers"])
     }
 
     func testSkippingTheNameStillFinishesTheWelcome() throws {

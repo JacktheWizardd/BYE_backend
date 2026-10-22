@@ -68,6 +68,25 @@ final class ScheduleRefreshTests: XCTestCase {
         for _ in 0..<100 { if manifest != nil { return }; try await Task.sleep(for: .milliseconds(10)) }
         XCTFail("Missing delayed request")
     }
+    func testRevisitedClassReappearsWithoutSearchingOrCheckingAgain() async throws {
+        let model = try fixture(); defer { close(model) }
+        await model.refreshSchedule()
+        let profile = RMPProfile(id: "fixture-profile", firstName: "Alpha", lastName: "Fixture", school: "Fixture school", schoolID: nil, department: "Math", rating: 4, difficulty: 2, ratingCount: 1, wouldTakeAgain: nil, reviews: [])
+        model.professors[0].profile = profile; model.professors[0].state = .ready
+        model.selectedID = model.professors[0].id
+        let course = try XCTUnwrap(model.course)
+        model.goHome()
+        XCTAssertFalse(model.showingResults)
+        let before = calls
+        model.openClass(course)
+        XCTAssertTrue(model.showingResults)
+        XCTAssertFalse(model.busy, "Every professor was already checked")
+        XCTAssertEqual(model.professors.first?.profile?.id, "fixture-profile")
+        XCTAssertEqual(model.selectedID, "alpha fixture")
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(calls, before, "No new schedule search for a class revisited this session")
+    }
+
     func testRefreshPreservesProfileSelectionFiltersAndReviewsButRemovesChangedAssignments() async throws {
         let model = try fixture(); defer { close(model) }
         await model.refreshSchedule()

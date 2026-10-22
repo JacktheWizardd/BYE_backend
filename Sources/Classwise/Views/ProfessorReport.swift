@@ -16,6 +16,7 @@ struct ProfessorReport: View {
     @State private var filterChosenByUser: Bool
     @State private var reviewSort: ReviewSort
     @State private var reviewLimit: Int
+    @State private var reviewSource: ReviewSource
     private let restoredChoice: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -31,15 +32,25 @@ struct ProfessorReport: View {
         _filterChosenByUser = State(initialValue: saved?.chosenByUser ?? false)
         _reviewSort = State(initialValue: saved?.sort ?? .recent)
         _reviewLimit = State(initialValue: saved?.limit ?? 3)
+        _reviewSource = State(initialValue: saved?.source ?? .both)
     }
     private var reviewChoice: ReviewChoice {
-        ReviewChoice(filter: reviewFilter, chosenByUser: filterChosenByUser, sort: reviewSort, limit: reviewLimit)
+        ReviewChoice(filter: reviewFilter, chosenByUser: filterChosenByUser, sort: reviewSort, limit: reviewLimit, source: reviewSource)
     }
+    private var bye: AppModel.ByeLoad? { model.byeState(for: professor) }
+    private var byeSet: ByeReviewSet? { if case .loaded(let set) = bye { set } else { nil } }
+    /// BYE has finished (loaded or failed), so RMP cards can follow without pushing BYE cards down.
+    private var byeFinished: Bool { switch bye { case .loaded, .failed: true; case .loading, nil: false } }
+    private var byeReviews: [Review] { reviewFilter.byeReviews(byeSet?.reviews ?? [], course: course) }
+    private var cards: [SourcedReview] {
+        Ordering.merged(bye: byeReviews, rmp: reviews, source: reviewSource, byeLoaded: byeFinished, by: reviewSort)
+    }
+    private var byeExactCount: Int { byeSet?.reviews.filter { course.matchesReview($0.course) }.count ?? 0 }
     private var reviews: [Review] {
         guard let profile = professor.profile else { return [] }
         return Ordering.reviews(reviewFilter.reviews(in: profile, course: course), by: reviewSort)
     }
-    private var exactCount: Int { professor.profile?.reviews.filter { course.matchesReview($0.course) }.count ?? 0 }
+    private var exactCount: Int { (professor.profile?.reviews.filter { course.matchesReview($0.course) }.count ?? 0) + byeExactCount }
     private var courseChoices: [ReviewCourseCount] {
         guard let profile = professor.profile else { return [] }
         var labels = Dictionary((profile.courseCounts ?? []).filter { !$0.label.isEmpty }.map { ($0.label, $0) }, uniquingKeysWith: { first, _ in first })
@@ -47,6 +58,14 @@ struct ProfessorReport: View {
             labels[review.course] = ReviewCourseCount(label: review.course, count: nil)
         }
         return labels.values.sorted { $0.label.localizedStandardCompare($1.label) == .orderedAscending }
+    }
+    /// Courses only BYE reviews mention still appear in the one course filter.
+    private var byeOnlyCourses: [String] {
+        let known = courseChoices.map(\.label) + [course.display]
+        let codes = Set((byeSet?.reviews ?? []).map(\.course).filter { code in
+            !code.isEmpty && !known.contains { (try? Course($0))?.matchesReview(code) ?? ($0 == code) }
+        })
+        return codes.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
     private var selectedLabel: String? { reviewFilter.requestLabel(course: course) }
     private var filterFinished: Bool {
@@ -57,6 +76,7 @@ struct ProfessorReport: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
                     header.id("top")
+                    byeScores
                     if let profile = professor.profile {
                         scores(profile)
                     } else {
@@ -69,8 +89,8 @@ struct ProfessorReport: View {
                                 .font(.system(size: 12)).foregroundStyle(Palette.secondary)
                                 .sunkenPanel(padding: 14)
                         }
-                        studentReviews
                     }
+                    studentReviews
                     sourceLinks
                 }
                 .padding(.horizontal, 32).padding(.vertical, 28).frame(maxWidth: 900, alignment: .leading).frame(maxWidth: .infinity)
@@ -80,7 +100,8 @@ struct ProfessorReport: View {
             .onChange(of: professor.id) { _, id in
                 if let saved = model.reviewChoice(for: id) {
                     reviewFilter = saved.filter; filterChosenByUser = saved.chosenByUser; reviewSort = saved.sort; reviewLimit = saved.limit
-                } else { reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
+                } else { reviewLimit = 3; reviewSort = .recent; reviewSource = .both; applyPreferredFilter() }
+                if let next = model.professors.first(where: { $0.id == id }) { model.loadByeReviews(for: next) }
                 proxy.scrollTo("top", anchor: .top)
             }
         }
@@ -89,7 +110,9 @@ struct ProfessorReport: View {
         .onChange(of: course) { _, _ in reviewLimit = 3; reviewSort = .recent; applyPreferredFilter() }
         .onChange(of: reviewFilter) { _, _ in reviewLimit = 3 }
         .onChange(of: professor.profile?.reviews.count) { _, _ in if !filterChosenByUser { applyPreferredFilter() } }
-        .onAppear { if !restoredChoice { applyPreferredFilter() } }
+        .onChange(of: byeSet?.reviews.count) { _, _ in if !filterChosenByUser { applyPreferredFilter() } }
+        .onChange(of: reviewSource) { _, _ in reviewLimit = 3 }
+        .onAppear { model.loadByeReviews(for: professor); if !restoredChoice { applyPreferredFilter() } }
         .onChange(of: reviewSort) { _, _ in reviewLimit = 3 }
         .onChange(of: reviewChoice) { _, choice in model.saveReviewChoice(choice, for: professor.id) }
     }
@@ -116,8 +139,46 @@ struct ProfessorReport: View {
             }
         }
     }
+    /// BYE's own scores, above RMP's and never blended with them.
+    private var byeScores: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                ByeStamp(tier: .common, width: 24)
+                Text("BYE student ratings").font(.system(size: 12, weight: .semibold)).accessibilityAddTraits(.isHeader)
+            }
+            switch bye {
+            case .loaded(let set) where set.matched && set.count > 0:
+                HStack(spacing: 8) {
+                    StatTile(value: set.quality, suffix: "/5", label: "BYE quality", bar: set.quality)
+                    StatTile(value: set.difficulty, suffix: "/5", label: "Difficulty", bar: set.difficulty)
+                    StatTile(value: Double(set.count), digits: 0, label: "BYE reviews")
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Text(set.ratingIssue ?? "\(plural(set.count, "review")) from PCC students who verified their school email · kept separate from RMP")
+                    .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+            case .loaded:
+                HStack(spacing: 10) {
+                    Text("No BYE reviews for \(professor.name) yet.").font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                    if let url = ReviewLink.url(professor: professor.name, course: course) {
+                        Link("Write the first one ↗", destination: url).font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.ink)
+                    }
+                }
+            case .failed(let message):
+                HStack(spacing: 10) {
+                    Text(message).font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                    Button("Try again") { model.loadByeReviews(for: professor, retry: true) }.buttonStyle(TextLinkStyle())
+                }
+            case .loading, nil:
+                Text("Checking BYE reviews…").font(.system(size: 12)).foregroundStyle(Palette.secondary)
+            }
+        }
+    }
     private func scores(_ profile: RMPProfile) -> some View {
         VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                SourceTag(text: "RMP")
+                Text("Rate My Professors ratings").font(.system(size: 12, weight: .semibold)).accessibilityAddTraits(.isHeader)
+            }
             HStack(spacing: 8) {
                 StatTile(value: profile.rating, suffix: "/5", label: "RMP rating", bar: profile.rating)
                 StatTile(value: profile.difficulty, suffix: "/5", label: "Difficulty", bar: profile.difficulty)
@@ -200,7 +261,7 @@ struct ProfessorReport: View {
     }
     /// Opens on this course when a downloaded review is about it, otherwise on all courses.
     private func applyPreferredFilter() {
-        reviewFilter = .preferred(in: professor.profile, course: course)
+        reviewFilter = byeExactCount > 0 ? .thisCourse : .preferred(in: professor.profile, course: course)
         filterChosenByUser = false
     }
     private var summaryStatus: String {
@@ -220,13 +281,20 @@ struct ProfessorReport: View {
             }
         }
     }
+    /// One Reviews section for both sources: a Both · BYE · RMP toggle, one course filter and one sort.
     private var studentReviews: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Rate My Professors reviews").font(BYEFont.display(19, bold: true)).accessibilityAddTraits(.isHeader)
-            if !professor.reviewsComplete {
+            HStack {
+                Text("Reviews").font(BYEFont.display(19, bold: true)).accessibilityAddTraits(.isHeader)
+                Spacer()
+                Segmented(label: "Review source", options: ReviewSource.allCases.map { ($0, $0.label) }, selection: $reviewSource)
+                    .frame(maxWidth: 220)
+            }
+            if reviewSource != .rmp { byeStatus }
+            if reviewSource != .bye, professor.profile != nil, !professor.reviewsComplete {
                 HStack(alignment: .top, spacing: 8) {
                     if loadingDetails { ProgressView().controlSize(.small) }
-                    Text(professor.reviewIssue ?? (checkingRatings ? "Quick preview · Up to three reviews. More feedback loads after everyone’s ratings are checked." : loadingDetails ? "Quick preview · Loading more reviews for this professor…" : detailCancelled ? "Quick preview · Loading stopped. You can resume loading below." : "Quick preview · More feedback loads when you open this report."))
+                    Text(professor.reviewIssue ?? (checkingRatings ? "Quick preview · Up to three RMP reviews. More feedback loads after everyone’s ratings are checked." : loadingDetails ? "Quick preview · Loading more RMP reviews for this professor…" : detailCancelled ? "Quick preview · Loading stopped. You can resume loading below." : "Quick preview · More RMP feedback loads when you open this report."))
                         .font(.system(size: 11)).foregroundStyle(Palette.secondary).lineSpacing(4)
                 }
                 if canRetry && !loadingDetails && (professor.reviewIssue != nil || detailCancelled) {
@@ -241,27 +309,30 @@ struct ProfessorReport: View {
                         Text(item.count.map { "\(item.label) (\($0) on RMP)" } ?? "\(item.label) (source count unavailable)")
                             .tag(ReviewFilter.source(item.label))
                     }
+                    ForEach(byeOnlyCourses, id: \.self) { code in
+                        Text("\(code) (BYE only)").tag(ReviewFilter.source(code))
+                    }
                 }.pickerStyle(.menu).frame(maxWidth: 330).accessibilityLabel("Review course filter")
                 Spacer()
                 Picker("Sort reviews", selection: $reviewSort) { ForEach(ReviewSort.allCases) { Text($0.rawValue).tag($0) } }
                     .labelsHidden().pickerStyle(.menu).accessibilityLabel("Sort reviews").frame(maxWidth: 170)
             }
-            Text("Showing \(reviews.count) downloaded reviews for this filter (up to 50). Changing the filter uses saved reviews.")
-                .font(.system(size: 11)).foregroundStyle(Palette.secondary)
             if reviewFilter == .allCourses && exactCount == 0 && !filterChosenByUser {
                 HStack(spacing: 12) {
                     Text("No reviews mention \(course.display) yet, so all courses are shown.")
                         .font(.system(size: 12)).foregroundStyle(Palette.secondary)
-                    Button("Find \(course.display) reviews") {
-                        reviewFilter = .thisCourse; filterChosenByUser = true
-                        model.findMoreReviews(id: professor.id, filter: .thisCourse)
-                    }.buttonStyle(TextLinkStyle()).disabled(model.busy || model.loadingDetailsID != nil)
+                    if professor.profile != nil {
+                        Button("Find \(course.display) reviews") {
+                            reviewFilter = .thisCourse; filterChosenByUser = true
+                            model.findMoreReviews(id: professor.id, filter: .thisCourse)
+                        }.buttonStyle(TextLinkStyle()).disabled(model.busy || model.loadingDetailsID != nil)
+                    }
                 }
             } else if reviewFilter == .thisCourse && exactCount == 0 {
                 Text("No downloaded reviews exactly match \(course.display). More may be available on RMP under this or another course label.")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondary)
             }
-            if let label = selectedLabel {
+            if reviewSource != .bye, professor.profile != nil, let label = selectedLabel {
                 if let issue = model.courseReviewIssues[professor.id + "|" + label] {
                     Text(issue).font(.system(size: 12)).foregroundStyle(Palette.secondary)
                 }
@@ -271,23 +342,49 @@ struct ProfessorReport: View {
                     Text(reviewFilter == .thisCourse ? "Requests equivalent course labels reported by this professor’s RMP profile." : "Requests this class label from RMP. Reviews for other classes and overall scores stay separate.")
                         .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 } else {
-                    Text("Finished this filter’s retrieval, or reached the 50-rating limit. Source totals may include reviews without text.")
+                    Text("Finished this filter’s RMP retrieval, or reached the 50-rating limit. Source totals may include reviews without text.")
                         .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 }
             }
-            if reviews.isEmpty { Text("No review text available for this filter.").font(.system(size: 14)).foregroundStyle(Palette.secondary).padding(.vertical, 10) }
+            if cards.isEmpty && (reviewSource == .rmp || byeFinished) {
+                Text("No review text available for this filter.").font(.system(size: 14)).foregroundStyle(Palette.secondary).padding(.vertical, 10)
+            }
             // Two columns once the page is wide enough; changing the sort glides each review to its new place.
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 320), spacing: 12, alignment: .top)], alignment: .leading, spacing: 12) {
-                ForEach(Array(reviews.prefix(reviewLimit))) { review in
-                    ReviewCard(review: review, sourceURL: professor.sourceURL)
+                ForEach(Array(cards.prefix(reviewLimit))) { card in
+                    if card.source == .bye {
+                        ReviewCard(review: card.review, stamp: StampTier(reviewID: card.review.id))
+                    } else {
+                        ReviewCard(review: card.review, sourceURL: professor.sourceURL)
+                    }
                 }
             }
-            .animation(BYEMotion.spring(reduce: reduceMotion), value: reviews.prefix(reviewLimit).map(\.id))
-            if reviews.count > reviewLimit {
+            .animation(BYEMotion.spring(reduce: reduceMotion), value: cards.prefix(reviewLimit).map(\.id))
+            if cards.count > reviewLimit {
                 Button("View more reviews") { reviewLimit += 5 }.buttonStyle(StickerButtonStyle(kind: .secondary)).frame(maxWidth: .infinity)
             }
-            Text("Excerpts from accessible reviews, not the complete RMP review history. Dates indicate when reviews were posted.")
+            Text("BYE reviews come from PCC students who verified their school email. RMP reviews are excerpts, not the complete RMP review history. Dates indicate when reviews were posted.")
                 .font(.system(size: 11)).foregroundStyle(Palette.secondary).lineSpacing(4)
+        }
+    }
+    /// What BYE's own reviews are doing; shown in Both and BYE.
+    @ViewBuilder private var byeStatus: some View {
+        switch bye {
+        case .loading, nil:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text(reviewSource == .both ? "Loading BYE reviews first. RMP reviews follow." : "Loading BYE reviews…")
+                    .font(.system(size: 11)).foregroundStyle(Palette.secondary)
+            }
+        case .failed(let message):
+            HStack(spacing: 10) {
+                Text(message).font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                Button("Retry BYE reviews") { model.loadByeReviews(for: professor, retry: true) }.buttonStyle(TextLinkStyle())
+            }
+        case .loaded(let set) where !set.complete:
+            Text("Showing the newest \(set.reviews.count) BYE reviews.").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+        case .loaded:
+            EmptyView()
         }
     }
     /// Every section this professor teaches; ones that miss the picked filters are tagged "Other days".

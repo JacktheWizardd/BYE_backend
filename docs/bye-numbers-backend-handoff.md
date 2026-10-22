@@ -240,3 +240,23 @@ post-check description followed by explicit approval. If data exists unexpectedl
 stop; never reset numbering. Rollback after enrollment preserves numbers and sequence
 state, normally by disabling the routes/restoring website code rather than dropping
 objects. No existing approval in this handoff authorizes any production action.
+
+## Production G1 partial results — October 22, 2026
+
+Owner authorized starting setup after the backend merge. Read-only G1 began at
+2026-10-22 07:31:45 America/Los_Angeles (14:31:45 UTC).
+
+- Connected project: BYE (`nahvhampsxtasfwvvfei`), PostgreSQL 17.
+- `private` exists; 006's helper requires a confirmed PCC account and excludes plus aliases.
+- Number table, sequence, claim RPC and count RPC are all absent. This explains the
+  deployed number route's failure after successful email verification.
+- Live `/api/reviews/status` returned enabled true, ownerTest false, no Turnstile site key.
+- Deployed `ensure_rls` calls `public.rls_auto_enable()` and enforces RLS only on public
+  tables. 007 separately enables RLS on its private table. PostgREST DDL watchers exist.
+- API schema exposure remains unverified: the session and role metadata did not
+  report `pgrst.db_schemas`. NULL is not evidence that private is excluded.
+- No student records or credentials were read. No SQL writes, owner reservation,
+  settings changes or service deployments were performed. G2 and G3 await separate approval.
+
+Next: request permission to view only the Supabase Data API exposed-schema setting,
+or have the owner provide that non-secret list, before completing G1.

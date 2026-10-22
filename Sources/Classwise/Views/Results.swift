@@ -233,17 +233,32 @@ struct Segmented<Value: Hashable>: View {
 private struct ProfessorList: View {
     @ObservedObject var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Namespace private var highlight
     @FocusState private var focused: Bool
     var body: some View {
         VStack(spacing: 4) {
             ForEach(model.displayed) { professor in
-                ProfessorRow(model: model, professor: professor, selected: model.selectedID == professor.id, highlight: highlight) {
+                ProfessorRow(model: model, professor: professor, selected: model.selectedID == professor.id) {
                     model.selectedID = professor.id
+                }
+                .anchorPreference(key: RowBounds.self, value: .bounds) { [professor.id: $0] }
+            }
+        }
+        // One highlight that always exists and glides to the open row. A new click retargets it from wherever it is,
+        // so fast clicks never cross-fade two copies (which skipped frames and flashed the ink shadow).
+        .backgroundPreferenceValue(RowBounds.self) { rows in
+            GeometryReader { proxy in
+                if let id = model.selectedID, let anchor = rows[id] {
+                    let frame = proxy[anchor]
+                    StickerHighlight()
+                        .frame(width: frame.width, height: frame.height)
+                        .offset(x: frame.minX, y: frame.minY)
+                        .animation(BYEMotion.glide(reduce: reduceMotion), value: id)
+                        // Re-sorting moves the open row with the same spring as the rows.
+                        .animation(BYEMotion.spring(reduce: reduceMotion), value: model.displayed.map(\.id))
+                        .transition(.opacity)
                 }
             }
         }
-        .animation(BYEMotion.glide(reduce: reduceMotion), value: model.selectedID)
         .animation(BYEMotion.spring(reduce: reduceMotion), value: model.displayed.map(\.id))
         .focusable().focusEffectDisabled().focused($focused)
         .onKeyPress(.downArrow) { move(1) }
@@ -258,11 +273,31 @@ private struct ProfessorList: View {
     }
 }
 
+private struct RowBounds: PreferenceKey {
+    static let defaultValue: [String: Anchor<CGRect>] = [:]
+    static func reduce(value: inout [String: Anchor<CGRect>], nextValue: () -> [String: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
+    }
+}
+
+/// The ink sticker behind the open professor: card fill, ink outline and a hard 2pt ink shadow, drawn as one shape.
+private struct StickerHighlight: View {
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 10)
+        ZStack {
+            shape.fill(Palette.ink).offset(x: 2, y: 2)
+            shape.fill(Palette.card)
+            shape.strokeBorder(Palette.ink, lineWidth: BYEBorder.sticker)
+        }
+        .compositingGroup()
+        .allowsHitTesting(false)
+    }
+}
+
 private struct ProfessorRow: View {
     @ObservedObject var model: AppModel
     let professor: Professor
     let selected: Bool
-    let highlight: Namespace.ID
     let select: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovering = false
@@ -315,15 +350,7 @@ private struct ProfessorRow: View {
         }
         .padding(10)
         .background {
-            let shape = RoundedRectangle(cornerRadius: 10)
-            if selected {
-                shape.fill(Palette.card)
-                    .overlay(shape.strokeBorder(Palette.ink, lineWidth: BYEBorder.sticker))
-                    .background(shape.fill(Palette.ink).offset(x: 2, y: 2))
-                    .matchedGeometryEffect(id: "professor-highlight", in: highlight)
-            } else if hovering {
-                shape.fill(Palette.tile.opacity(0.6))
-            }
+            if hovering && !selected { RoundedRectangle(cornerRadius: 10).fill(Palette.tile.opacity(0.6)) }
         }
         .onHover { hovering = $0 }
     }

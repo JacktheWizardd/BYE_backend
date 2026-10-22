@@ -6,13 +6,14 @@ struct Sidebar: View {
     @ObservedObject var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var highlight
+    @State private var hoveredClass: String?
 
     private enum Item: Hashable { case home, course(String) }
     private var active: Item? {
         switch model.route {
         case .home: .home
         case .results: model.course.map { .course($0.display) }
-        case .welcome, .name: nil
+        case .welcome, .name, .number: nil
         }
     }
 
@@ -46,6 +47,14 @@ struct Sidebar: View {
                             Text(course.display).font(BYEFont.mono(12))
                         } action: { model.openClass(course) }
                         .accessibilityLabel("Open \(course.display)")
+                        .overlay(alignment: .trailing) {
+                            RemoveClassButton(course: course, rowHovered: hoveredClass == course.display) { model.removeClass(course) }
+                        }
+                        .onHover { inside in
+                            if inside { hoveredClass = course.display } else if hoveredClass == course.display { hoveredClass = nil }
+                        }
+                        .contextMenu { Button("Remove from Your classes") { model.removeClass(course) } }
+                        .accessibilityAction(named: "Remove from Your classes") { model.removeClass(course) }
                     }
                 }
             }
@@ -97,6 +106,26 @@ struct Sidebar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(model.displayName.isEmpty ? "Guest" : model.displayName), settings")
+    }
+}
+
+/// The × that removes a class from Your classes. It shows while the row is hovered or the × has keyboard focus, as on Windows.
+private struct RemoveClassButton: View {
+    let course: Course
+    let rowHovered: Bool
+    let remove: () -> Void
+    @FocusState private var focused: Bool
+    var body: some View {
+        Button(action: remove) {
+            Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Palette.secondary)
+                .frame(width: 24, height: 24).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focused($focused)
+        .opacity(rowHovered || focused ? 1 : 0)
+        .padding(.trailing, 4)
+        .help("Remove \(course.display) from Your classes")
+        .accessibilityLabel("Remove \(course.display) from Your classes")
     }
 }
 

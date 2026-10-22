@@ -14,9 +14,18 @@ struct ContentView: View {
             case .name:
                 firstRun {
                     NameStepView(initialName: model.displayName, term: model.selectedTerm?.termName) { name in
-                        confetti += 1
-                        withAnimation(BYEMotion.fade(reduce: reduceMotion)) { model.finishOnboarding(name: name) }
+                        if !model.numbersAvailable { confetti += 1 }
+                        withAnimation(BYEMotion.fade(reduce: reduceMotion)) { model.continueFromName(name) }
                     }
+                }
+            case .number:
+                firstRun {
+                    NumberStepView(model: model, term: model.selectedTerm?.termName) { celebrate in
+                        if celebrate { confetti += 1 }
+                        withAnimation(BYEMotion.fade(reduce: reduceMotion)) { model.finishOnboarding(name: model.displayName) }
+                    }
+                    // A new number gets its confetti the moment it arrives.
+                    .onChange(of: model.byeNumber?.number) { old, new in if old == nil, new != nil { confetti += 1 } }
                 }
             case .home, .results:
                 // A plain frame rather than NavigationSplitView: newer macOS draws that sidebar as floating
@@ -39,6 +48,7 @@ struct ContentView: View {
         .tint(Palette.ink)
         .task {
             #if !BYE_MODEL_EVAL
+            model.refreshNumberTotal()
             await model.loadTerms()
             #endif
         }

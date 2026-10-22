@@ -9,7 +9,7 @@ struct ClasswiseApp: App {
     // Measurement builds never contact the update feed.
     @StateObject private var updater = AppUpdater(info: nil)
     #else
-    // The final release never contacts the update feed either.
+    // A retired release never contacts the update feed either.
     @StateObject private var updater = AppUpdater(info: NetworkShutdown.isActive ? nil : Bundle.main.infoDictionary)
     #endif
     init() {
@@ -104,9 +104,9 @@ struct ClasswiseApp: App {
             CommandGroup(replacing: .newItem) {
                 if !NetworkShutdown.isActive {
                     Button("New search") { model.goHome(); applicationDelegate.reopenMainWindow() }.keyboardShortcut("n")
-                        .disabled(model.route == .welcome || model.route == .name)
+                        .disabled(model.isFirstRun)
                     Button("Search or Jump To…") { applicationDelegate.reopenMainWindow(); model.commandMenuOpen = true }
-                        .keyboardShortcut("k").disabled(model.route == .welcome || model.route == .name)
+                        .keyboardShortcut("k").disabled(model.isFirstRun)
                     Button("Refresh results") { model.refresh() }.keyboardShortcut("r").disabled(!model.showingResults || model.busy)
                 }
             }

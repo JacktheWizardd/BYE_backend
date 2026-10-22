@@ -3,6 +3,13 @@ set -eu
 cd "$(dirname "$0")/.."
 . ./scripts/beta-version.sh
 . ./scripts/schedule-api-config.sh
+. ./scripts/update-config.sh
+# Updates stay off in test builds. BYE_TEST_UPDATES=1 writes the release feed and key so Settings → Updates and
+# "Check for Updates…" can be tried; set BYE_UPDATE_FEED_URL to a localhost appcast to test without the live feed.
+UPDATE_PLIST=""
+if [ "${BYE_TEST_UPDATES:-0}" = 1 ]; then
+    UPDATE_PLIST="<key>SUFeedURL</key><string>$UPDATE_FEED_URL</string><key>SUPublicEDKey</key><string>$UPDATE_PUBLIC_ED_KEY</string>"
+fi
 
 ./scripts/swift.sh build -c release --arch "$BETA_ARCH"
 BIN_DIR=$(./scripts/swift.sh build -c release --arch "$BETA_ARCH" --show-bin-path)
@@ -23,7 +30,7 @@ cp Sources/Classwise/Resources/THIRD_PARTY_NOTICES.txt "$STAGED_APP/Contents/Res
 cp Sources/Classwise/Resources/AppIcon.icns "$STAGED_APP/Contents/Resources/"
 cp Sources/Classwise/Resources/LibreBaskerville-SemiBold.ttf "$STAGED_APP/Contents/Resources/LibreBaskerville-SemiBold.ttf"
 cp Sources/Classwise/Resources/LibreBaskerville-Bold.ttf "$STAGED_APP/Contents/Resources/LibreBaskerville-Bold.ttf"
-# The executable links Sparkle. No SUFeedURL is written, so updates stay off.
+# The executable links Sparkle. Without BYE_TEST_UPDATES=1 no SUFeedURL is written, so updates stay off.
 ./scripts/embed-sparkle.sh "$BIN_DIR" "$STAGED_APP"
 cat > "$STAGED_APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -42,6 +49,7 @@ cat > "$STAGED_APP/Contents/Info.plist" <<PLIST
 <key>NSHighResolutionCapable</key><true/>
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
 $(schedule_api_plist)
+$UPDATE_PLIST
 </dict></plist>
 PLIST
 codesign --force --deep --sign - "$STAGED_APP"
@@ -49,4 +57,5 @@ codesign --verify --deep --strict "$STAGED_APP"
 rm -rf "$APP"
 mv "$STAGED_APP" "$APP"
 printf 'Test app ready: %s\n' "$APP"
+if [ -n "$UPDATE_PLIST" ]; then printf 'Updates: on, feed %s\n' "$UPDATE_FEED_URL"; fi
 if [ -n "$SCHEDULE_API_KEY" ]; then echo 'Schedule API: key included.'; else echo 'Schedule API: no key (add one to config/schedule-api.local); the app will say it is not configured.'; fi

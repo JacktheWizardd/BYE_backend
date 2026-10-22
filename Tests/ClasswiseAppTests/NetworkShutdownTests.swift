@@ -3,13 +3,18 @@ import XCTest
 
 @MainActor
 final class NetworkShutdownTests: XCTestCase {
-    func testFinalReleaseIsOffline() {
-        XCTAssertTrue(NetworkShutdown.isActive, "The final release must ship with all network features off.")
+    func testReleaseIsOnline() {
+        XCTAssertFalse(NetworkShutdown.isActive, "0.5.0 ships with search, ratings and updates turned back on.")
     }
 
-    func testUpdaterStaysInertWhenShutDown() {
-        // ClasswiseApp passes nil info while the shutdown is active, which never starts Sparkle.
-        let updater = AppUpdater(info: NetworkShutdown.isActive ? nil : ["SUFeedURL": "https://example.com/appcast.xml", "SUPublicEDKey": "key"])
+    func testDistributionInfoEnablesUpdatesWhenOnline() {
+        // ClasswiseApp passes the bundle info while the shutdown is off. Checked statically so the test never starts Sparkle.
+        let info: [String: Any]? = NetworkShutdown.isActive ? nil : ["SUFeedURL": "https://example.com/appcast.xml", "SUPublicEDKey": "key"]
+        XCTAssertTrue(AppUpdater.isConfigured(info: info))
+    }
+
+    func testUpdaterStaysInertWithoutFeed() {
+        let updater = AppUpdater(info: nil)
         XCTAssertFalse(updater.isEnabled)
         XCTAssertFalse(updater.canCheckForUpdates)
     }

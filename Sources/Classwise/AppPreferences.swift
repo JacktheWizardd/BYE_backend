@@ -2,12 +2,13 @@ import Foundation
 import ClasswiseCore
 
 /// What BYE remembers on this Mac only: the student's first name, whether the welcome was finished,
-/// and up to five recent classes. None of it is sent anywhere.
+/// up to five recent classes and, if they chose to get one, their BYE number. None of it is sent anywhere.
 struct AppPreferences {
     static let maxNameLength = 20
     static let maxRecentClasses = 5
     private enum Key {
         static let displayName = "bye.displayName", hasOnboarded = "bye.hasOnboarded", recentClasses = "bye.recentClasses"
+        static let byeNumber = "bye.number", byeTotal = "bye.numberTotal", byeTotalCheckedAt = "bye.numberTotalCheckedAt"
     }
     private let defaults: UserDefaults
     init(defaults: UserDefaults = .standard) { self.defaults = defaults }
@@ -22,6 +23,22 @@ struct AppPreferences {
             let name = Self.normalizedName(newValue)
             if name.isEmpty || !Self.isValidName(name) { defaults.removeObject(forKey: Key.displayName) } else { defaults.set(name, forKey: Key.displayName) }
         }
+    }
+    /// The student's BYE number and the last known total. Only the numbers are kept; never the email.
+    var byeNumber: ByeNumber? {
+        get {
+            let number = defaults.integer(forKey: Key.byeNumber), total = defaults.integer(forKey: Key.byeTotal)
+            return number > 0 ? ByeNumber(number: number, total: max(total, number)) : nil
+        }
+        nonmutating set {
+            if let newValue, newValue.number > 0 {
+                defaults.set(newValue.number, forKey: Key.byeNumber); defaults.set(newValue.total, forKey: Key.byeTotal)
+            } else { [Key.byeNumber, Key.byeTotal, Key.byeTotalCheckedAt].forEach(defaults.removeObject) }
+        }
+    }
+    var byeTotalCheckedAt: Date? {
+        get { defaults.object(forKey: Key.byeTotalCheckedAt) as? Date }
+        nonmutating set { defaults.set(newValue, forKey: Key.byeTotalCheckedAt) }
     }
     var hasOnboarded: Bool {
         get { defaults.bool(forKey: Key.hasOnboarded) }
@@ -39,6 +56,13 @@ struct AppPreferences {
         var list = recentClasses
         if !list.contains(where: { $0.display == course.display }) { list.append(course) }
         list = Array(list.suffix(Self.maxRecentClasses))
+        defaults.set(list.map(\.display), forKey: Key.recentClasses)
+        return list
+    }
+    /// Removes a class from Your classes; the others keep their order.
+    @discardableResult
+    func forget(_ course: Course) -> [Course] {
+        let list = recentClasses.filter { $0.display != course.display }
         defaults.set(list.map(\.display), forKey: Key.recentClasses)
         return list
     }

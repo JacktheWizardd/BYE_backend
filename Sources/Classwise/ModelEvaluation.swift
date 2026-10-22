@@ -99,7 +99,7 @@ actor EvaluationSummaryProvider: SummaryProvider {
             let provider=try EvaluationSummaryProvider(config:config,directory:directory)
             providerIdentity=provider.cacheIdentity
             let storage=directory.appendingPathComponent("Reports")
-            let model=AppModel(summaryProvider:provider,cache:ReportCache(directory:storage),choices:ProfileChoiceStore(directory:storage),summariesEnabled:true)
+            let model=AppModel(summaryProvider:provider,cache:ReportCache(directory:storage),choices:ProfileChoiceStore(directory:storage),summariesEnabled:true,byeReviews:nil,byeNumbers:nil)
             let cases=config["cases"] as! [[String:Any]]
             guard cases.count>=2 else { throw AppError.message("Two offline UI fixtures required") }
             model.course=try Course(cases[0]["course"] as! String);model.input=model.course!.display

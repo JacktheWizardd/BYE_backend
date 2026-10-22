@@ -124,6 +124,8 @@ struct Eyebrow: View {
 }
 
 func score(_ value: Double?) -> String { value.map { String(format: "%.1f", $0) } ?? "—" }
+/// BYE scores are whole numbers from 1 to 5.
+func whole(_ value: Double?) -> String { value.map { String(format: "%.0f", $0) } ?? "—" }
 
 /// The BYE wordmark: Libre Baskerville Bold over a yellow highlighter swipe.
 struct Brand: View {
@@ -266,16 +268,38 @@ struct SeatMeter: View {
     private var waitlist: String { details?.waitlistLabel ?? "" }
 }
 
+/// The plain outline tag that ends an RMP review's score line. BYE reviews carry a stamp instead.
+struct SourceTag: View {
+    let text: String
+    var body: some View {
+        Text(text).font(.system(size: 10, weight: .bold)).tracking(0.6).foregroundStyle(Palette.ink)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Palette.lineStrong))
+            .accessibilityLabel(text == "RMP" ? "From Rate My Professors" : text)
+    }
+}
+
+/// One review card. RMP reviews end their score line with an `RMP` tag and link to the original;
+/// BYE reviews show Quality and Difficulty and end with their collectible stamp.
 struct ReviewCard: View {
     let review: Review
-    let sourceURL: URL
+    /// The RMP profile for "Original on RMP ↗"; nil for BYE reviews.
+    var sourceURL: URL?
+    /// Set for BYE reviews.
+    var stamp: StampTier?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(spacing: 8) {
                 if review.course.isEmpty { Text("Course not specified").font(.system(size: 12, weight: .semibold)) }
                 else { CourseChip(text: review.course) }
                 Spacer()
-                Text("Rating \(score(review.rating))/5 · Difficulty \(score(review.difficulty))/5").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                if let stamp {
+                    Text("Quality \(whole(review.rating))/5 · Difficulty \(whole(review.difficulty))/5").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                    ByeStamp(tier: stamp)
+                } else {
+                    Text("Rating \(score(review.rating))/5 · Difficulty \(score(review.difficulty))/5").font(.system(size: 11)).foregroundStyle(Palette.secondary)
+                    SourceTag(text: "RMP")
+                }
             }
             Text(review.excerpt).font(.system(size: 13)).foregroundStyle(Palette.body).lineSpacing(4).textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
@@ -283,7 +307,9 @@ struct ReviewCard: View {
             HStack {
                 Text(review.postedLabel).font(.system(size: 11)).foregroundStyle(Palette.secondary)
                 Spacer()
-                Link("Original on RMP ↗", destination: sourceURL).font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.ink)
+                if let sourceURL {
+                    Link("Original on RMP ↗", destination: sourceURL).font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.ink)
+                }
             }
         }.padding(16).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(Palette.card, in: RoundedRectangle(cornerRadius: 12))

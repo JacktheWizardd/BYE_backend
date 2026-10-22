@@ -82,10 +82,106 @@ struct NameStepView: View {
     }
 }
 
-/// The tilted student ID card. It is decoration: the name field carries the accessible label.
+/// First launch, step three (optional): a BYE number linked to the student's school email.
+/// Skipping keeps every feature; the card just shows BYE-····.
+struct NumberStepView: View {
+    @ObservedObject var model: AppModel
+    let term: String?
+    let onFinish: (_ celebrate: Bool) -> Void
+    @FocusState private var continueFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 48) {
+            VStack(alignment: .leading, spacing: 10) {
+                if let number = model.byeNumber {
+                    Text("You’re \(ByeNumber.label(number.number)).").font(BYEFont.display(28, bold: true))
+                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                    Text("Student \(number.number) of \(number.total). It’s linked to your school email, so it stays yours on any Mac.")
+                        .font(.system(size: 13)).foregroundStyle(Palette.body).fixedSize(horizontal: false, vertical: true)
+                    Button("Start searching →") { onFinish(false) }.buttonStyle(StickerButtonStyle())
+                        .keyboardShortcut(.defaultAction).focused($continueFocused).padding(.top, 6)
+                        .onAppear { continueFocused = true }
+                } else {
+                    Text("Want your own BYE number?").font(BYEFont.display(28, bold: true))
+                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                    Text("Verify your PCC school email and BYE gives you a student number, like BYE-0042. It’s yours on any Mac and makes your card a little more you. It’s optional.")
+                        .font(.system(size: 13)).foregroundStyle(Palette.body).fixedSize(horizontal: false, vertical: true)
+                    ByeNumberForm(model: model).padding(.top, 4)
+                    Button("Skip for now") { model.restartNumber(); onFinish(true) }.buttonStyle(StickerButtonStyle(kind: .ghost))
+                    Text("BYE keeps your school email and number. Your name and classes stay on this Mac.")
+                        .font(.system(size: 11)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(width: 340, alignment: .leading)
+            StudentIDCard(name: model.displayName, term: term, number: model.byeNumber)
+        }
+    }
+}
+
+/// Email → code → number. Shared by the first run and Settings. Errors are announced to VoiceOver.
+struct ByeNumberForm: View {
+    @ObservedObject var model: AppModel
+    @State private var email = ""
+    @State private var code = ""
+    @FocusState private var focus: Field?
+    private enum Field { case email, code }
+
+    private var waitingForCode: String? {
+        switch model.numberStep { case .code(let email), .verifying(let email): email; default: nil }
+    }
+    private var busy: Bool {
+        switch model.numberStep { case .sending, .verifying: true; default: false }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let sentTo = waitingForCode {
+                Text("We sent a code to \(sentTo). It can take a minute to arrive.")
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 8) {
+                    field("Code from your email", text: $code).textContentType(.oneTimeCode)
+                        .focused($focus, equals: .code).onSubmit { model.verifyNumberCode(code) }
+                        .accessibilityLabel("Code from your email")
+                    Button(busy ? "Checking…" : "Get my number →") { model.verifyNumberCode(code) }
+                        .buttonStyle(StickerButtonStyle()).disabled(busy)
+                }
+                HStack(spacing: 14) {
+                    Button("Send a new code") { code = ""; model.requestNumberCode(email: sentTo) }.buttonStyle(TextLinkStyle()).disabled(busy)
+                    Button("Use a different email") { code = ""; model.restartNumber() }.buttonStyle(TextLinkStyle()).disabled(busy)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    field("you@go.pasadena.edu", text: $email).textContentType(.emailAddress)
+                        .focused($focus, equals: .email).onSubmit { model.requestNumberCode(email: email) }
+                        .accessibilityLabel("Your PCC school email")
+                    Button(busy ? "Sending…" : "Send my code →") { model.requestNumberCode(email: email) }
+                        .buttonStyle(StickerButtonStyle()).disabled(busy)
+                }
+            }
+            if let error = model.numberError {
+                Text(error).font(.system(size: 12)).foregroundStyle(Palette.signal).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .onAppear { focus = waitingForCode == nil ? .email : .code }
+        .onChange(of: waitingForCode) { _, sent in focus = sent == nil ? .email : .code }
+        .onChange(of: model.numberError) { _, error in if let error { AccessibilityNotification.Announcement(error).post() } }
+    }
+
+    private func field(_ prompt: String, text: Binding<String>) -> some View {
+        TextField(prompt, text: text)
+            .textFieldStyle(.plain).font(.system(size: 14))
+            .padding(.horizontal, 12).frame(height: 44)
+            .background(Palette.card, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.ink, lineWidth: BYEBorder.control))
+            .disabled(busy)
+    }
+}
+
+/// The tilted student ID card. It is decoration: the fields beside it carry the accessible labels.
 struct StudentIDCard: View {
     let name: String
     let term: String?
+    var number: ByeNumber? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovering = false
     private var initial: String { name.first.map { String($0).uppercased() } ?? "?" }
@@ -113,10 +209,15 @@ struct StudentIDCard: View {
                         Text("Pasadena City College").font(.system(size: 12)).foregroundStyle(Palette.secondary)
                     }
                 }
-                HStack {
+                HStack(alignment: .firstTextBaseline) {
                     if let term { Text("Term · \(term)") }
                     Spacer()
-                    Text("BYE-0001").font(BYEFont.mono(11))
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(ByeNumber.label(number?.number)).font(BYEFont.mono(11))
+                            .contentTransition(.numericText(value: Double(number?.number ?? 0)))
+                            .animation(BYEMotion.count(reduce: reduceMotion), value: number?.number)
+                        if let number { Text("Student \(number.number) of \(number.total)").font(.system(size: 10)) }
+                    }
                 }
                 .font(.system(size: 11)).foregroundStyle(Palette.secondary).padding(.top, 14)
                 HStack(spacing: 0) {

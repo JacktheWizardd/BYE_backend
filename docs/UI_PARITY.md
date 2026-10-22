@@ -29,8 +29,9 @@ When you change a row below, say in the handoff whether its other columns change
 | Professor list, sliding highlight, ↑ ↓ | `ProfessorList` + `ProfessorCard` (`ProfessorRow` available) | `ProfessorList` + `ProfessorRow` (vendored; Mac-style row actions) | `ProfessorList` + `ProfessorRow` in `Results.swift` |
 | Loading rows | `LoadingRows` | `LoadingRows` (vendored) | `LoadingRows` in `Results.swift`; `ProgressMeter` in the footer |
 | Before a professor is picked | `EmptyDetail` with `sections` (format and term facts) | `EmptyDetail` (vendored) with `sections`, a course caption and the disclaimer | `CourseOverview` in `Results.swift` (numbers from `CourseOverviewStats` in `ClasswiseCore`) |
-| Professor page | `Report` (chips filter, requests reviews on each filter) | `Report` (vendored) with `reviewFilter="select"`, `findMore`, `writeReview`, `summary` (AI note), `reviewPage={[3, 5]}` and saved per-professor state | `ProfessorReport` (kept mounted; per-professor review choices in `AppModel`) |
+| Professor page | `Report` (chips filter, requests reviews on each filter) | `Report` (vendored) with `reviewFilter="select"`, `findMore`, `writeReview`, `summary` (AI note), `reviewPage={[3, 5]}` and saved per-professor state | `ProfessorReport` (kept mounted; per-professor review choices in `AppModel`). Since 0.5.0: BYE score row above the RMP row, one Reviews section with a Both · BYE · RMP `Segmented` toggle, `ByeStamp` on BYE cards and an `RMP` `SourceTag` on RMP cards; BYE reviews from `ByeReviewClient` (`/api/reviews/resolve`, `profile`, `list`, up to 100 newest) |
 | Section card and seats | `SectionCard` | `SectionCard` (vendored) | `ClassCard` / `SeatMeter` in `Components.swift` (seat levels from `ClasswiseCore`) |
+| BYE number (email-verified student number, "Student 12 of 40") | — | Not yet: the card still shows BYE-0001 | `NumberStepView` (first run, optional), `ByeNumberForm` in Settings → General, number on `StudentIDCard`; `ByeNumberClient` |
 | Profile chooser | `Chooser` | `Chooser` in `app/report.tsx` (Mac wording: Close, "Finding matching profiles…") | `ProfileChooser` |
 
 ## Behavior every desktop app keeps
@@ -56,6 +57,7 @@ When you change a row below, say in the handoff whether its other columns change
   - The Mac uses a plain two-column frame instead of `NavigationSplitView`, because macOS 26 draws that sidebar as floating glass. Its sidebar does not collapse.
   - The Mac Home field is focused on open, so it does not type example codes as the placeholder (`useTypedHint` on Windows).
   - The Mac ID card leaves out the term line until a semester loads, instead of showing a fixed "Fall 2026".
+- BYE reviews (Mac 0.5.0, 2026-10-21): the Mac downloads up to 100 newest BYE reviews once per instructor and class each session, then filters and sorts them on the device, as it does for RMP. The web (`claude/merged-reviews`, not merged yet) asks the server for each filter and sort. The stamp tier vector lives on that branch; the Mac keeps a copy in `Tests/ClasswiseCoreTests/Vectors/` until the next sync. The Mac keeps 3, then 5 more reviews; the design system says 4, then 6.
 - Updates: the Mac uses Sparkle. Windows only checks `https://bye-before-you-enroll.pages.dev/windows/latest.json` when asked and links to the website.
 
 ## Rules every column keeps

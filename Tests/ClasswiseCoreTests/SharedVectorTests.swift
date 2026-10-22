@@ -68,4 +68,27 @@ final class SharedVectorTests: XCTestCase {
             XCTAssertEqual(Ordering.reviews(reviews, by: sort).map(\.id), test.expected, test.by)
         }
     }
+
+    /// The stamp vector is not vendored yet: it lives on the website branch `claude/merged-reviews` (ac79bb1).
+    /// Until that merges and `node scripts/sync-bye-shared.mjs` runs, a byte-for-byte copy sits beside this file.
+    func testStampTier() throws {
+        struct File: Decodable { let cases: [Case] }
+        struct Case: Decodable { let id: String; let expected: String }
+        let vendored = vectors.appendingPathComponent("stamp-tier.json")
+        let url = FileManager.default.fileExists(atPath: vendored.path) ? vendored
+            : URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Vectors/stamp-tier.json")
+        let file = try JSONDecoder().decode(File.self, from: Data(contentsOf: url))
+        XCTAssertEqual(file.cases.count, 13)
+        for test in file.cases { XCTAssertEqual(StampTier(reviewID: test.id).rawValue, test.expected, test.id) }
+    }
+
+    /// Over 10,000 IDs every tier stays within 1.5 points of its share.
+    func testStampTierOdds() {
+        var counts: [StampTier: Int] = [:]
+        for index in 0..<10_000 { counts[StampTier(reviewID: "review-\(index)"), default: 0] += 1 }
+        let expected: [StampTier: Double] = [.legendary: 2, .epic: 6, .rare: 12, .uncommon: 25, .common: 55]
+        for (tier, share) in expected {
+            XCTAssertEqual(Double(counts[tier] ?? 0) / 100, share, accuracy: 1.5, tier.rawValue)
+        }
+    }
 }

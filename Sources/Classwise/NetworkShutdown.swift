@@ -1,15 +1,11 @@
 import SwiftUI
 
-/// Final-release switch. When active, the shipping app makes no network requests at all:
+/// Retirement switch. When active, the shipping app makes no network requests at all:
 /// no PCC schedule, no Rate My Professors, no update feed. The window shows `RetiredView`
 /// instead of search, so no client is ever asked to load anything.
-/// Measurement and evaluation builds keep their own behavior.
+/// 0.4.1 shipped with it on; 0.5.0 turns BYE back on. Set it to true to retire a release again.
 enum NetworkShutdown {
-    #if BYE_AUDIT || BYE_MODEL_EVAL
     static let isActive = false
-    #else
-    static let isActive = true
-    #endif
 
     static let message = "BYE is no longer active. This version doesn’t connect to the internet, so class searches, ratings and updates are turned off. Thanks for testing BYE."
 }

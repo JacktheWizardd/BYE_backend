@@ -1,4 +1,5 @@
 import AppKit
+import ClasswiseCore
 import SwiftUI
 
 /// Settings: your name, updates (Sparkle, in builds with an update feed) and about. Shown as a sheet in the main
@@ -55,7 +56,25 @@ struct SettingsContent: View {
             }
             Text(note.isEmpty ? "Stays on this computer." : note).font(.system(size: 12))
                 .foregroundStyle(noteIsProblem ? Palette.signal : Palette.secondary)
+            numberSection.padding(.top, 10)
             Button("Show welcome again", action: showWelcome).buttonStyle(TextLinkStyle()).padding(.top, 6)
+        }
+    }
+
+    /// The student's BYE number, or the optional way to get one.
+    @ViewBuilder private var numberSection: some View {
+        Text("Your BYE number").font(.system(size: 11, weight: .bold)).foregroundStyle(Palette.secondary)
+        if let number = model.byeNumber {
+            (Text(ByeNumber.label(number.number)).font(BYEFont.mono(14)) + Text("  ·  Student \(number.number) of \(number.total)").font(.system(size: 12)).foregroundStyle(Palette.secondary))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("BYE number \(number.number), student \(number.number) of \(number.total)")
+            Text("Linked to your school email, so it stays yours on any Mac.").font(.system(size: 12)).foregroundStyle(Palette.secondary)
+        } else if model.numbersAvailable {
+            Text("Optional and just for fun: verify your PCC school email to get your own number on your student card. BYE keeps your school email and number.")
+                .font(.system(size: 12)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+            ByeNumberForm(model: model)
+        } else {
+            Text("BYE numbers are not available in this build.").font(.system(size: 12)).foregroundStyle(Palette.secondary)
         }
     }
 

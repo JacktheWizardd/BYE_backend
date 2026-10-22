@@ -2,7 +2,10 @@ import SwiftUI
 import ClasswiseCore
 
 /// The screen the main window shows.
-enum AppRoute: Equatable { case welcome, name, home, results }
+enum AppRoute: Equatable { case welcome, name, number, home, results }
+
+/// Getting a BYE number: email → code → number. The email lives only in memory while this runs.
+enum NumberStep: Equatable { case email, sending, code(email: String), verifying(email: String) }
 
 /// The sections of Settings.
 enum SettingsTab: Hashable { case general, updates, about }
@@ -13,6 +16,7 @@ struct ReviewChoice: Equatable {
     var chosenByUser: Bool
     var sort: ReviewSort
     var limit: Int
+    var source: ReviewSource = .both
 }
 
 @MainActor
@@ -26,6 +30,7 @@ final class AppModel: ObservableObject {
     @Published var searchedTerm: Term?
     @Published var professors: [Professor] = []
     @Published var route: AppRoute
+    var isFirstRun: Bool { [.welcome, .name, .number].contains(route) }
     /// Results are one route; leaving them returns Home (the welcome stays until it is finished).
     var showingResults: Bool {
         get { route == .results }
@@ -33,12 +38,12 @@ final class AppModel: ObservableObject {
     }
     /// The ⌘K menu, over Home or results. It never opens during the first run.
     @Published var commandMenuOpen = false {
-        didSet { if commandMenuOpen && (route == .welcome || route == .name) { commandMenuOpen = false } }
+        didSet { if commandMenuOpen && isFirstRun { commandMenuOpen = false } }
     }
     /// The open Settings sheet tab, or nil when it is closed. Like ⌘K, it waits until the welcome is finished.
     @Published var settingsTab: SettingsTab? {
         didSet {
-            if settingsTab != nil && (route == .welcome || route == .name) { settingsTab = nil }
+            if settingsTab != nil && isFirstRun { settingsTab = nil }
             if settingsTab != nil { commandMenuOpen = false }
         }
     }
@@ -53,6 +58,7 @@ final class AppModel: ObservableObject {
         let onlineOnly: Bool
         let sort: ProfessorSort
         let showAll: Bool
+        let metadata: ScheduleMetadata?
     }
     private var sessions: [String: ClassSession] = [:]
     private var reviewChoices: [String: ReviewChoice] = [:]
@@ -123,14 +129,99 @@ final class AppModel: ObservableObject {
 
     init(pcc: PCCClient = PCCClient.sharedBackend(), ollama: OllamaClient? = nil, summaryProvider: (any SummaryProvider)? = nil, cache: ReportCache? = nil,
          choices: ProfileChoiceStore? = nil, summariesEnabled: Bool = false, preferences: AppPreferences = AppPreferences(),
-         makeReader: @escaping @MainActor () -> any ProfileReader = { RMPAPIReader() }) {
-        self.pcc = pcc; self.summariesEnabled = summariesEnabled
+         makeReader: @escaping @MainActor () -> any ProfileReader = { RMPAPIReader() },
+         byeReviews bye: ByeReviewClient? = ByeReviewClient(site: ReviewLink.site()),
+         byeNumbers numbers: ByeNumberClient? = ByeNumberClient(site: ReviewLink.site())) {
+        self.pcc = pcc; self.summariesEnabled = summariesEnabled; self.bye = bye; self.numbers = numbers
+        byeNumber = preferences.byeNumber
         self.preferences = preferences; displayName = preferences.displayName; recentClasses = preferences.recentClasses
         route = preferences.hasOnboarded ? .home : .welcome
         self.summaryProvider = summariesEnabled ? (summaryProvider ?? ollama ?? AppleSummaries.make()) : nil
         self.cache = cache ?? ReportCache(directory: BetaStorage.directory.appendingPathComponent("Reports"))
         self.choices = choices ?? ProfileChoiceStore(directory: BetaStorage.directory); self.makeReader = makeReader
     }
+    /// BYE's own reviews for one PCC instructor and class, loaded once per session when their page opens.
+    enum ByeLoad: Equatable { case loading, loaded(ByeReviewSet), failed(String) }
+    @Published private(set) var byeReviews: [String: ByeLoad] = [:]
+    private let bye: ByeReviewClient?
+    private var byeTasks: [String: Task<Void, Never>] = [:]
+    func byeKey(_ professor: Professor, course: Course) -> String { professor.name + "|" + course.key }
+    func byeState(for professor: Professor) -> ByeLoad? { course.flatMap { byeReviews[byeKey(professor, course: $0)] } }
+    /// Starts loading unless this instructor and class already loaded or are loading; `retry` reloads after a failure.
+    func loadByeReviews(for professor: Professor, retry: Bool = false) {
+        guard let bye, let course else { return }
+        let key = byeKey(professor, course: course)
+        switch byeReviews[key] {
+        case .loading, .loaded: return
+        case .failed: if !retry { return }
+        case nil: break
+        }
+        byeReviews[key] = .loading
+        let name = professor.name
+        byeTasks[key] = Task { [weak self] in
+            let result: ByeLoad
+            do { result = .loaded(try await bye.load(instructor: name, course: course)) }
+            catch is CancellationError { return }
+            catch { result = .failed((error as? AppError)?.errorDescription ?? "BYE reviews could not be loaded. Try again shortly.") }
+            guard let self, !Task.isCancelled else { return }
+            self.byeReviews[key] = result; self.byeTasks[key] = nil
+        }
+    }
+    // MARK: BYE number
+
+    @Published private(set) var byeNumber: ByeNumber?
+    @Published private(set) var numberStep: NumberStep = .email
+    @Published var numberError: String?
+    private let numbers: ByeNumberClient?
+    var numbersAvailable: Bool { numbers != nil }
+
+    func requestNumberCode(email: String) {
+        guard let numbers else { return }
+        switch numberStep { case .sending, .verifying: return; default: break }
+        guard let valid = ByeNumberClient.schoolEmail(email) else {
+            numberError = "Use your PCC school email, ending in @go.pasadena.edu."; return
+        }
+        numberError = nil; numberStep = .sending
+        Task { [weak self] in
+            do {
+                _ = try await numbers.sendCode(email: valid)
+                self?.numberStep = .code(email: valid)
+            } catch {
+                self?.numberStep = .email
+                self?.numberError = (error as? AppError)?.errorDescription ?? "The code could not be sent. Try again shortly."
+            }
+        }
+    }
+    func verifyNumberCode(_ code: String) {
+        guard let numbers, case .code(let email) = numberStep else { return }
+        guard ByeNumberClient.validCode(code) != nil else { numberError = "Enter the complete numeric code from your email."; return }
+        numberError = nil; numberStep = .verifying(email: email)
+        Task { [weak self] in
+            do {
+                let number = try await numbers.verify(email: email, code: code)
+                guard let self else { return }
+                preferences.byeNumber = number; preferences.byeTotalCheckedAt = Date()
+                byeNumber = number; numberStep = .email
+            } catch {
+                self?.numberStep = .code(email: email)
+                self?.numberError = (error as? AppError)?.errorDescription ?? "The code could not be confirmed. Try again shortly."
+            }
+        }
+    }
+    /// Back to the email field, forgetting the address typed so far.
+    func restartNumber() { numberStep = .email; numberError = nil }
+    /// Keeps "Student 12 of 40" current, at most once a day. Sends nothing about the student.
+    func refreshNumberTotal(now: Date = Date()) {
+        guard let numbers, let current = byeNumber else { return }
+        if let checked = preferences.byeTotalCheckedAt, now.timeIntervalSince(checked) < 86_400 { return }
+        preferences.byeTotalCheckedAt = now
+        Task { [weak self] in
+            guard let total = try? await numbers.total(), let self, total >= current.number else { return }
+            let updated = ByeNumber(number: current.number, total: total)
+            preferences.byeNumber = updated; byeNumber = updated
+        }
+    }
+
     var chooserProfessor: Professor? { professors.first { $0.id == chooserID } }
     func isPreviewing(_ id: String) -> Bool {
         activePreviews[id] != nil || pendingPreviews.contains { $0.id == id }
@@ -362,9 +453,20 @@ final class AppModel: ObservableObject {
         course = parsed; searchedTerm = term; error = nil; busy = true; progress = "Finding classes at PCC…"
         attemptedDetails = []; attemptedSummaries = []; courseReviewIssues = [:]
         if let restored {
-            // A class revisited this session reappears at once and reloads in the background.
+            // A class revisited this session reappears at once with its checked ratings. Only professors left
+            // unchecked are looked up again; seats follow on the normal schedule poll instead of a new search.
             professors = restored.professors; showingResults = true; apply(restored)
-        } else { professors = []; selectedID = nil; showAll = false; showingResults = false }
+            scheduleMetadata = restored.metadata; expireAvailability()
+            recentClasses = preferences.remember(parsed)
+            checkedCount = professors.filter { $0.state != .pending }.count
+            pendingPreviews = professors.filter { $0.state == .pending }
+                .map { PreviewJob(id: $0.id, generation: $0.generation, action: .lookup) }
+            busy = !pendingPreviews.isEmpty; progress = busy ? "Checking the rest on RMP…" : ""
+            pumpPreviews()
+            if pendingPreviews.isEmpty && activePreviews.isEmpty { busy = false; progress = "" }
+            return
+        }
+        professors = []; selectedID = nil; showAll = false; showingResults = false
         searchTask = Task { [weak self] in
             guard let self else { return }
             defer {
@@ -428,7 +530,7 @@ final class AppModel: ObservableObject {
     private func saveSession() {
         guard showingResults, !professors.isEmpty, let key = currentSessionKey else { return }
         sessions[key] = ClassSession(professors: professors, selectedID: selectedID, availableDays: availableDays,
-                                     onlineOnly: onlineOnly, sort: sort, showAll: showAll)
+                                     onlineOnly: onlineOnly, sort: sort, showAll: showAll, metadata: scheduleMetadata)
         let kept = Set(recentClasses.map(\.display))
         sessions = sessions.filter { key, _ in kept.contains { key.hasSuffix(" " + $0) } }
         reviewChoices = reviewChoices.filter { key, _ in sessions.keys.contains { key.hasPrefix($0 + "|") } }
@@ -448,11 +550,24 @@ final class AppModel: ObservableObject {
         if showingResults, self.course?.display == course.display { return }
         input = course.display; start()
     }
-    func goHome() { saveSession(); changeSearch() }
+    /// Removes a class from Your classes and forgets its session. Removing the open class returns Home.
+    func removeClass(_ course: Course) {
+        if showingResults, self.course?.display == course.display { goHome() }
+        recentClasses = preferences.forget(course)
+        sessions = sessions.filter { !$0.key.hasSuffix(" " + course.display) }
+        reviewChoices = reviewChoices.filter { key, _ in sessions.keys.contains { key.hasPrefix($0 + "|") } }
+    }
+    /// Stops the ratings pass first, so an unfinished professor is saved as unchecked and resumes on return.
+    func goHome() { cancel(); saveSession(); changeSearch() }
     func continueFromWelcome() { route = .name }
     /// Finishes the first run. An empty name is allowed: the student stays "Guest".
     func finishOnboarding(name: String) {
         setDisplayName(name); preferences.hasOnboarded = true; route = .home
+    }
+    /// After the name step: the optional BYE number step, when this build can reach BYE's website.
+    func continueFromName(_ name: String) {
+        if !name.isEmpty { setDisplayName(name) }
+        if numbers == nil { finishOnboarding(name: displayName) } else { restartNumber(); route = .number }
     }
     func showWelcomeAgain() { saveSession(); cancel(); error = nil; commandMenuOpen = false; settingsTab = nil; route = .welcome }
     /// Saves the name on this Mac. Returns false for an empty name or one that breaks the name rule.
@@ -697,6 +812,8 @@ final class AppModel: ObservableObject {
     }
     func refresh() {
         guard let course, let searchedTerm else { return }
+        // Refresh also re-reads BYE reviews the next time each page opens.
+        byeTasks.values.forEach { $0.cancel() }; byeTasks = [:]; byeReviews = [:]
         if pcc.usesSharedSchedule { Task { await refreshSchedule() }; return }
         input = course.display; termID = searchedTerm.id; start(force: true)
     }

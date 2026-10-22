@@ -80,3 +80,17 @@ extension Professor {
         }
     }
 }
+
+/// The collectible stamp on a BYE review, picked by luck from its ID so it never reflects the scores (BYE stays neutral).
+/// FNV-1a 32-bit over UTF-16 code units, then `h % 100`: 2% legendary, 6% epic, 12% rare, 25% uncommon, 55% common.
+/// Shared rule: packages/core/vectors/stamp-tier.json.
+public enum StampTier: String, CaseIterable, Sendable {
+    case common, uncommon, rare, epic, legendary
+
+    public init(reviewID: String) {
+        var hash: UInt32 = 2_166_136_261
+        for unit in reviewID.utf16 { hash = (hash ^ UInt32(unit)) &* 16_777_619 }
+        let roll = hash % 100
+        self = roll < 2 ? .legendary : roll < 8 ? .epic : roll < 20 ? .rare : roll < 45 ? .uncommon : .common
+    }
+}
