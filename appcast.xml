@@ -3,6 +3,15 @@
   <channel>
     <title>BYE Updates</title>
     <item>
+      <title>BYE 0.5.0</title>
+      <pubDate>Thu, 22 Oct 2026 16:38:18 GMT</pubDate>
+      <sparkle:version>10</sparkle:version>
+      <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description>&lt;ul&gt;&lt;li&gt;&lt;strong&gt;BYE is back on.&lt;/strong&gt; Class searches, professor ratings, reviews and update checks work again after 0.4.1 turned them off.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Reviews from PCC students.&lt;/strong&gt; Professor reports now show BYE reviews from PCC students who verified their school email, alongside Rate My Professors reviews. BYE reviews load first.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Your own BYE number (optional).&lt;/strong&gt; Verify your PCC school email to get a student number like BYE-0042 on your student card. It stays yours on any Mac. Skip it if you like; your name and classes stay on this Mac.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Fresher seat counts.&lt;/strong&gt; Schedules and open seats come from BYE’s schedule service, with a “Checked N min ago” note. Older schedules hide seat counts instead of showing stale ones.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;A friendlier start.&lt;/strong&gt; A short welcome asks what to call you, and the command menu (Command K) jumps to any class or setting.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Your classes.&lt;/strong&gt; Remove a class from Your classes with one click.&lt;/li&gt;&lt;li&gt;BYE still never ranks professors; you compare and decide.&lt;/li&gt;&lt;/ul&gt;</description>
+      <enclosure url="https://bye-before-you-enroll.pages.dev/updates/BYE-0.5.0-AppleSilicon.zip" length="2762516" type="application/octet-stream" sparkle:edSignature="mBle0jAFiJH4mnHc7lar+qhKiSN366xD2d7uZ+FE9eetFWBSG96JxlL+I4hlMVE6YYzARp+3dOAThRiz5mlNCQ==" />
+    </item>
+    <item>
       <title>BYE 0.4.1</title>
       <pubDate>Wed, 21 Oct 2026 06:15:00 GMT</pubDate>
       <sparkle:version>9</sparkle:version>
