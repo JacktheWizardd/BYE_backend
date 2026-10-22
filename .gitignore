@@ -44,3 +44,11 @@ apps/web/dist/
 
 # Local schedule API key for app builds (see config/schedule-api.example).
 /config/*.local
+
+# Isolated backend relocation tooling.
+/services/web-api/node_modules/
+/services/source-worker/node_modules/
+.wrangler/
+test-results/
+.dev.vars*
+.env*

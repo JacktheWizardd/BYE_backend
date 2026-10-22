@@ -1,0 +1,108 @@
+{
+  "repository": "JacktheWizardd/BYE_frontend",
+  "commit": "1eaf5329e0d5e23563edd543f03e2a39404e0305",
+  "files": {
+    "server/service.ts": {
+      "sha256": "fde87e64c983d2446c048d643dca242e7b3c2ef7ceecee311e299aaea399d8e4",
+      "destination": "services/web-api/src/service.ts"
+    },
+    "server/network.ts": {
+      "sha256": "1c9845fb5d7d78d5db6bd162ddbe1a2e878057a583d39ca24ab87133a4058ab5",
+      "destination": "services/web-api/src/network.ts"
+    },
+    "server/reviews.ts": {
+      "sha256": "fba1ed7afe26a36d6f4594205fc5ffbfd2edac767532fea57a668938ad08eced",
+      "destination": "services/web-api/src/reviews.ts"
+    },
+    "server/bye-reviews.ts": {
+      "sha256": "a1f725d6b18326df985179630179ec0babe6f6407d968f5c6a3d93911bbaaba3",
+      "destination": "services/web-api/src/bye-reviews.ts"
+    },
+    "packages/core/domain.ts": {
+      "sha256": "c940863cc0a4d0d879b15716ca15ce46ab4349eaa0b9c79a1c8a27d3ea1e047f",
+      "destination": "packages/source-domain/src/index.ts",
+      "selection": "prefix ending before delivery(); only parsing, matching and section aggregation"
+    },
+    "tests/service.test.ts": {
+      "sha256": "3c97fc45cdac31c6c2890e41cfcbace94c4b0a767a16e211590c5ef357db2201",
+      "destination": "services/web-api/tests/service.test.ts"
+    },
+    "tests/network.test.ts": {
+      "sha256": "0e40aa57017a3ead45519d075f1d3e216edabf0c89c39c46025d6201eeec701e",
+      "destination": "services/web-api/tests/network.test.ts"
+    },
+    "tests/reviews.test.ts": {
+      "sha256": "7b44713ec5204eb32ca3543d0174ef9cca3b9c3203fea9f1a03bc3076cfe123a",
+      "destination": "services/web-api/tests/reviews.test.ts"
+    },
+    "tests/bye-reviews.test.ts": {
+      "sha256": "031c2f6c727a216c26a1822e0511925fed41ab5468289016c51a91c792920319",
+      "destination": "services/web-api/tests/bye-reviews.test.ts"
+    },
+    "tests/fixtures.ts": {
+      "sha256": "ba8b0e6f51d49ebaaeeaf90c4d50a1e5f92b0f20719e00966e22a5d72e4996aa",
+      "destination": "services/web-api/tests/fixtures.ts"
+    },
+    "tests/review-fixtures.ts": {
+      "sha256": "49822dc00ace5f0096f63c0f7a795c2762c341c7d4634209ebb7f91e91cf0f78",
+      "destination": "services/web-api/tests/review-fixtures.ts"
+    },
+    "apps/web/src/demo-data.ts": {
+      "sha256": "5dcc18bc602cfc5856ccfc16cbcc03a08463cdf7d17b7029c6b1f3139cf682f1",
+      "destination": "services/web-api/tests/source-data.ts"
+    },
+    "workers/source/index.ts": {
+      "sha256": "40736ec890829658ee10a33993bd4f8cfdd02675b34e055a6f5b47180651d7b4",
+      "destination": "services/source-worker/index.ts"
+    },
+    "workers/source/wrangler.jsonc": {
+      "sha256": "c2ac6a6d7025e8cb7922d73dc6b69ddcba787ddc40cfd115fd8c867567b118ce",
+      "destination": "services/source-worker/wrangler.jsonc"
+    },
+    "scripts/runtime-acceptance.ts": {
+      "sha256": "cc5c8cd6df5a28aef4e7c7e478e517fb9aca2748b8fae6013330ce8b0fb1d2b8",
+      "destination": "scripts/runtime-acceptance.mts"
+    },
+    "scripts/review-runtime-acceptance.ts": {
+      "sha256": "5f04d81b2cc52dcc96e5abb90347aa1adf16bc0977ab7e975cf46829e0636696",
+      "destination": "scripts/review-runtime-acceptance.mts"
+    },
+    "scripts/probe-pcc.mjs": {
+      "sha256": "d80f7e7b15b33d6b35b36c4ae4787a94ce5b133debcb7d31f69d071e5fd2b170",
+      "destination": "scripts/probe-pcc.mjs"
+    }
+  },
+  "byeNumbersFollowup": {
+    "date": "2026-10-21",
+    "sourceState": "BYE_frontend commit 798a116: student-number routes, fixtures and hardening; separate from the baseline commit above.",
+    "files": {
+      "server/reviews.ts": {
+        "sha256": "c3a256cca2b87288472107d037b02f9faede807193d970bf7efce9b0b31085fa",
+        "destination": "services/web-api/src/reviews.ts",
+        "destinationSha256": "0234a66b23511c7aaddd54bb041f7aefb9969519f538ac6ec8a1c16b3d530cbb",
+        "adaptation": "Only repository-local import paths changed."
+      },
+      "tests/review-fixtures.ts": {
+        "sha256": "52cb28d5dc8c18416ed34d4adbd790a2fe0119f23e3fed1b59ffbe3f934151cc",
+        "destination": "services/web-api/tests/review-fixtures.ts",
+        "destinationSha256": "d8e572e36bd0e8d0d70048df4a3ccc9bfdbd237060248931c6f9deb540705ba3",
+        "adaptation": "Only repository-local import paths changed."
+      },
+      "tests/bye-numbers.test.ts": {
+        "sha256": "bb36c6b68814fd1502309d26a286712cd96f7b0f0d092d79e793e167ccc382b0",
+        "destination": "services/web-api/tests/bye-numbers.test.ts",
+        "destinationSha256": "d48f20b30e591fc1bd07cf5fcbf5d94e58af3eb3ae2c64be9adb5c3096650e6c",
+        "adaptation": "Only repository-local import paths changed."
+      }
+    },
+    "verification": {
+      "unitTests": "55 passed, 0 failed",
+      "typecheck": "passed",
+      "buildCheck": "passed, dry-run only",
+      "runtime": "source suite and compiled Pages forwarder + WEB_API review suite passed, fixtures only",
+      "command": "corepack pnpm test:runtime /Users/thewizard/Documents/Project/BYE/BYE_frontend_relocation"
+    },
+    "deployment": "Not deployed. Independent of student-number website launch.",
+    "forwarder": "Existing platform/forward.ts unchanged; compiled from explicitly supplied frontend checkout. Request body, Origin, Cookie, Content-Type and response Set-Cookie, Cache-Control, Retry-After covered."
+  }
+}
