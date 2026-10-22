@@ -1,0 +1,1 @@
+{"name":"bye-number-rehearsal","private":true,"type":"module","scripts":{"test":"node rehearsal.mjs"},"dependencies":{"embedded-postgres":"17.10.0-beta.17","pg":"8.23.1"}}
