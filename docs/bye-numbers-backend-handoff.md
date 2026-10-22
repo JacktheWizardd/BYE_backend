@@ -260,3 +260,44 @@ Owner authorized starting setup after the backend merge. Read-only G1 began at
 
 Next: request permission to view only the Supabase Data API exposed-schema setting,
 or have the owner provide that non-secret list, before completing G1.
+
+### G1 completed — October 22, 2026
+
+After the owner authorized dashboard inspection and signed in, the Data API Settings
+schema menu visibly checked only `public` and `graphql_public`. `private`,
+`bye_schedule` and `pcc_schedule` were unchecked. No settings were changed.
+Together with the read-only SQL and status checks above, G1 passes.
+G2 remains pending separate approval to run the reviewed 007 transaction; owner
+reservation remains G3. The dashboard's automatic new-table exposure is on, making
+007's explicit table/sequence revocations and post-install privilege checks important.
+
+## G2 production installation — October 22, 2026
+
+Owner approved G2 and remaining setup ("sure do all"). The Supabase migration tool
+applied the exact reviewed 007 file as `bye_student_numbers_007` between 07:48:16
+and 07:48:21 America/Los_Angeles (14:48:16–14:48:21 UTC). This adds a hosted migration
+history entry; do not blindly run db push against the older SQL-Editor history.
+SQL SHA-256: `0234fe800e1e446fda303acd5f877fcea4259f206550e794928f0e8b3e585f95`.
+
+Post-install checks passed: count 0; postgres owns both definer RPCs, table and
+sequence; both RPCs have empty search_path; table RLS enabled; anon cannot execute
+claim; authenticated can claim; both roles can count; neither role can access the
+table or sequence directly. Sequence starts/minimum 2, increment 1, no cycling.
+Public GET /api/reviews/numbers returned {data:{total:0}}. No account was created,
+modified or assigned a number. G3 still needs the owner's address supplied in chat;
+none has been copied from the screenshot or recorded in project files.
+
+Live route acceptance after G2 also passed: POST number with site Origin/JSON but
+no session returned 401 SESSION_EXPIRED; public resolve for a fictional professor
+returned match "missing" without error. These checks wrote no student data.
+
+## G3 founder reservation — October 22, 2026
+
+Owner supplied the school address in chat and explicitly requested number 1.
+Count-only precheck confirmed exactly one matching, confirmed Auth account.
+The reviewed owner transaction ran at 07:55:53–07:56:01 America/Los_Angeles
+(14:55:53–14:56:01 UTC), assigning/moving that account to number 1 without
+resetting the sequence. Postcheck returned owner_rows=1, owner_number=1, total=1.
+No address or account UUID is recorded here. The owner reported the live flow
+working before this reassignment; refreshed native display after reassignment
+remains to be confirmed because the app saves its claimed number locally.
