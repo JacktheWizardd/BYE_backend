@@ -1,18 +1,32 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
+import type { ByeNumber } from '../shared/app'
 
 // App preferences kept only on this PC (%LOCALAPPDATA%\BYECrossPlatformBeta\settings.json). Nothing here is sent anywhere.
-export interface Settings { name: string; onboarded: boolean; recent: string[] }
+export interface Settings { name: string; onboarded: boolean; recent: string[]; recentTerms?: Record<string,string>; byeNumber?: ByeNumber; byeNumberCheckedAt?: string }
 export const DEFAULT_SETTINGS: Settings = { name: '', onboarded: false, recent: [] }
 export const NAME_LIMIT = 20, RECENT_LIMIT = 5
-const COURSE = /^[A-Z]{2,8} [A-Z]?\d{1,4}[A-Z]?$/
+const COURSE = /^[A-Z]{2,8} [A-Z]?\d{1,4}[A-Z]*$/
 
-/** Validates a partial update from the renderer. Unknown keys and bad values are rejected, not ignored. */
-export function validateSettings(raw: unknown): Partial<Settings> {
+const RENDERER_KEYS = ['name', 'onboarded', 'recent', 'recentTerms'], NUMBER_KEYS = ['byeNumber', 'byeNumberCheckedAt']
+const positive = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v > 0
+/** Validates a partial update. The renderer may change only its own keys; the BYE number is written by main after the
+ * website confirms it. Unknown keys and bad values are rejected, not ignored. */
+export function validateSettings(raw: unknown, from: 'renderer' | 'main' = 'renderer'): Partial<Settings> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Invalid settings.')
   const input = raw as Record<string, unknown>, out: Partial<Settings> = {}
-  for (const key of Object.keys(input)) if (!['name', 'onboarded', 'recent'].includes(key)) throw new Error('Invalid settings.')
+  const allowed = from === 'main' ? [...RENDERER_KEYS, ...NUMBER_KEYS] : RENDERER_KEYS
+  for (const key of Object.keys(input)) if (!allowed.includes(key)) throw new Error('Invalid settings.')
+  if ('byeNumber' in input) {
+    const n = input.byeNumber as Record<string, unknown> | null
+    if (!n || typeof n !== 'object' || Object.keys(n).some(k => k !== 'number' && k !== 'total') || !positive(n.number) || !positive(n.total) || n.total < n.number) throw new Error('Invalid BYE number.')
+    out.byeNumber = { number: n.number, total: n.total }
+  }
+  if ('byeNumberCheckedAt' in input) {
+    if (typeof input.byeNumberCheckedAt !== 'string' || input.byeNumberCheckedAt.length > 40 || !Number.isFinite(Date.parse(input.byeNumberCheckedAt))) throw new Error('Invalid settings.')
+    out.byeNumberCheckedAt = input.byeNumberCheckedAt
+  }
   if ('name' in input) {
     if (typeof input.name !== 'string' || /[\p{Cc}\p{Cf}]/u.test(input.name)) throw new Error('Invalid name.')
     const name = input.name.trim().replace(/ +/g, ' ')
@@ -25,6 +39,11 @@ export function validateSettings(raw: unknown): Partial<Settings> {
     if (!Array.isArray(input.recent) || input.recent.length > RECENT_LIMIT || !input.recent.every(x => typeof x === 'string' && COURSE.test(x))) throw new Error('Invalid recent classes.')
     out.recent = [...new Set(input.recent as string[])]
   }
+  if ('recentTerms' in input) {
+    const terms = input.recentTerms
+    if (!terms || typeof terms !== 'object' || Array.isArray(terms) || Object.keys(terms).length > RECENT_LIMIT || Object.entries(terms).some(([c,t]) => c.length > 100 || !COURSE.test(c) || typeof t !== 'string' || !/^\d{6}$/.test(t))) throw new Error('Invalid recent semesters.')
+    out.recentTerms = { ...terms } as Record<string,string>
+  }
   return out
 }
 
@@ -33,15 +52,15 @@ export class SettingsStore {
   constructor(private readonly file: string) {}
   async get(): Promise<Settings> {
     await this.queue.catch(() => {})
-    try { return { ...DEFAULT_SETTINGS, ...validateSettings(JSON.parse(await readFile(this.file, 'utf8'))) } } catch { return { ...DEFAULT_SETTINGS } }
+    try { return { ...DEFAULT_SETTINGS, ...validateSettings(JSON.parse(await readFile(this.file, 'utf8')), 'main') } } catch { return { ...DEFAULT_SETTINGS } }
   }
   /** Merges a validated update and writes atomically; returns the saved settings. */
-  set(update: unknown): Promise<Settings> {
+  set(update: unknown, from: 'renderer' | 'main' = 'renderer'): Promise<Settings> {
     let patch: Partial<Settings>
-    try { patch = validateSettings(update) } catch (error) { return Promise.reject(error) }
+    try { patch = validateSettings(update, from) } catch (error) { return Promise.reject(error) }
     const next = this.queue.catch(() => {}).then(async () => {
       let current: Settings
-      try { current = { ...DEFAULT_SETTINGS, ...validateSettings(JSON.parse(await readFile(this.file, 'utf8'))) } } catch { current = { ...DEFAULT_SETTINGS } }
+      try { current = { ...DEFAULT_SETTINGS, ...validateSettings(JSON.parse(await readFile(this.file, 'utf8')), 'main') } } catch { current = { ...DEFAULT_SETTINGS } }
       const saved = { ...current, ...patch }
       await mkdir(path.dirname(this.file), { recursive: true })
       const tmp = this.file + '.' + randomUUID() + '.tmp'

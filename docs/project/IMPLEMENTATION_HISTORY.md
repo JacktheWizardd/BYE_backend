@@ -39,7 +39,7 @@ Record: `docs/verification/privacy-beta3-2026-10-10.json`. A final app/source ha
 
 Preserved a beta.1 app/source baseline before changes. Added leading-zero comparison, selected-term official course resolution, shorthand suggestions and same-course review/evidence counting. Source labels and persistent keys are preserved; Apple matching-policy identity changed to reject old summaries while reusing raw profiles. Retained the main window with an application delegate so red-close and reactivation preserve the search/report; New search brings the window forward. Simplified the footer to “One simple search.”
 
-Centralized release metadata in `scripts/beta-version.sh`; build targets arm64. Packaging checks matching version/build and architecture, creates a locally signed compressed DMG with Applications shortcut, rendered versioned instructions and notices, and writes a SHA-256 sidecar. Prepared `docs/GITHUB_PRERELEASE.md` for early testers. No personal caches, source/development files or model weights are packaged. No notarization, commit, tag or upload.
+Centralized release metadata in `scripts/beta-version.sh`; build targets arm64. Packaging checks matching version/build and architecture, creates a locally signed compressed DMG with Applications shortcut, rendered versioned instructions and notices, and writes a SHA-256 sidecar. Prepared `docs/releases/GITHUB_PRERELEASE.md` for early testers. No personal caches, source/development files or model weights are packaged. No notarization, commit, tag or upload.
 
 Verification: **140 tests passed, zero failures**, release build, strict signatures, DMG integrity/checksum, arm64, notices and archived source/executable hashes passed. Mounted final DMG, updated the separate beta in Applications, ejected and launched it. Existing beta data was unchanged by installation; original 0.2.0 executable matches its baseline. The first window-scene approach terminated on close during testing; final WindowGroup plus explicit retained-window reopen handling passed two close/reactivate cycles and minimize/reactivate with the same window/report. This was LaunchServices reactivation through computer-use controls, not a physical Dock click.
 
@@ -73,7 +73,7 @@ Timing: fresh MATH 005A/Fall 2026 ratings pass 6.44 seconds, first result 2.05 s
 
 Limitations: undocumented RMP schema/availability, no forced live server outage/rate-limit test or packet capture, no complete VoiceOver session or second-Mac/Windows/notarization check. Ollama is still required only for summaries. Visual checks used isolated temporary storage, removed afterward. No commit/upload.
 
-Records: `docs/PROJECT_STATUS.md` and `docs/verification/native-api-{matching,speed,acceptance}-2026-10-10.json`.
+Records: `docs/project/PROJECT_STATUS.md` and `docs/verification/native-api-{matching,speed,acceptance}-2026-10-10.json`.
 
 ## 2026-10-10 — Native RMP retrieval and privacy (baseline entry)
 

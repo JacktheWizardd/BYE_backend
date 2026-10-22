@@ -1,10 +1,10 @@
 # UI parity: web, Windows and Mac
 
-> **Migration direction:** [Agreed React/TypeScript migration](cross-platform-migration-proposal.md), Tauri desktop candidate and later Capacitor. Electron is legacy only. This page records existing platform differences; actual Windows and Mac preview acceptance must precede replacement.
+> **Migration direction:** [Agreed React/TypeScript migration](../cross-platform-migration-proposal.md), Tauri desktop candidate and later Capacitor. Electron is legacy only. This page records existing platform differences; actual Windows and Mac preview acceptance must precede replacement.
 
 > **Legacy inventory:** Current main retires the existing desktop apps and disables their network/update features. The implementation details below describe retained source and previous parity behavior; this migration does not reactivate those features.
 
-The approved v3 design (playful, search-first; plan in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md`, mockup in [design/app-mockup-v3.html](design/app-mockup-v3.html)) is built three ways:
+The approved v3 design (playful, search-first; plan in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md`, mockup in [design/app-mockup-v3.html](../design/app-mockup-v3.html)) is built three ways:
 
 - **Shared React screens** live in the website repository (`BYE_website/packages/ui`). The web app uses them directly, and the Windows app gets a copy through `node scripts/sync-bye-shared.mjs` (into `apps/cross-platform/vendor/bye-shared/`, with the website commit in `SOURCE.json`).
 - **Windows-only screens** (frame, first run, home, command menu, settings) live in `apps/cross-platform/src/renderer/src/app/`.
@@ -40,6 +40,10 @@ When you change a row below, say in the handoff whether its other columns change
 - Each class is a tab for the session: it keeps its open professor, filters, sort and each professor's review choices, and reappears at once when revisited.
 - Switching professors updates the page in place: numbers glide from the old value, bars glide to the new width, and nothing remounts or flashes.
 - Text fades in rather than sliding, and only short stickers tilt.
+
+## Windows data integration — October 20, 2026
+
+Windows now uses the schedule API and the shared `ByeReviewPanel`, with BYE feedback before RMP scores/reviews and separately labeled RMP sorting. Shared `SourceMeta.expiresAt` keeps Windows' 15-minute API policy separate from the web's five-minute source policy. `formatUnknown` preserves unknown API delivery formats. The web shares presentation/helpers but retains its existing data Bridge, demo labels and feature gates. Native Mac behavior is unchanged.
 
 ## Known differences to close
 

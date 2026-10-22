@@ -1,9 +1,9 @@
 {
   "about": "Copied from the BYE website repository by scripts/sync-bye-shared.mjs. Do not edit; change the website and sync again.",
   "repository": "JacktheWizardd/BYE_website",
-  "branch": "redesign/shared-foundations",
-  "commit": "06ee693ff94033b593f137361f7cdce225c53d99",
-  "uncommittedChanges": true,
+  "branch": "claude/merged-reviews",
+  "commit": "ac79bb108befcd1cb850939649b724e81330deb0",
+  "uncommittedChanges": false,
   "packages": [
     "tokens",
     "core",

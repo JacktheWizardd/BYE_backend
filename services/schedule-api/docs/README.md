@@ -1,5 +1,7 @@
 # Schedule API documentation
 
+**October 20 client follow-up:** Windows source integration is implemented locally, with BYE student reviews first and automatic, separate RMP retrieval. See [Windows integration and verification](../../../docs/windows/WINDOWS_API_INTEGRATION.md). No backend migration/deployment or client release is part of this follow-up. The October 19 acceptance below remains the backend delivery record.
+
 Start with the plain-language records. They explain the result and the reasons
 behind it; the technical guides below explain how to operate or change it.
 
@@ -40,7 +42,7 @@ Recorded verification includes 21 offline tests, a full Cloudflare runtime test,
 The verification report distinguishes phases and limitations. This documentation
 update does not claim those tests or live checks were rerun.
 
-The [PCC database pilot](../../../docs/pcc-schedule-pilot.md) explains the original
+The [PCC database pilot](../../../docs/schedules/pcc-schedule-pilot.md) explains the original
 import foundation. The [repository documentation index](../../../docs/README.md)
 links to app development and review-system work. Public website source and its
 own guides are in the separate `BYE_website` repository.

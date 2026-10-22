@@ -62,7 +62,7 @@ The public BYE website lives in a different repository.
 | Area | Main source | Consult before changing |
 | --- | --- | --- |
 | Schedule endpoints and response compatibility | `src/api.ts`, `src/contract.ts`, `openapi.json` | [Architecture](../architecture.md), [operations](../guide.md) |
-| PCC parsing and safe publication | `src/domain.ts`, `src/sync.ts`, `supabase/migrations/` | [PCC pilot](../../../../docs/pcc-schedule-pilot.md), [verification](../verification.md) |
+| PCC parsing and safe publication | `src/domain.ts`, `src/sync.ts`, `supabase/migrations/` | [PCC pilot](../../../../docs/schedules/pcc-schedule-pilot.md), [verification](../verification.md) |
 | Key authorization and lifecycle | `src/admin.ts`, registry migration | [Key guide](../api-keys.md), [owner guide](../owner-dashboard.md) |
 | Dashboard forms | `dashboard/public/` | [Owner guide](../owner-dashboard.md) |
 | Hosted sign-in and session routing | `dashboard/hosted/` | [Cloudflare guide](../hosted-owner-dashboard.md) |

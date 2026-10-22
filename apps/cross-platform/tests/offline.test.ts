@@ -3,9 +3,9 @@ import assert from 'node:assert/strict'
 import { PCC, RMP, Transport, offlineFetch } from '../src/main/network'
 import { NETWORK_ENABLED, NETWORK_RETIRED_MESSAGE } from '../src/shared/features'
 
-// The final release must never contact PCC, RMP or the BYE website.
-test('final release policy turns every network feature off', () => {
-  assert.equal(NETWORK_ENABLED, false)
+// 0.5.0 turns BYE back on; the retirement switch and its offline fetch stay for a future retired release.
+test('0.5.0 policy turns network features back on', () => {
+  assert.equal(NETWORK_ENABLED, true)
 })
 test('offline fetch refuses before any request leaves the app', async () => {
   await assert.rejects(offlineFetch('https://example.com'), { message: NETWORK_RETIRED_MESSAGE })

@@ -151,7 +151,18 @@ select:hover:not(:disabled) { border-color: var(--bye-ink); }
 .id-name { min-height: 24px; font: 700 19px/1.25 var(--bye-font-display); overflow-wrap: anywhere; }
 .id-school { font-size: 12px; color: var(--bye-ink-3); }
 .id-foot { display: flex; justify-content: space-between; margin-top: 14px; font-size: 11px; color: var(--bye-ink-3); }
+.id-number { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.id-number .mono { font-size: 12px; color: var(--bye-ink-2); }
 .id-barcode { display: flex; height: 24px; margin-top: 8px; }
+/* BYE number: the first-run step and the Settings section. */
+.body-copy { font-size: 15px; line-height: 1.45; color: var(--bye-ink-2); }
+.tiny { font-size: 12px; line-height: 16px; }
+.number-form { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.number-form .row { flex-wrap: wrap; }
+.number-form .field { flex: 1 1 100%; min-width: 0; }
+.number-badge { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.number-badge .mono { font-size: 18px; color: var(--bye-ink); }
+.settings-number { margin-top: 14px; font-family: inherit; letter-spacing: 0; }
 .id-barcode i { display: block; background: var(--bye-ink); }
 .confetti { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
 .confetti i { position: absolute; left: 50%; top: 42%; border-radius: 2px; }
@@ -194,7 +205,7 @@ select:hover:not(:disabled) { border-color: var(--bye-ink); }
 .seats { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--bye-line); }
 .seats-label { font-size: 13px; line-height: 16px; color: var(--bye-ink-3); }
 .seats-label b { margin-right: 2px; font: 700 22px/1 var(--bye-font-display); color: var(--bye-ink); }
-.seats-bar { height: 6px; border-radius: var(--bye-radius-pill); overflow: hidden; }
+.seats-bar { height: 6px; border-radius: var(--bye-radius-pill); overflow: hidden; background: var(--bye-tile); }
 .seats-bar i { display: block; height: 100%; background: var(--bye-ink); border-radius: var(--bye-radius-pill); transform-origin: left; }
 .seats-wait { font-size: 12px; line-height: 16px; color: var(--bye-ink-3); }
 .seats.full .seats-wait { color: var(--bye-signal); font-weight: 600; }
@@ -237,6 +248,7 @@ dialog::backdrop { background: rgb(22 22 24 / 0.22); }
   .swipe::before { animation: bye-swipe var(--bye-duration-swipe) 0.2s var(--bye-ease-expo) both; }
   .slide-in { animation: bye-fade var(--bye-duration-slide) var(--bye-ease-expo) both; }
   .wobble { animation: bye-wobble 0.5s var(--bye-ease-spring); }
+  .pop { display: inline-block; animation: bye-wobble 0.5s var(--bye-ease-spring); }
   /* Calm, no overshoot: the sidebar highlight just glides to the new item. */
   .nav-mark { transition: transform 0.28s var(--bye-ease-expo), height 0.28s var(--bye-ease-expo), opacity var(--bye-duration-fast); }
   .command-field { transition: box-shadow 0.2s var(--bye-ease-expo), transform 0.2s var(--bye-ease-expo); }

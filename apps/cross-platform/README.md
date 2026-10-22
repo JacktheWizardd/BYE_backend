@@ -4,9 +4,21 @@ Separate Electron/React/TypeScript application. The Swift application continues 
 
 Version `0.4.0-beta.1` follows the Mac 0.4.0-beta.1 release: the BYE design system (ivory and stone grounds, Jet Black type, yellow only for the wordmark, rating bars and progress meter, Libre Baskerville headings), neutral results that open on a course overview, class cards with seats, waitlist, campus, term part and units, the class-day and fully online filters, six review sorts, and a "Write a review" link to the BYE website. The screens mirror `Sources/Classwise/Views`; shared rules mirror `Sources/ClasswiseCore/Models.swift`. In-app updates (Sparkle on the Mac) are not part of the Windows build.
 
+## Current data path — October 20, 2026
+
+Windows source uses the standalone BYE schedule API for imported terms (currently Fall 2026 only), suggestions, structured sections and availability. It never falls back to fetching PCC directly. The main process sends the registered public application key; the sandboxed renderer receives no key or network access.
+
+BYE student reviews start first and appear before separately labeled RMP information. RMP still loads automatically and provides the existing professor-list sorts. BYE and RMP scores, identities, review filters and failures are independent. BYE pages contain 20 rows, with a 200-review safety limit per selection; review text remains in bounded session state. Writing opens the existing verified-email website form.
+
+Configure `BYE_CLIENT_KEY` in the ignored `.env.local` (or the build environment), then run `npm run dev` / `npm run build`. Only a registered public application key is allowed; privileged credentials are refused. This machine is configured with the already registered compatibility key, verified read-only; no key was created or rotated. A packaged app receives its key at build time. Replacement delivery requires a rebuilt app/manual update; the owner dashboard does not update installed clients automatically.
+
+A public schedule cache is separate from profile caches. Cached catalogs work immediately; startup and explicit searches revalidate. Visible results check the manifest every 60 seconds, fetch changed catalogs/visible CRNs only, pause while hidden/minimized/offline, and back off after failure. API availability expires 15 minutes after the last successful source check. Missing/stale seats remain unknown, including totals. Refresh errors stay visible without closing the report. Class tabs use semester + official course identity and are limited to five.
+
+See [integration verification and handoff](../../docs/windows/WINDOWS_API_INTEGRATION.md). These are local source/build changes, not a new published ZIP or an update to previously installed builds.
+
 ## v3 redesign (in progress, 2026-10-19)
 
-The renderer now follows the approved playful v3 design (see [UI parity](../../docs/UI_PARITY.md) and the [mockup](../../docs/design/app-mockup-v3.html)):
+The renderer now follows the approved playful v3 design (see [UI parity](../../docs/windows/UI_PARITY.md) and the [mockup](../../docs/design/app-mockup-v3.html)):
 - **First run:** a welcome screen and "What should we call you?" next to a live student ID card. The name stays on this PC.
 - **Frame:** a sidebar with Search (Ctrl K), Home, Your classes (up to five, removable) and your profile.
 - **Home:** search-first.
@@ -63,8 +75,8 @@ The offline commands build and use the production startup, Engine, renderer, pre
 ## Architecture and behavior
 
 - `src/shared` contains domain types, course equivalence, schedule grouping, identity matching, filters, and sorting.
-- Electron main owns direct API requests, bounded queues, atomic persistence, and CPU inference. Renderer commands are validated and exposed only through the typed preload bridge. The renderer is sandboxed, context-isolated, and has no Node access. Original reviews are rendered as text.
-- PCC suggestions/search share a five-minute schedule cache. RMP uses a two-request transport gate, 100 ms spacing, bounded retries/cooldowns, no cookies or redirects, and a 4 MiB response limit. Profile IDs, names, and PCC identity are checked on each page.
+- Electron main owns BYE schedule/review and existing RMP requests, bounded queues, atomic persistence, and CPU inference. Renderer commands are validated and exposed only through the typed preload bridge. The renderer is sandboxed, context-isolated, and has no Node access. Original reviews are rendered as text.
+- Schedule suggestions use a bounded catalog cache; structured sections and availability use conditional BYE API reads. RMP uses a two-request transport gate, 100 ms spacing, bounded retries/cooldowns, no cookies or redirects, and a 4 MiB response limit. Profile IDs, names, and PCC identity are checked on each page.
 - Ambiguity always requires selection. Manual preferences are isolated by instructor/subject and reverified on fresh retrieval. Preview, detail, and summary queues remain independent; queued optional jobs yield to previews. Cancellation and identity/evidence checks guard publication and cache writes.
 - Raw caches and summaries last 24 hours. Summaries also depend on provider/policy identity, course, profile, and exact whole-review evidence. Stable review IDs alone do not permit reuse after text changes.
 - The retained local AI implementation uses a non-thinking Qwen chat template with JSON grammar and distinct supplied source-ID pairs. Whole recent reviews fit within the evidence budget. Conservative corroboration/sentiment checks can omit useful feedback and do not prove general semantic correctness. Generation is currently disabled before model verification or runtime loading.

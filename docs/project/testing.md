@@ -39,7 +39,7 @@ npm run ui:verify:offline
 npm run perf:verify:offline
 ~~~
 
-Offline UI/performance checks use injected fixtures and blocked network access. They exercise different assumptions than live requests. See [Windows README](../apps/cross-platform/README.md) and [its verification notes](../apps/cross-platform/VERIFICATION.md) for setup and known limitations.
+Offline UI/performance checks use injected fixtures and blocked network access. They exercise different assumptions than live requests. See [Windows README](../../apps/cross-platform/README.md) and [its verification notes](../../apps/cross-platform/VERIFICATION.md) for setup and known limitations.
 
 The following are **separate live or packaged checks**, not interchangeable with the offline sequence:
 
@@ -55,16 +55,16 @@ Only perform live network verification when the external-service impact is justi
 
 Distribution requires additional architecture, integrity, signature, privacy, and update testing. Do not run a release/publishing workflow as the default test for a documentation or implementation change.
 
-For the Mac update feed, key handling, packaging, local update tests, and website publication, follow [Releasing](RELEASING.md). Existing reference evidence includes `docs/verification/updater-beta5-2026-10-14.json`. Packaged Windows ZIP validation is documented in the cross-platform README.
+For the Mac update feed, key handling, packaging, local update tests, and website publication, follow [Releasing](../releases/RELEASING.md). Existing reference evidence includes `docs/verification/updater-beta5-2026-10-14.json`. Packaged Windows ZIP validation is documented in the cross-platform README.
 
 ## Experimental AI and performance records
 
 Historical local summarization trials, benchmark input boundaries, test fixtures, and stopped runs are retained under:
 
-- [Local summarization experiment](experiments/2026-10-11-local-summarization/README.md)
-- [Results](experiments/2026-10-11-local-summarization/RESULTS.md)
-- [Model verification record](verification/bye-model-evaluation-2026-10-11.md)
-- [App audit](verification/bye-app-audit-2026-10-11.md)
+- [Local summarization experiment](../experiments/2026-10-11-local-summarization/README.md)
+- [Results](../experiments/2026-10-11-local-summarization/RESULTS.md)
+- [Model verification record](../verification/bye-model-evaluation-2026-10-11.md)
+- [App audit](../verification/bye-app-audit-2026-10-11.md)
 
 A test that completed does not establish summary quality. Distinguish offline/synthetic tests, live data checks, and end-user verification.
 

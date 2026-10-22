@@ -66,10 +66,36 @@
 .section-card.other-days { border-color: var(--bye-line-strong); box-shadow: none; }
 .seats { border-top-color: var(--bye-line); }
 .seats-bar { background: var(--bye-tile); }
+.seats-bar i { background: var(--bye-ink); }
+.seats.almost .seats-bar i { background: var(--bye-accent); }
+.seats.full .seats-bar i { background: var(--bye-signal); }
 /* Reviews sit straight: tilted or moving body text renders soft on Windows, so tilts stay on short stickers only. */
 .review-card { background: var(--bye-card); border: 1px solid var(--bye-line); border-radius: 14px; }
 .review-heading { flex-wrap: wrap; }
-.find-more { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* One Reviews list for both sources: the end of each card's score line (and each score row) says where it comes from.
+   RMP is a plain outline tag. BYE is a collectible postage stamp, tilted a little (short stickers may tilt); its tier comes
+   from the review ID, never the scores: common ink, uncommon framed, rare yellow, epic postmarked, legendary yellow in ink. */
+.source-tag { display: inline-flex; flex: none; align-items: center; padding: 2px 7px; border-radius: 6px; font: 700 11px/1.3 var(--bye-font-sans); letter-spacing: 0.04em; color: var(--bye-ink); border: var(--bye-border-sticker) solid var(--bye-ink); }
+.source-tag.rmp { border-color: var(--bye-line-strong); color: var(--bye-ink-2); }
+.bye-stamp { --frame: var(--bye-tile); --panel: var(--bye-ink); --word: var(--bye-linen); padding: 0; border: 0; transform: rotate(-4deg); }
+.bye-stamp svg { display: block; width: 32px; height: 40px; overflow: visible; filter: drop-shadow(0 0 0.6px var(--bye-line-strong)); }
+.bye-stamp.uncommon { --frame: var(--bye-paper); --panel: var(--bye-paper); --word: var(--bye-ink); }
+.bye-stamp.rare { --panel: var(--bye-accent); --word: var(--bye-ink); }
+.bye-stamp.legendary { --frame: var(--bye-ink); --panel: var(--bye-accent); --word: var(--bye-ink); }
+.stamp-frame { fill: var(--frame); }
+.stamp-panel { fill: var(--panel); }
+.bye-stamp.uncommon .stamp-panel { stroke: var(--bye-ink); stroke-width: 0.8; }
+.stamp-edge { fill: none; stroke: var(--bye-ink); stroke-width: 1.2; }
+.stamp-rule { fill: none; stroke: var(--bye-ink); stroke-width: 0.6; }
+.stamp-swipe { fill: var(--bye-accent); }
+.stamp-word { fill: var(--word); font: 700 11px var(--bye-font-display); }
+.stamp-postmark { fill: none; stroke: var(--bye-signal); stroke-width: 0.9; opacity: 0.85; }
+.score-source .bye-stamp svg { width: 24px; height: 30px; }
+.review-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.review-foot-end { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
+.score-source { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 600; }
+.review-controls { flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.review-card .text-link { align-self: flex-start; }
 
 /* Mac-style extras (the Windows app today): row actions under a professor, and format/term facts on the course overview. */
 .professor-card { display: flex; flex-direction: column; }

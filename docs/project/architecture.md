@@ -1,6 +1,6 @@
 # BYE architecture
 
-This guide describes existing client boundaries. The owner has agreed to [one React/TypeScript frontend, Tauri desktop trial, later Capacitor and frontend/backend ownership](cross-platform-migration-proposal.md). The architecture decision is accepted; actual replacement is gated on validation. Current source and deployed behavior must be verified separately.
+This guide describes existing client boundaries. The owner has agreed to [one React/TypeScript frontend, Tauri desktop trial, later Capacitor and frontend/backend ownership](../cross-platform-migration-proposal.md). The architecture decision is accepted; actual replacement is gated on validation. Current source and deployed behavior must be verified separately.
 
 ## Current application boundaries
 
@@ -35,13 +35,15 @@ Identity validation / explicit ambiguity resolution
 Sorting, filtering, on-device cache + native UI
 ~~~
 
-PCC and RMP network requests are direct in the current Mac application. There is no BYE-hosted schedule proxy or Supabase-backed review source in this production flow. Consult [API and integrations](api.md) for request boundaries and reliability constraints.
+PCC and RMP network requests are direct in the current Mac application. There is no BYE-hosted schedule proxy or Supabase-backed review source in this production flow. Consult [API and integrations](../schedules/api.md) for request boundaries and reliability constraints.
 
 ### Separate cross-platform prototype
 
 `apps/cross-platform/` contains the Electron/React/TypeScript implementation. Electron main owns network access and local persistence; the typed preload bridge mediates renderer requests. The renderer is sandboxed and context-isolated. The package targets Windows x64 in its existing documentation. It does **not** share native Mac storage or packaging.
 
-Read [its README](../apps/cross-platform/README.md) and [verification guide](../apps/cross-platform/VERIFICATION.md) for exact supported behavior.
+Read [its README](../../apps/cross-platform/README.md) and [verification guide](../../apps/cross-platform/VERIFICATION.md) for exact supported behavior.
+
+Windows main now reads the standalone BYE schedule API and public BYE review endpoints, then independently retrieves RMP information. See [Windows integration](../windows/WINDOWS_API_INTEGRATION.md) for the implementation and recorded verification. Canonical React UI and domain packages belong to the sibling website repository.
 
 ## Storage and privacy boundaries
 
@@ -49,11 +51,11 @@ Current application caching and manual profile choices live on the user's device
 
 The documented RMP transport avoids persistent credential/cookie storage and follows bounded request/retry rules. Direct connections still disclose ordinary network metadata to the external services; local processing does not make requests anonymous.
 
-No student review database or hosted school schedule cache is part of the currently checked-in app flow. Do not treat prototypes, experimental scripts, or future plans as deployed infrastructure.
+Windows source uses the independently deployed schedule backend and public BYE review reads. BYE review text stays in bounded session memory; schedule data has a bounded local cache. Native Mac retains its direct PCC/RMP flow. Existing installed app releases are separate from this local implementation.
 
 ## Update and release boundary
 
-The Mac beta uses Sparkle with an EdDSA-verified update feed hosted on the separate BYE website (Cloudflare Pages). The source repository is private, so the feed/ZIP must be accessible to already-installed applications without GitHub authentication. Signing material must never be committed. Follow [Releasing](RELEASING.md) for build, verification, and publishing steps.
+The Mac beta uses Sparkle with an EdDSA-verified update feed hosted on the separate BYE website (Cloudflare Pages). The source repository is private, so the feed/ZIP must be accessible to already-installed applications without GitHub authentication. Signing material must never be committed. Follow [Releasing](../releases/RELEASING.md) for build, verification, and publishing steps.
 
 ## Delivered backend services versus current client integration
 
@@ -64,8 +66,8 @@ The target uses one React/TypeScript application in BYE_website, with Tauri 2 as
 ## Historical proposals (some now delivered)
 
 
-1. **Student-submitted review service:** A BYE-owned review/rating dataset, independent of RMP data; this service is now live on the website. See [review database explained](review-database-explained.md).
-2. **PCC schedule API and cache:** The standalone backend has been deployed, but client integration is pending. See [schedule API documentation](../services/schedule-api/docs/README.md) and [API and integrations](api.md).
+1. **Student-submitted review service:** A BYE-owned review/rating dataset, independent of RMP data; this service is now live on the website. See [review database explained](../reviews/review-database-explained.md).
+2. **PCC schedule API and cache:** The standalone backend has been deployed, but client integration is pending. See [schedule API documentation](../../services/schedule-api/docs/README.md) and [API and integrations](../schedules/api.md).
 3. **Education-plan and transfer evaluation:** Upload/parse plans, check official articulation/transfer sources, and display missing or strongly recommended requirements. This is a product roadmap direction, not a supported current feature.
 
-Keep data models, credentials, permissions, deployment paths, and release gates distinct until a design has been reviewed and implemented.
+Educational plans and transfer evaluation remain future goals. AI summaries remain disabled; see the [roadmap](roadmap.md). Keep credentials, permissions, deployment paths and release gates distinct.

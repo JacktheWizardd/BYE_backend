@@ -8,17 +8,17 @@ The native portion of schedule handoff `2497c4b` is now integrated locally on th
 Mac, with compilation, contract mapping, freshness and refresh-race corrections.
 The current SwiftUI design is preserved. The app requires a configured shared
 schedule API and never falls back to direct PCC after a service failure.
-See [Mac schedule integration](mac-schedule-integration.md) for tests, local test-app
+See [Mac schedule integration](../mac-schedule-integration.md) for tests, local test-app
 acceptance, configuration, changed files and GitHub Desktop handoff. The compatible
 hosted rollout and production client configuration remain pending; nothing was
 committed, pushed, deployed or released by this task.
 
 ## App redesign v3 — October 19–20, 2026 (in progress, not released)
 
-The owner approved a playful, search-first redesign for both apps (interactive mockup: [design/app-mockup-v3.html](design/app-mockup-v3.html); plan in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md`). The approach:
+The owner approved a playful, search-first redesign for both apps (interactive mockup: [design/app-mockup-v3.html](../design/app-mockup-v3.html); plan in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md`). The approach:
 - One token file (`BYE_website/packages/tokens/tokens.json`) drives the website, the web app, Windows and the Mac.
 - The Windows app reuses the web app's shared React screens through `scripts/sync-bye-shared.mjs`.
-- The Mac stays SwiftUI and follows the same tokens, test vectors and [UI parity map](UI_PARITY.md).
+- The Mac stays SwiftUI and follows the same tokens, test vectors and [UI parity map](../windows/UI_PARITY.md).
 
 Progress:
 - Website Phases 1–2 are committed on the website branch `redesign/shared-foundations`.
@@ -39,12 +39,16 @@ Progress:
   - Instruments while scrolling;
   - the Sparkle controls (test builds have no update feed);
   - live results (the test app has no schedule service configured).
-- Sections without format codes now show "Format not announced" in every app and in the shared vector. The Windows vendored copy follows after the website commit and a sync (see [UI parity](UI_PARITY.md)).
+- Sections without format codes now show "Format not announced" in every app and in the shared vector. The Windows vendored copy follows after the website commit and a sync (see [UI parity](../windows/UI_PARITY.md)).
 - Open: Codex review of the on-device preferences was requested. Nothing is committed or released; the Windows ZIP was not rebuilt.
+
+## Windows API integration — October 20, 2026
+
+Windows source now uses the standalone Fall 2026 schedule API, separately labeled BYE student reviews first, and automatic RMP retrieval. Refresh and visible polling preserve reports; stale counts disappear from cards and overview totals. No native Mac change, migration, commit by Codex, push, deployment or release is included. Current verification and configuration are in [Windows integration](../windows/WINDOWS_API_INTEGRATION.md). Older pending-client statements below are historical.
 
 ## Website redesign — October 17–18, 2026
 
-The website (separate `../BYE_website` repository) was redesigned mobile first in the BYE design system. It has an interactive, scroll-pinned home page, a matching review page, and a web demo that is clearly labeled as sample data, because testers had mistaken it for the real app. A feedback section emails byebeforeyouenroll@gmail.com. Review-page course search now ranks course codes before title matches. A plan for bringing the same look and motion to the Mac and Windows apps is in the website repository's `docs/APP_REDESIGN_PLAN.md` (not started). No app code or release files changed. See the [website redesign record](website-redesign-record.md).
+The website (separate `../BYE_website` repository) was redesigned mobile first in the BYE design system. It has an interactive, scroll-pinned home page, a matching review page, and a web demo that is clearly labeled as sample data, because testers had mistaken it for the real app. A feedback section emails byebeforeyouenroll@gmail.com. Review-page course search now ranks course codes before title matches. A plan for bringing the same look and motion to the Mac and Windows apps is in the website repository's `docs/web-app/APP_REDESIGN_PLAN.md` (not started). No app code or release files changed. See the [website redesign record](../design/website-redesign-record.md).
 
 ## Standalone PCC schedule backend delivered October 17
 
@@ -54,11 +58,11 @@ private publication, rollback and bounded retention are implemented. Existing
 Windows, Mac and website clients are not connected to this API yet. The API
 accepts one configured public key; a key-generation/rotation manager is future work.
 
-Start with the [API documentation folder](../services/schedule-api/docs/README.md),
-its [verification report](../services/schedule-api/docs/verification.md), and the
-[PCC pilot report](pcc-schedule-pilot.md). Recorded backend verification includes
+Start with the [API documentation folder](../../services/schedule-api/docs/README.md),
+its [verification report](../../services/schedule-api/docs/verification.md), and the
+[PCC pilot report](../schedules/pcc-schedule-pilot.md). Recorded backend verification includes
 11 unit/contract/transport tests, 15 database scenarios and eight hosted scenarios.
-The [commit guide](../services/schedule-api/docs/commit-guide.md) separates this
+The [commit guide](../../services/schedule-api/docs/commit-guide.md) separates this
 work from existing Windows bug fixes and provides Summary/Description text.
 
 ## Review database foundation verified October 16
@@ -67,13 +71,13 @@ The Supabase review database is live with 1,425 PCC professor entries and 1,531 
 
 Jack applied the approved helper permission fix and refreshed Security Advisor. Only the intentional authenticated `submit_review` warning remains. Email-code delivery/settings, the student-facing login and review form, Swift comparison statistics, and Mac app integration are still pending. No native app changes or commits were made during this database work.
 
-Student reviews are live at bye-before-you-enroll.pages.dev/reviews/ for PCC students; see the [Review launch record](review-launch-record.md). See [Review database explained](review-database-explained.md) for the plain-language guide and [Supabase status and plan](supabase-plan.md) for migrations, test details, and next steps. The hosted schedule-cache service remains a separate proposal.
+Student reviews are live at bye-before-you-enroll.pages.dev/reviews/ for PCC students; see the [Review launch record](../reviews/review-launch-record.md). See [Review database explained](../reviews/review-database-explained.md) for the plain-language guide and [Supabase status and plan](../reviews/supabase-plan.md) for migrations, test details, and next steps. The hosted schedule-cache service remains a separate proposal.
 
 ## Redesign (0.4.0-beta.1, in progress)
 
 **0.4.0-beta.1 (build 8)** is packaged locally in ignored `dist/` (DMG, signed update zip, checksums) and recorded in `appcast.xml`; it is not published to the website yet. The Mac app adopts the new BYE design system: ivory/linen/stone grounds, Jet Black type and buttons, warm grey secondary text, and yellow only for the wordmark swipe, rating bars and the progress meter. It is light mode only. BYE deliberately does not single out a "best" or recommended professor (a "Top pick" label was tried and removed). For the same reason no professor opens automatically: results start on a neutral course overview (`CourseOverview` in ContentView.swift), and a filter that hides the open professor returns there. Libre Baskerville (SemiBold and Bold, under the OFL, listed in the third-party notices) is bundled for headlines and scores and registered at launch. The theme and shared components live in `Sources/Classwise/Views/Components.swift`. The app icon is the wordmark on ivory (`assets/branding/AppIcon.png`, reproducible with `scripts/render-wordmark-icon.swift`).
 
-Class cards add data PCC's `classSchedule` feed already sent but BYE ignored: `seatsAvail`, `maxEnrl`, `waitCount`, `waitCapacity`, `ptrmDesc` (term part), `campDesc` and `creditHrLow`. These are parsed into the optional `Section.details` (`SectionDetails`); older caches decode with `details == nil`. The format label (In person, Hybrid, Online · live, Online · async) is derived from the existing schedule codes, and filtering behaviour is unchanged. Design references are the design-system and prototype artifacts linked in the commit notes. The class-day filter changes meaning in 0.4.0: a section matches when it meets on every picked day (it may meet on other days too). Before 0.4.0 it had to meet only within the picked days. Fully online sections still always match, and sections with no announced days still never match (`Section.fits(availableDays:)`). The website redesign shipped October 17–18; see the [website redesign record](website-redesign-record.md).
+Class cards add data PCC's `classSchedule` feed already sent but BYE ignored: `seatsAvail`, `maxEnrl`, `waitCount`, `waitCapacity`, `ptrmDesc` (term part), `campDesc` and `creditHrLow`. These are parsed into the optional `Section.details` (`SectionDetails`); older caches decode with `details == nil`. The format label (In person, Hybrid, Online · live, Online · async) is derived from the existing schedule codes, and filtering behaviour is unchanged. Design references are the design-system and prototype artifacts linked in the commit notes. The class-day filter changes meaning in 0.4.0: a section matches when it meets on every picked day (it may meet on other days too). Before 0.4.0 it had to meet only within the picked days. Fully online sections still always match, and sections with no announced days still never match (`Section.fits(availableDays:)`). The website redesign shipped October 17–18; see the [website redesign record](../design/website-redesign-record.md).
 
 ## Current application
 
@@ -93,7 +97,7 @@ Current locally prepared beta: **BYE Beta 0.3.0-beta.5 (build 7)**, the first bu
 - Sparkle 2.10.0 (MIT, pinned exactly) is embedded at `Contents/Frameworks/Sparkle.framework`; its optional XPC services are removed because BYE is not sandboxed. The executable gets an `@executable_path/../Frameworks` rpath from `Package.swift`.
 - `AppUpdater` (`Sources/Classwise/Updater.swift`) starts Sparkle only when Info.plist has an HTTPS `SUFeedURL` (or a localhost verification feed) and `SUPublicEDKey`. `BYE Test.app`, DEBUG runs, and audit/evaluation builds stay inert and never contact the feed.
 - Defaults: automatic daily checks, background download, install on quit, no system profiling. "Check for Updates…" is in the app menu; Settings has toggles for checks and automatic installation.
-- Feed: both GitHub repositories are private, so updates are served from the website on Cloudflare Pages at `https://bye-before-you-enroll.pages.dev/updates/appcast.xml`, with zips beside it. (It briefly used the `bye-website.jack-truong2k1.workers.dev` Worker before any build was distributed; that Worker is kept as a backup.) `scripts/package-beta.sh` builds and signs the zip and updates the repo-root `appcast.xml` (the release record); `scripts/publish-to-website.py <website-repo>` copies the appcast, zip and DMG into `public/` and adds a 5-minute cache rule in `_headers`. The feed address is built into each release, so it must keep working once a build is installed. Release steps and key backup are in `docs/RELEASING.md`.
+- Feed: both GitHub repositories are private, so updates are served from the website on Cloudflare Pages at `https://bye-before-you-enroll.pages.dev/updates/appcast.xml`, with zips beside it. (It briefly used the `bye-website.jack-truong2k1.workers.dev` Worker before any build was distributed; that Worker is kept as a backup.) `scripts/package-beta.sh` builds and signs the zip and updates the repo-root `appcast.xml` (the release record); `scripts/publish-to-website.py <website-repo>` copies the appcast, zip and DMG into `public/` and adds a 5-minute cache rule in `_headers`. The feed address is built into each release, so it must keep working once a build is installed. Release steps and key backup are in `docs/releases/RELEASING.md`.
 - The EdDSA private key is in the login Keychain (account `bye-before-you-enroll`); only the public key is in `scripts/update-config.sh`. Signing is ad-hoc by default; `BYE_SIGN_IDENTITY` and `BYE_NOTARY_PROFILE` turn on Developer ID signing with hardened runtime, notarization and stapling.
 - Privacy: update checks contact the BYE website (Cloudflare Pages) about once a day; Cloudflare sees the public IP address and app version. This is the only new network destination.
 
@@ -117,7 +121,7 @@ Amaan's MIT license, copyright and reference revision are in THIRD_PARTY_NOTICES
 
 The local beta.4 app and DMG pass strict signature, arm64, privacy, integrity, and checksum checks. Mounted app files match the exported bundle byte for byte; version/build, installation text, Applications link, and bundled notices were verified. Native UI checks confirmed the pause notice, original reviews, six sort options, weekday filtering/clearing, and window reopening. The updated stable test app is in `test/BYE Test.app`.
 
-Export assets are in ignored `dist/`; upload the `.dmg` and `.dmg.sha256` manually with `docs/GITHUB_PRERELEASE.md`. No release was published. Another-Mac and browser-download/quarantine checks remain pending. Record: `docs/verification/beta4-export-2026-10-12.json`.
+Export assets are in ignored `dist/`; upload the `.dmg` and `.dmg.sha256` manually with `docs/releases/GITHUB_PRERELEASE.md`. No release was published. Another-Mac and browser-download/quarantine checks remain pending. Record: `docs/verification/beta4-export-2026-10-12.json`.
 
 ## Beta.3 privacy cleanup and local commit
 
@@ -137,7 +141,7 @@ Course shorthand resolves through the selected semester catalog to its official 
 
 Installed Winter 2027 checks: `math 5a` and `math5a` found MATH 005A, 8 sections/7 professors. Anahit Asadyan: 10 MATH5A reviews of 47 downloaded are now recognized as same-course; summary analyzed all 10 and returned no verified theme. Two close/reactivate cycles and minimize/reactivate restored `main-AppWindow-1` and its report. Footer is “One simple search.” Activation used LaunchServices through computer-use controls; a physical Dock click and full VoiceOver session were not tested.
 
-Single build metadata source: `scripts/beta-version.sh`. Local assets: `dist/BYE-0.3.0-beta.2-AppleSilicon.dmg` and its SHA-256 file. GitHub prerelease notes: `docs/GITHUB_PRERELEASE.md`. Not notarized; no tag, commit or upload. Actual GitHub download/quarantine and another-Mac testing remain pending. Record: `docs/verification/dmg-beta2-2026-10-10.json`.
+Single build metadata source: `scripts/beta-version.sh`. Local assets: `dist/BYE-0.3.0-beta.2-AppleSilicon.dmg` and its SHA-256 file. GitHub prerelease notes: `docs/releases/GITHUB_PRERELEASE.md`. Not notarized; no tag, commit or upload. Actual GitHub download/quarantine and another-Mac testing remain pending. Record: `docs/verification/dmg-beta2-2026-10-10.json`.
 
 ## Historical Apple beta.1 verification
 

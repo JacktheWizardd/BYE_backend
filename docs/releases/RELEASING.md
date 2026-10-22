@@ -44,7 +44,7 @@ Every update zip must be signed with BYE's EdDSA key or installed copies refuse 
 
 1. Bump `BETA_VERSION` and **increase** `BETA_BUILD` in `scripts/beta-version.sh`. Sparkle compares
    the build number; `make-appcast.py` refuses a build lower than the newest one in the feed.
-2. Write the release's `## What changed` bullets in `docs/GITHUB_PRERELEASE.md`. They become the
+2. Write the release's `## What changed` bullets in `docs/releases/GITHUB_PRERELEASE.md`. They become the
    update's release notes in the app.
 3. Build and package:
 

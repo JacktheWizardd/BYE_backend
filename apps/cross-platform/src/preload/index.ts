@@ -16,6 +16,9 @@ const app: AppBridge = {
   getSettings: () => ipcRenderer.invoke('bye:settings:get'),
   setSettings: update => ipcRenderer.invoke('bye:settings:set', update),
   checkForUpdate: () => ipcRenderer.invoke('bye:update:check'),
-  openDownload: url => ipcRenderer.invoke('bye:update:open', url)
+  openDownload: url => ipcRenderer.invoke('bye:update:open', url),
+  sendNumberCode: email => ipcRenderer.invoke('bye:number:send', email),
+  verifyNumberCode: (email, code) => ipcRenderer.invoke('bye:number:verify', email, code),
+  refreshNumberTotal: () => ipcRenderer.invoke('bye:number:refresh')
 }
 contextBridge.exposeInMainWorld('byeApp', app)

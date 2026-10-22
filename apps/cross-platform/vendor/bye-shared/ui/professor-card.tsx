@@ -38,13 +38,14 @@ export function ProfessorRow({ p, selected, onOpen, command }: { p: Professor; s
       <span className="prof-main">
         <b className="name">{p.name}</b>
         {profile ? <>
-          <small>Difficulty {score(profile.difficulty)} · {profile.wouldTakeAgain === undefined ? 'take-again rate unavailable' : `${Math.round(profile.wouldTakeAgain)}% would take again`}</small>
+          <small>RMP · Difficulty {score(profile.difficulty)} · {profile.wouldTakeAgain === undefined ? 'take-again rate unavailable' : `${Math.round(profile.wouldTakeAgain)}% would take again`}</small>
           <small>{profile.ratingCount === undefined ? 'Rating count unavailable' : plural(profile.ratingCount, 'rating')} · {sections}</small>
           <Bar value={profile.rating} label="Rating" />
         </> : <>
           <small>{p.state === 'choose' ? (p.candidates.length > 1 ? 'Two or more RMP profiles · Choose profile' : 'Profile needs confirmation · Choose profile') : p.state === 'unavailable' ? (unnamed(p) ? "PCC hasn't named an instructor yet" : 'Cannot retrieve RMP info') : p.state === 'loading' ? 'Checking RMP…' : 'Not checked yet'}</small>
           <small>{sections}</small>
         </>}
+        {p.bye?.profile && <small>BYE · {plural(p.bye.profile.count, 'review')}</small>}
       </span>
       <span className={`big${profile ? '' : ' muted'}`}>{profile ? <Num value={profile.rating} /> : '—'}</span>
     </button>

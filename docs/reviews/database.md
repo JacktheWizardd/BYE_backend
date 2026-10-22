@@ -1,10 +1,8 @@
 # Database overview
 
-**October 17 update:** The private Fall 2026 schedule pilot and standalone API
-are now deployed; client integration remains pending. See the
-[pilot report](pcc-schedule-pilot.md) and [API documentation](../services/schedule-api/docs/README.md).
-The October 16 overview and proposal details below are historical context for
-the two separate data initiatives, not the current schedule-backend status.
+**Current orientation — October 20, 2026:** The standalone schedule backend is independently deployed; Windows source integration and public BYE review reading are implemented locally. The website owns review writing and its public read routes. Native Mac service integration remains separate work. Start with the [review overview](README.md), [schedule overview](../schedules/README.md) and [website review guides](../../../BYE_website/docs/reviews/README.md).
+
+The October 16 overview and proposal details below are preserved historical context. Their pending-work statements do not describe the current implementation.
 
 **Status as of October 16, 2026:** The Supabase review database is live and its core submission, reporting, privacy, and cleanup behavior has been tested. The student-facing login and review form, real email delivery, and Mac app integration remain pending. The separate hosted schedule cache is still proposed; the app continues to retrieve PCC schedules and RMP professor information directly.
 
@@ -24,7 +22,7 @@ Implemented database behavior:
 - Three distinct reports automatically hide a review, its answers, and its contribution to comparison counts.
 - Public queries expose permitted review fields and counts. Reviewer IDs and report records are private to privileged administrators.
 
-The live tables are `professors`, `courses`, `reviews`, `review_dimensions`, `dimensions`, and `reports`. SQL is saved in [`schema.sql`](../supabase/schema.sql), [`002_write_side.sql`](../supabase/002_write_side.sql), and [`003_helper_permissions.sql`](../supabase/003_helper_permissions.sql). The [manual checks](../supabase/002_write_side_checks.sql) document the test procedure.
+The live tables are `professors`, `courses`, `reviews`, `review_dimensions`, `dimensions`, and `reports`. SQL is saved in [`schema.sql`](../../supabase/schema.sql), [`002_write_side.sql`](../../supabase/002_write_side.sql), and [`003_helper_permissions.sql`](../../supabase/003_helper_permissions.sql). The [manual checks](../../supabase/002_write_side_checks.sql) document the test procedure.
 
 **Student experience planned:** Enter a PCC email and verify a one-time code. No student password or profile-management screens are required. Supabase maintains the user identity behind the scenes. Email access does not prove current enrollment or attendance in a particular class.
 

@@ -4,9 +4,15 @@ export type Row = Record<string, string | number | null>
 export interface Suggestion { course: Course; title: string }
 export interface SectionDetails { seatsOpen?: number; capacity?: number; waitlistCount?: number; waitlistCapacity?: number; termPart: string; campus: string; units: string }
 export type Weekday = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun'
-export interface SourceMeta { cacheStatus?: 'hit' | 'miss' | 'stale'; retrievedAt: number; stale: boolean; source: 'pcc' | 'rmp' }
+export interface SourceMeta { cacheStatus?: 'hit' | 'miss' | 'stale'; retrievedAt: number; stale: boolean; source: 'pcc' | 'rmp'; expiresAt?: number }
+export interface ByeReviewState {
+  loading: boolean; issue?: string; ratingIssue?: string
+  resolution?: import('./reviews').ByeResolution; profile?: import('./reviews').ByeRatingProfile
+  reviews: import('./reviews').ByeWrittenReview[]; nextOffset: number | null
+  filter: string; sort: string; retrievedAt?: string
+}
 /** `days`: days with a scheduled meeting. `unannouncedMeetings`: a scheduled meeting has no announced day. */
-export interface Section { days?: Weekday[]; unannouncedMeetings?: boolean; details?: SectionDetails; source?: SourceMeta; crn: string; title: string; start: string; end: string; formats: string[]; meetings: string[]; status: string }
+export interface Section { formatUnknown?: boolean; information?: Record<string,unknown>; days?: Weekday[]; unannouncedMeetings?: boolean; details?: SectionDetails; source?: SourceMeta; crn: string; title: string; start: string; end: string; formats: string[]; meetings: string[]; status: string }
 export interface Review { id: string; course: string; text: string; date: string; rating?: number; difficulty?: number; online?: boolean }
 export interface Coverage { reviewIDs: string[]; nextCursor?: string; hasNextPage: boolean; updatedAt: number }
 export interface Profile {
@@ -20,9 +26,9 @@ export interface Summary { overview: string; positives: Point[]; concerns: Point
 export interface Professor {
   id: string; name: string; sections: Section[]; subject: string; subjectDescription?: string;
   state: 'pending' | 'loading' | 'ready' | 'choose' | 'unavailable'; profile?: Profile; candidates: Profile[];
-  issue?: string; reviewIssue?: string; summaryIssue?: string; summary?: Summary; detailLoading?: boolean; summaryLoading?: boolean; choosing?: boolean; discoveryLoading?: boolean
+  issue?: string; reviewIssue?: string; summaryIssue?: string; summary?: Summary; detailLoading?: boolean; summaryLoading?: boolean; choosing?: boolean; discoveryLoading?: boolean; bye?: ByeReviewState
 }
-export interface Snapshot { operationId: string; course?: Course; term?: Term; professors: Professor[]; loading: boolean; previewPending: number; issue?: string; source?: SourceMeta }
+export interface Snapshot { operationId: string; course?: Course; term?: Term; professors: Professor[]; loading: boolean; previewPending: number; issue?: string; source?: SourceMeta; refreshing?: boolean; scheduleIssue?: string; scheduleOffline?: boolean; catalogVersion?: string }
 export type Command =
   | { kind: 'terms' }
   | { kind: 'suggest'; term: string; query: string }

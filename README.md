@@ -137,7 +137,7 @@ From the repository root:
 
 The final command builds the local test application. It does not publish a release.
 
-See [Development setup](docs/development.md).
+See [Development setup](docs/project/development.md).
 
 ### Windows
 
@@ -213,17 +213,17 @@ Start with the [engineering documentation index](docs/README.md).
 
 Important references:
 
-- [Project status](docs/PROJECT_STATUS.md)
-- [Architecture](docs/architecture.md)
+- [Project status](docs/project/PROJECT_STATUS.md)
+- [Architecture](docs/project/architecture.md)
 - [Agreed shared architecture and migration gates](docs/cross-platform-migration-proposal.md)
-- [Development setup](docs/development.md)
-- [Testing](docs/testing.md)
-- [Review database](docs/review-database-explained.md)
-- [Review launch history](docs/review-launch-record.md)
+- [Development setup](docs/project/development.md)
+- [Testing](docs/project/testing.md)
+- [Review database](docs/reviews/review-database-explained.md)
+- [Review launch history](docs/reviews/review-launch-record.md)
 - [Schedule API](services/schedule-api/docs/README.md)
 - [Schedule API delivery record](services/schedule-api/docs/records/2026-10-19-delivery.md)
-- [Implementation history](docs/IMPLEMENTATION_HISTORY.md)
-- [Mac release procedure](docs/RELEASING.md)
+- [Implementation history](docs/project/IMPLEMENTATION_HISTORY.md)
+- [Mac release procedure](docs/releases/RELEASING.md)
 
 Historical documents preserve decisions and test results from the dates when they were recorded. Newer implementation records take precedence when describing current behavior.
 

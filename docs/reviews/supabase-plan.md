@@ -15,7 +15,7 @@ Oct 16, 2026 · handoff for Claude Code / Codex
 ### Done
 
 1. **Supabase project "BYE"** (free tier, `main` branch = production).
-2. **Schema v1 is live.** It's saved in [`supabase/schema.sql`](../supabase/schema.sql) and was run once in the SQL Editor.
+2. **Schema v1 is live.** It's saved in [`supabase/schema.sql`](../../supabase/schema.sql) and was run once in the SQL Editor.
    - **Tables:**
      - `professors` and `courses` (the lists)
      - `reviews` (1–5 quality and difficulty, text up to 2,000 characters, `is_hidden`, one review per student per professor per course)
@@ -25,7 +25,7 @@ Oct 16, 2026 · handoff for Claude Code / Codex
    - **Anonymity:** column privileges hide `reviews.author_id` from the app.
    - **Counts view:** `professor_dimension_counts` (`security_invoker = true`) returns `high_count`, `low_count` and `answered` per professor per dimension, counting visible reviews only.
    - **Index:** `reviews (professor_id, created_at desc) where not is_hidden`, which serves both the counts and the newest-first review lists.
-3. **Seed script written:** [`scripts/pcc_seed.py`](../scripts/pcc_seed.py). (Rewritten on Oct 16 after the original was lost in the machine move.)
+3. **Seed script written:** [`scripts/pcc_seed.py`](../../scripts/pcc_seed.py). (Rewritten on Oct 16 after the original was lost in the machine move.)
    - It reads PCC's public schedule API (`prod-apiweb.pasadena.edu`), the same source the app already uses. It makes zero RMP requests.
    - It writes `pcc_seed.sql` with `courses` and `professors` inserts. It's safe to re-run, because existing rows are skipped.
    - It never connects to Supabase. Jack pastes the SQL into the SQL Editor.
@@ -75,7 +75,7 @@ Each question is answered low (−1), neutral (0) or high (+1). The list lives i
 
 ### Step 3: Write side and moderation ⚠️ (finishes phase 1)
 
-**Applied and core behavior verified by Jack on Oct 16:** [`supabase/002_write_side.sql`](../supabase/002_write_side.sql), with hand checks in [`supabase/002_write_side_checks.sql`](../supabase/002_write_side_checks.sql). The applied migration also:
+**Applied and core behavior verified by Jack on Oct 16:** [`supabase/002_write_side.sql`](../../supabase/002_write_side.sql), with hand checks in [`supabase/002_write_side_checks.sql`](../../supabase/002_write_side_checks.sql). The applied migration also:
 - Adds the step 2 `dimensions` table, which answers must reference.
 - Keeps the PCC email rule in one helper, `private.is_pcc_student()`. It reads `auth.users` and requires a confirmed email, and it lives in a schema the API doesn't expose.
 - Lets students send only `review_id` and `reason` when reporting, so `reporter_id` always comes from the login.
@@ -171,7 +171,7 @@ Jack ran the checks in the Supabase dashboard and reported these results:
 
 Security Advisor reported two warnings for public.rls_auto_enable() and the expected authenticated submit_review warning. Jack supplied the helper definition: it enables RLS on newly created public tables through an event trigger. Jack approved removing app execute permissions. The prepared follow-up is supabase/003_helper_permissions.sql; Jack ran it successfully and refreshed Security Advisor. Both helper warnings disappeared; only the reviewed, intentional authenticated `submit_review` warning remains. Four isolated PGlite checks passed: anon/authenticated cannot execute after revocation, the owner retains access, and automatic RLS still works on a newly created table.
 
-Email-code login remains the intended simple flow: enter a PCC email, receive a code, enter it in BYE. No student password, profile page, or account-management screens are required. Supabase maintains the user identity behind the scenes. This verifies control of a school mailbox, not current enrollment or attendance in a particular class. The sibling website repository now has a locally implemented owner-only `/reviews/` form and same-origin Pages API. The UI uses real email-code authentication, short-lived HttpOnly cookies, catalog searches and the existing submit_review RPC. Local fixture tests passed, and Jack completed a real email-code submission. Administrator cleanup confirmation and hosted preview deployment remain pending. Dashboard template/settings have not been changed by the agent. See `BYE_website/docs/REVIEW_SUBMISSION.md` for setup and `REVIEW_VERIFICATION.md` for evidence.
+Email-code login remains the intended simple flow: enter a PCC email, receive a code, enter it in BYE. No student password, profile page, or account-management screens are required. Supabase maintains the user identity behind the scenes. This verifies control of a school mailbox, not current enrollment or attendance in a particular class. The sibling website repository now has a locally implemented owner-only `/reviews/` form and same-origin Pages API. The UI uses real email-code authentication, short-lived HttpOnly cookies, catalog searches and the existing submit_review RPC. Local fixture tests passed, and Jack completed a real email-code submission. Administrator cleanup confirmation and hosted preview deployment remain pending. Dashboard template/settings have not been changed by the agent. See `BYE_website/docs/reviews/REVIEW_SUBMISSION.md` for setup and [review verification](../../../BYE_website/docs/reviews/REVIEW_VERIFICATION.md) for evidence.
 
 
 ## Plain language guide
@@ -203,4 +203,4 @@ are reused; no migration or live write was made for this integration. AI summari
 and statistical comparisons remain disabled. Real local PCC reads and BYE catalog
 reads passed; RMP access and hosted rollout remain pending. The earlier test review
 is no longer publicly visible; administrator confirmation of its deletion is
-still needed. See the website repo’s docs/LIVE_APP_PREVIEW.md.
+still needed. See the website repo’s docs/web-app/LIVE_APP_PREVIEW.md.
