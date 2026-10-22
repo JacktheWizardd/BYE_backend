@@ -7,11 +7,21 @@
     "node": ">=22.16"
   },
   "scripts": {
-    "typecheck": "tsc --project packages/api-contracts/tsconfig.json",
+    "typecheck": "tsc --project tsconfig.backend.json",
     "contracts:check": "node packages/api-contracts/export.mjs --check",
-    "contracts:export": "node packages/api-contracts/export.mjs"
+    "contracts:export": "node packages/api-contracts/export.mjs",
+    "test": "node --import tsx --test services/web-api/tests/*.test.ts packages/source-domain/tests/*.test.ts",
+    "test:runtime": "node --import tsx scripts/runtime-acceptance.mts && node --import tsx scripts/review-runtime-acceptance.mts",
+    "dev:fixtures": "node --import tsx scripts/fixture-server.ts",
+    "build:check": "node scripts/build-backend.mjs",
+    "verify:pcc": "node scripts/probe-pcc.mjs"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "@cloudflare/workers-types": "4.20251011.0",
+    "@types/node": "24.10.0",
+    "miniflare": "4.20251011.1",
+    "tsx": "4.20.6",
+    "wrangler": "4.45.0"
   }
 }

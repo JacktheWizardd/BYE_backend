@@ -1,0 +1,31 @@
+{
+  "name": "bye-web-api-preview",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-15",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "LIVE_APP_ENABLED": "false",
+    "REVIEWS_ENABLED": "false",
+    "REVIEW_ACCESS": "students"
+  },
+  "env": {
+    "preview": {
+      "name": "bye-web-api-preview",
+      "vars": {
+        "LIVE_APP_ENABLED": "false",
+        "REVIEWS_ENABLED": "false",
+        "REVIEW_ACCESS": "students"
+      }
+    },
+    "production": {
+      "name": "bye-web-api-production",
+      "vars": {
+        "LIVE_APP_ENABLED": "false",
+        "REVIEWS_ENABLED": "true",
+        "REVIEW_ACCESS": "students"
+      }
+    }
+  }
+}

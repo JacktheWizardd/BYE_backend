@@ -21,7 +21,7 @@ for (const file of files) {
 const packageInfo = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
 delete packageInfo.scripts
 outputs.set('package.json', Buffer.from(JSON.stringify(packageInfo, null, 2) + '\n'))
-const manifest = { repository: 'JacktheWizardd/BYE_Before_You_Enroll', package: '@bye/contracts', version: '1.0.0-preview.1', files: hashes }
+const manifest = { repository: 'JacktheWizardd/BYE_backend', package: '@bye/contracts', version: '1.0.0-preview.1', files: hashes }
 outputs.set('SOURCE.json', Buffer.from(JSON.stringify(manifest, null, 2) + '\n'))
 for (const [file, expected] of outputs) {
   const out = path.join(target, file)

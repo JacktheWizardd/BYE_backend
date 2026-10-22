@@ -1,0 +1,303 @@
+{
+  "courses": [
+    {
+      "subject": "MATH",
+      "number": "5A",
+      "key": "MATH5A",
+      "display": "MATH 5A",
+      "matchingKey": "MATH5A"
+    },
+    {
+      "subject": "ETH",
+      "number": "014",
+      "key": "ETH014",
+      "display": "ETH 014",
+      "matchingKey": "ETH14"
+    },
+    {
+      "subject": "POLS",
+      "number": "C1000",
+      "key": "POLSC1000",
+      "display": "POLS C1000",
+      "matchingKey": "POLSC1000"
+    }
+  ],
+  "suggestions": [
+    {
+      "course": {
+        "subject": "MATH",
+        "number": "5A",
+        "key": "MATH5A",
+        "display": "MATH 5A",
+        "matchingKey": "MATH5A"
+      },
+      "title": "SINGLE VARIABLE CALCULUS I"
+    }
+  ],
+  "resolved": {
+    "subject": "MATH",
+    "number": "5A",
+    "key": "MATH5A",
+    "display": "MATH 5A",
+    "matchingKey": "MATH5A"
+  },
+  "professors": [
+    {
+      "id": "calvin ostrowski",
+      "name": "Calvin Ostrowski",
+      "subject": "MATH",
+      "state": "pending",
+      "candidates": [],
+      "sections": [
+        {
+          "crn": "62131",
+          "days": [
+            "Tue",
+            "Thu"
+          ],
+          "details": {
+            "termPart": "",
+            "campus": "",
+            "units": ""
+          },
+          "title": "SINGLE VARIABLE CALCULUS I",
+          "start": "2026-08-24 00:00:00",
+          "end": "2026-12-12 00:00:00",
+          "status": "O",
+          "formats": [
+            "L"
+          ],
+          "meetings": [
+            "Tue, Thu 10:30 AM – 12:55 PM D 110"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "desmond achterberg",
+      "name": "Desmond Achterberg",
+      "subject": "MATH",
+      "state": "pending",
+      "candidates": [],
+      "sections": [
+        {
+          "crn": "62110",
+          "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu"
+          ],
+          "details": {
+            "termPart": "",
+            "campus": "",
+            "units": ""
+          },
+          "title": "SINGLE VARIABLE CALCULUS I",
+          "start": "2026-08-24 00:00:00",
+          "end": "2026-12-12 00:00:00",
+          "status": "C",
+          "formats": [
+            "L"
+          ],
+          "meetings": [
+            "Mon, Tue, Wed, Thu 7:00 AM – 8:05 AM D 201"
+          ]
+        },
+        {
+          "crn": "62112",
+          "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu"
+          ],
+          "details": {
+            "termPart": "",
+            "campus": "",
+            "units": ""
+          },
+          "title": "SINGLE VARIABLE CALCULUS I",
+          "start": "2026-08-24 00:00:00",
+          "end": "2026-12-12 00:00:00",
+          "status": "O",
+          "formats": [
+            "L"
+          ],
+          "meetings": [
+            "Mon, Tue, Wed, Thu 8:15 AM – 9:20 AM D 201"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lena whitcombe",
+      "name": "Lena Whitcombe",
+      "subject": "MATH",
+      "state": "pending",
+      "candidates": [],
+      "sections": [
+        {
+          "crn": "62118",
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "details": {
+            "termPart": "",
+            "campus": "",
+            "units": ""
+          },
+          "title": "SINGLE VARIABLE CALCULUS I",
+          "start": "2026-08-24 00:00:00",
+          "end": "2026-12-12 00:00:00",
+          "status": "O",
+          "formats": [
+            "L"
+          ],
+          "meetings": [
+            "Mon, Wed 5:00 PM – 7:25 PM D 304"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "noor haddadin",
+      "name": "Noor Haddadin",
+      "subject": "MATH",
+      "state": "pending",
+      "candidates": [],
+      "sections": [
+        {
+          "crn": "62125",
+          "days": [
+            "Tue",
+            "Thu"
+          ],
+          "details": {
+            "termPart": "",
+            "campus": "",
+            "units": ""
+          },
+          "title": "SINGLE VARIABLE CALCULUS I",
+          "start": "2026-08-24 00:00:00",
+          "end": "2026-12-12 00:00:00",
+          "status": "O",
+          "formats": [
+            "OL"
+          ],
+          "meetings": [
+            "Tue, Thu 6:30 PM – 8:55 PM Online SYNCH Zoom"
+          ]
+        }
+      ]
+    }
+  ],
+  "eligible": [
+    {
+      "id": "7201",
+      "firstName": "Lena",
+      "lastName": "Whitcombe",
+      "school": "Pasadena City College",
+      "schoolID": 2649,
+      "department": "Mathematics",
+      "rating": 4.6,
+      "difficulty": 2.9,
+      "ratingCount": 18,
+      "wouldTakeAgain": 90,
+      "courseCounts": [
+        {
+          "label": "MATH5A",
+          "count": 7
+        },
+        {
+          "label": "MATH4",
+          "count": 3
+        }
+      ],
+      "reviews": [
+        {
+          "id": "demo-7201-1",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 2,
+          "date": "2026-09-28",
+          "text": "Night class that never feels long. Lots of worked examples. Really cares whether students understand, and it shows in office hours."
+        },
+        {
+          "id": "demo-7201-2",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 5,
+          "date": "2026-08-25",
+          "text": "Posts annotated lecture notes after every class. Would take again without thinking twice."
+        },
+        {
+          "id": "demo-7201-3",
+          "course": "MATH4",
+          "rating": 4,
+          "difficulty": 3,
+          "date": "2026-07-22",
+          "text": "Quizzes every Monday on the previous week. Clear expectations from day one, so there were no surprises at the end."
+        },
+        {
+          "id": "demo-7201-4",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 2,
+          "date": "2026-06-19",
+          "text": "Partial credit on exams if your setup is right. One of the best classes I took at PCC. Go to every lecture and you will be fine."
+        },
+        {
+          "id": "demo-7201-5",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 4,
+          "date": "2026-05-16",
+          "text": "Great if you work during the day. Really cares whether students understand, and it shows in office hours."
+        },
+        {
+          "id": "demo-7201-6",
+          "course": "MATH4",
+          "rating": 3,
+          "difficulty": 3,
+          "date": "2026-04-13",
+          "text": "Night class that never feels long. Lots of worked examples. Not the easiest, not the hardest. Start assignments early."
+        },
+        {
+          "id": "demo-7201-7",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 2,
+          "date": "2026-03-10",
+          "text": "Posts annotated lecture notes after every class. Clear expectations from day one, so there were no surprises at the end."
+        },
+        {
+          "id": "demo-7201-8",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 3,
+          "date": "2026-02-07",
+          "text": "Quizzes every Monday on the previous week. One of the best classes I took at PCC. Go to every lecture and you will be fine."
+        },
+        {
+          "id": "demo-7201-9",
+          "course": "MATH4",
+          "rating": 4,
+          "difficulty": 3,
+          "date": "2026-01-04",
+          "text": "Partial credit on exams if your setup is right. Really cares whether students understand, and it shows in office hours."
+        },
+        {
+          "id": "demo-7201-10",
+          "course": "MATH5A",
+          "rating": 5,
+          "difficulty": 2,
+          "date": "2025-09-27",
+          "text": "Great if you work during the day. Would take again without thinking twice."
+        }
+      ],
+      "coverage": {}
+    }
+  ]
+}
