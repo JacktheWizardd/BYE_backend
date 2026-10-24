@@ -48,3 +48,21 @@ The landing download flags, ordinary download redirects, holding page/CSS and co
 ## Release preparation after review
 
 Do not publish until platform gates in the verification note are satisfied. The website staging tool now accepts `--dist dist/retirement --appcast dist/retirement/appcast.xml`; it still only copies files and never commits or deploys. This command has not been run against the website here. Keep Windows readiness false until its exact portable ZIP is hosted and native launch/uninstall acceptance is recorded. A push to the production website can deploy it and needs a separate explicit request.
+
+## Authorized publication record — October 23
+
+After staging the combined RMP-removal/shutdown release, the owner explicitly approved publishing Mac and requested Windows publication too. Earlier unpublished/hold statements above describe preparation; this new instruction supersedes the publication hold without changing native test evidence. Windows remains unverified on a real Windows machine, and the reported existing uninstaller integrity error is unresolved. The original verification note and generated package report are historical evidence and remain unchanged.
+
+Publish only the final Windows portable ZIP and checksum to public BYE-releases v0.5.1. SHA-256: `8116d58d617ae0cc1bb29c32c0f1ce630c5ffbc6e847d421629eaf17dc305cb2`. Extract into a fresh folder; this package does not automatically replace or clean the old installation. Do not publish the superseded cleanup prototype. Mac's final signed ZIP/feed were staged using the release script. Website metadata enables only the exact retirement download; all public features/APIs remain closed.
+
+GitHub Desktop Summary:
+```text
+Record authorized Mac and Windows retirement publication
+```
+
+Description:
+```text
+Record the owner's authorization to publish the prepared 0.5.1 retirement builds on Mac and Windows. Preserve earlier verification evidence and explicitly retain the Windows native-testing limitation and reported existing uninstaller integrity error. Windows uses the checked portable ZIP, not a new installer; Mac uses the signed Sparkle feed.
+
+Rechecked final artifact checksums and ZIP integrity. No application code, service keys, databases or unrelated files changed in this follow-up.
+```
