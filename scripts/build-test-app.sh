@@ -2,6 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 . ./scripts/beta-version.sh
+if [ "$BETA_VERSION" = 0.5.1 ]; then exec ./scripts/build-retirement-app.sh --test; fi
 . ./scripts/schedule-api-config.sh
 . ./scripts/update-config.sh
 # Updates stay off in test builds. BYE_TEST_UPDATES=1 writes the release feed and key so Settings → Updates and

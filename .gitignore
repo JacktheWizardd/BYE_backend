@@ -53,3 +53,9 @@ apps/web/dist/
 test-results/
 .dev.vars*
 .env*
+
+# Minimal retirement tooling outputs.
+/apps/retirement/node_modules/
+/apps/retirement/stage/
+
+/test/.previous-retirement-*/

@@ -1,0 +1,2 @@
+const {contextBridge,ipcRenderer}=require('electron')
+contextBridge.exposeInMainWorld('retirement',Object.freeze({info:()=>ipcRenderer.invoke('retirement:info'),check:()=>ipcRenderer.invoke('retirement:check'),openUpdate:()=>ipcRenderer.invoke('retirement:open-update'),showFolder:()=>ipcRenderer.invoke('retirement:show-folder'),uninstall:()=>ipcRenderer.invoke('retirement:uninstall'),quit:()=>ipcRenderer.invoke('retirement:quit')}))

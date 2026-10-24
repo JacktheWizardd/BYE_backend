@@ -1,0 +1,21 @@
+{
+  "name": "bye-retirement",
+  "version": "0.5.1",
+  "private": true,
+  "description": "Minimal BYE retirement application",
+  "author": "BYE contributors",
+  "main": "main.cjs",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "typecheck": "node --check main.cjs && node --check preload.cjs && node --check renderer.js && node --check policy.cjs && node --check uninstall.cjs",
+    "package:win": "node build-windows.mjs"
+  },
+  "devDependencies": {
+    "@electron/asar": "4.0.1",
+    "electron": "44.7.0",
+    "electron-builder": "26.0.12"
+  },
+  "engines": {
+    "node": ">=22.16"
+  }
+}

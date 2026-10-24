@@ -147,3 +147,11 @@ Run `pnpm test`, `pnpm typecheck`, `pnpm build:check` (dry-runs only), and
 `pnpm test:runtime <absolute-frontend-relocation-directory>` for fixture acceptance
 through the real frontend Pages forwarder. See `services/web-api/README.md`.
 Merging these sources does not deploy Workers, rebind Pages or install production SQL.
+
+## Retirement preparation — October 23, 2026
+
+The owner requested unpublished BYE 0.5.1 (Mac build 11) retirement builds. Canonical Mac build/test/package scripts route this version to the separate `BYERetirement` Swift product; it links only Sparkle and platform UI frameworks. `apps/retirement` is the separate minimal Windows application, with no runtime npm dependencies or legacy application/AI imports. Existing SwiftUI/Electron source, old downloads and backend state remain intact.
+
+The latest owner decision is a shutdown notice with manual removal, not self-deletion. Windows also has an explicit Uninstall BYE button that opens the registered, interactive BYE uninstaller after validating its identity/path/arguments; otherwise it opens Installed apps. No silent or delete-app-data flags are supplied. Portable delivery never overlays or cleans an old installation automatically.
+
+Outputs are ignored under `dist/retirement`; the stable local test app remains `test/BYE Test.app`. The tracked appcast and website release assets are not advanced. The owner authorized local app and website source commits on October 23; release artifacts remain unpublished and no push or deployment is authorized. Actual Windows launch/uninstall acceptance is a release blocker. See `docs/verification/retirement-0.5.1-2026-10-23.md` and `docs/releases/RETIREMENT_HANDOFF.md`.

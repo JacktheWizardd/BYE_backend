@@ -2,6 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 . ./scripts/beta-version.sh
+if [ "$BETA_VERSION" = 0.5.1 ]; then exec ./scripts/package-retirement.sh; fi
 . ./scripts/update-config.sh
 APP="$PWD/dist/$BETA_APP_NAME.app"
 DMG="$PWD/dist/BYE-$BETA_VERSION-AppleSilicon.dmg"

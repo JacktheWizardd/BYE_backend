@@ -2,6 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 . ./scripts/beta-version.sh
+if [ "$BETA_VERSION" = 0.5.1 ]; then exec ./scripts/build-retirement-app.sh; fi
 . ./scripts/update-config.sh
 . ./scripts/schedule-api-config.sh
 # A release without the application key could not load any schedules.

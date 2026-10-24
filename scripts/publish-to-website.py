@@ -157,9 +157,11 @@ def main() -> int:
     parser.add_argument("website", type=pathlib.Path, help="website repository folder")
     parser.add_argument("--assets", type=pathlib.Path, help="static-assets folder, relative to the website folder")
     parser.add_argument("--downloads", default="downloads", help="folder for the DMG inside the assets folder")
+    parser.add_argument("--dist", type=pathlib.Path, default=ROOT / "dist", help="artifact folder; retirement uses dist/retirement")
+    parser.add_argument("--appcast", type=pathlib.Path, default=ROOT / "appcast.xml", help="reviewed feed; retirement uses dist/retirement/appcast.xml")
     args = parser.parse_args()
     try:
-        copied = publish(args.website.resolve(), assets=args.assets, downloads=args.downloads)
+        copied = publish(args.website.resolve(), assets=args.assets, downloads=args.downloads, dist=args.dist.resolve(), appcast=args.appcast.resolve())
     except (PublishError, OSError, ValueError, ET.ParseError) as error:
         print(f"Publish failed: {error}", file=sys.stderr)
         return 1

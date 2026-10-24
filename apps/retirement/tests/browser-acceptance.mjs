@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict'
+import {createServer} from 'node:http'
+import {readFile,mkdir} from 'node:fs/promises'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
+import path from 'node:path'
+// Test tooling only; neither this script nor Playwright enters the packaged app.
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
+const require=createRequire(path.resolve(root,'../cross-platform/package.json'))
+const {chromium,webkit}=require('playwright'),out=path.resolve(root,'../../dist/retirement/verification/windows-renderer')
+await mkdir(out,{recursive:true})
+const server=createServer(async(req,res)=>{try{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!file.startsWith(root+path.sep))throw Error('invalid path');res.setHeader('Content-Type',file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':file.endsWith('.ttf')?'font/ttf':'text/html');res.end(await readFile(file))}catch{res.writeHead(404);res.end()}})
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port
+try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){const browser=await engine.launch();try{for(const width of [390,1280]){const context=await browser.newContext({viewport:{width,height:844}});const external=[];await context.route('**/*',route=>{if(!route.request().url().startsWith(origin+'/')){external.push(route.request().url());return route.abort()}return route.continue()});const page=await context.newPage();await page.addInitScript(()=>{window.retirement={info:async()=>({version:'0.5.1'}),check:async()=>({available:false,version:'0.5.1'}),openUpdate:async()=>{},showFolder:async()=>{},quit:async()=>{},uninstall:async()=>({mode:'settings'})}});await page.goto(origin+'/index.html');await page.getByRole('heading',{name:'BYE has shut down.'}).waitFor();await page.getByRole('button',{name:'Check for updates'}).click();await page.getByRole('status').filter({hasText:'You have the latest version.'}).waitFor();await page.getByRole('button',{name:'Uninstall BYE',exact:true}).click();await page.getByRole('status').filter({hasText:'Installed apps is open.'}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);for(const height of await page.locator('button:visible').evaluateAll(buttons=>buttons.map(b=>b.getBoundingClientRect().height)))assert.ok(height>=44);assert.deepEqual(external,[]);await page.screenshot({path:path.join(out,name+'-'+width+'.png'),fullPage:true});await context.close();console.log(name+' '+width+': retirement controls, uninstall fallback, no overflow and 44px targets passed (browser fixture, not Windows acceptance)')}}finally{await browser.close()}}}finally{await new Promise(resolve=>server.close(resolve))}
